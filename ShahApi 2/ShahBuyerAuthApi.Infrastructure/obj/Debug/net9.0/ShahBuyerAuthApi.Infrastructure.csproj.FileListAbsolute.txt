@@ -1,0 +1,57 @@
+/Users/fakhrifarajov/RiderProjects/ShahApi/ShahBuyerAuthApi.Infrastructure/bin/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.deps.json
+/Users/fakhrifarajov/RiderProjects/ShahApi/ShahBuyerAuthApi.Infrastructure/bin/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.runtimeconfig.json
+/Users/fakhrifarajov/RiderProjects/ShahApi/ShahBuyerAuthApi.Infrastructure/bin/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.dll
+/Users/fakhrifarajov/RiderProjects/ShahApi/ShahBuyerAuthApi.Infrastructure/bin/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.pdb
+/Users/fakhrifarajov/RiderProjects/ShahApi/ShahBuyerAuthApi.Infrastructure/bin/Debug/net9.0/ShahBuyerAuthApi.Contracts.dll
+/Users/fakhrifarajov/RiderProjects/ShahApi/ShahBuyerAuthApi.Infrastructure/bin/Debug/net9.0/ShahBuyerAuthApi.Data.dll
+/Users/fakhrifarajov/RiderProjects/ShahApi/ShahBuyerAuthApi.Infrastructure/bin/Debug/net9.0/ShahBuyerAuthApi.Contracts.pdb
+/Users/fakhrifarajov/RiderProjects/ShahApi/ShahBuyerAuthApi.Infrastructure/bin/Debug/net9.0/ShahBuyerAuthApi.Data.pdb
+/Users/fakhrifarajov/RiderProjects/ShahApi/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.csproj.AssemblyReference.cache
+/Users/fakhrifarajov/RiderProjects/ShahApi/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+/Users/fakhrifarajov/RiderProjects/ShahApi/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.AssemblyInfoInputs.cache
+/Users/fakhrifarajov/RiderProjects/ShahApi/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.AssemblyInfo.cs
+/Users/fakhrifarajov/RiderProjects/ShahApi/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.csproj.CoreCompileInputs.cache
+/Users/fakhrifarajov/RiderProjects/ShahApi/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ShahBuye.9BAAD77A.Up2Date
+/Users/fakhrifarajov/RiderProjects/ShahApi/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.dll
+/Users/fakhrifarajov/RiderProjects/ShahApi/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/refint/ShahBuyerAuthApi.Infrastructure.dll
+/Users/fakhrifarajov/RiderProjects/ShahApi/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.pdb
+/Users/fakhrifarajov/RiderProjects/ShahApi/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.genruntimeconfig.cache
+/Users/fakhrifarajov/RiderProjects/ShahApi/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ref/ShahBuyerAuthApi.Infrastructure.dll
+/Users/fakhrifarajov/Desktop/Work/ShahApi/ShahBuyerAuthApi.Infrastructure/bin/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.deps.json
+/Users/fakhrifarajov/Desktop/Work/ShahApi/ShahBuyerAuthApi.Infrastructure/bin/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.runtimeconfig.json
+/Users/fakhrifarajov/Desktop/Work/ShahApi/ShahBuyerAuthApi.Infrastructure/bin/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.dll
+/Users/fakhrifarajov/Desktop/Work/ShahApi/ShahBuyerAuthApi.Infrastructure/bin/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.pdb
+/Users/fakhrifarajov/Desktop/Work/ShahApi/ShahBuyerAuthApi.Infrastructure/bin/Debug/net9.0/ShahBuyerAuthApi.Contracts.dll
+/Users/fakhrifarajov/Desktop/Work/ShahApi/ShahBuyerAuthApi.Infrastructure/bin/Debug/net9.0/ShahBuyerAuthApi.Data.dll
+/Users/fakhrifarajov/Desktop/Work/ShahApi/ShahBuyerAuthApi.Infrastructure/bin/Debug/net9.0/ShahBuyerAuthApi.Contracts.pdb
+/Users/fakhrifarajov/Desktop/Work/ShahApi/ShahBuyerAuthApi.Infrastructure/bin/Debug/net9.0/ShahBuyerAuthApi.Data.pdb
+/Users/fakhrifarajov/Desktop/Work/ShahApi/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.csproj.AssemblyReference.cache
+/Users/fakhrifarajov/Desktop/Work/ShahApi/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+/Users/fakhrifarajov/Desktop/Work/ShahApi/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.AssemblyInfoInputs.cache
+/Users/fakhrifarajov/Desktop/Work/ShahApi/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.AssemblyInfo.cs
+/Users/fakhrifarajov/Desktop/Work/ShahApi/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.csproj.CoreCompileInputs.cache
+/Users/fakhrifarajov/Desktop/Work/ShahApi/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ShahBuye.9BAAD77A.Up2Date
+/Users/fakhrifarajov/Desktop/Work/ShahApi/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.dll
+/Users/fakhrifarajov/Desktop/Work/ShahApi/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/refint/ShahBuyerAuthApi.Infrastructure.dll
+/Users/fakhrifarajov/Desktop/Work/ShahApi/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.pdb
+/Users/fakhrifarajov/Desktop/Work/ShahApi/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.genruntimeconfig.cache
+/Users/fakhrifarajov/Desktop/Work/ShahApi/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ref/ShahBuyerAuthApi.Infrastructure.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/bin/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.deps.json
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/bin/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.runtimeconfig.json
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/bin/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/bin/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.pdb
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/bin/Debug/net9.0/ShahBuyerAuthApi.Contracts.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/bin/Debug/net9.0/ShahBuyerAuthApi.Data.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/bin/Debug/net9.0/ShahBuyerAuthApi.Contracts.pdb
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/bin/Debug/net9.0/ShahBuyerAuthApi.Data.pdb
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.csproj.AssemblyReference.cache
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.AssemblyInfoInputs.cache
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.AssemblyInfo.cs
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.csproj.CoreCompileInputs.cache
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ShahBuye.9BAAD77A.Up2Date
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/refint/ShahBuyerAuthApi.Infrastructure.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.pdb
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.genruntimeconfig.cache
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ref/ShahBuyerAuthApi.Infrastructure.dll

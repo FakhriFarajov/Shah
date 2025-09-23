@@ -1,0 +1,6 @@
+@ShahBuyerAuthApi.Presentation_HostAddress = http://localhost:5258
+
+GET {{ShahBuyerAuthApi.Presentation_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

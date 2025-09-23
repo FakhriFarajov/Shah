@@ -1,0 +1,43 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import './App.css'
+import Login from './pages/login'
+import Reg from './pages/register'
+import LandingPage from './pages/landingPage'
+import Main from './pages/main'
+import SellerProfile from './pages/profile'
+import ProductsPage from './pages/productsPage'
+import OrdersPage from './pages/orders'
+import ReportPage from './pages/report'
+import ReviewsPage from './pages/reviews'
+import { Toaster } from 'sonner';
+
+
+function App() {
+
+  return (
+    <div className="App">
+      <BrowserRouter>
+        <Routes>
+          <Route path='/main' element={<LandingPage />} />
+          <Route path='/login' element={<Login />} />
+          <Route path='/register' element={<Reg />} />
+          <Route path='/' element={<LandingPage />} />
+          <Route path='/home' element={<Main />} />
+          <Route path='/profile' element={<SellerProfile />} />
+          <Route path='/products' element={<ProductsPage />} />
+          <Route path='/orders' element={<OrdersPage />} />
+          <Route path='/report' element={<ReportPage />} />
+          <Route path='/reviews' element={<ReviewsPage />} />
+        </Routes>
+
+      </BrowserRouter>
+      <Toaster
+        position="top-right"
+        richColors
+      />
+
+    </div>
+  )
+}
+
+export default App

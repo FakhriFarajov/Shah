@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ShahBuyerAuthApi", "ShahBuyerAuthApi", "{2BA06D93-5980-40B4-BF14-38333D1E49F3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ShahBuyerFeaturesApi", "ShahBuyerFeaturesApi", "{F70488FF-D8EC-473E-9BC3-4743FDBAF68B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ShahSellerAuthApi", "ShahSellerAuthApi", "{D9B128D1-EF26-44B3-AB2D-AC8B34D74263}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ShahSellerFeaturesApi", "ShahSellerFeaturesApi", "{590C239D-0D65-419D-A5D7-864AFDE743EE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShahBuyerAuthApi.Presentation", "ShahBuyerAuthApi.Presentation\ShahBuyerAuthApi.Presentation.csproj", "{B4BA7396-1ACB-4FFB-A25D-69B38A80779C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShahBuyerAuthApi.Application", "ShahBuyerAuthApi.Application\ShahBuyerAuthApi.Application.csproj", "{7CC4D6EF-AB13-4EA1-A014-EE260D7AF62D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShahBuyerAuthApi.Contracts", "ShahBuyerAuthApi.Contracts\ShahBuyerAuthApi.Contracts.csproj", "{45E3E4DF-32F2-4ADA-AA27-B75B940A4B23}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShahBuyerAuthApi.Data", "ShahBuyerAuthApi.Data\ShahBuyerAuthApi.Data.csproj", "{8745CB54-9A5E-47B8-89E2-6311958BCB34}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShahBuyerAuthApi.Infrastructure", "ShahBuyerAuthApi.Infrastructure\ShahBuyerAuthApi.Infrastructure.csproj", "{F0B35A88-3F35-4B9E-A719-F19E40EBC604}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B4BA7396-1ACB-4FFB-A25D-69B38A80779C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4BA7396-1ACB-4FFB-A25D-69B38A80779C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4BA7396-1ACB-4FFB-A25D-69B38A80779C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4BA7396-1ACB-4FFB-A25D-69B38A80779C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7CC4D6EF-AB13-4EA1-A014-EE260D7AF62D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7CC4D6EF-AB13-4EA1-A014-EE260D7AF62D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7CC4D6EF-AB13-4EA1-A014-EE260D7AF62D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7CC4D6EF-AB13-4EA1-A014-EE260D7AF62D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{45E3E4DF-32F2-4ADA-AA27-B75B940A4B23}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{45E3E4DF-32F2-4ADA-AA27-B75B940A4B23}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{45E3E4DF-32F2-4ADA-AA27-B75B940A4B23}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{45E3E4DF-32F2-4ADA-AA27-B75B940A4B23}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8745CB54-9A5E-47B8-89E2-6311958BCB34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8745CB54-9A5E-47B8-89E2-6311958BCB34}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8745CB54-9A5E-47B8-89E2-6311958BCB34}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8745CB54-9A5E-47B8-89E2-6311958BCB34}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F0B35A88-3F35-4B9E-A719-F19E40EBC604}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F0B35A88-3F35-4B9E-A719-F19E40EBC604}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F0B35A88-3F35-4B9E-A719-F19E40EBC604}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F0B35A88-3F35-4B9E-A719-F19E40EBC604}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B4BA7396-1ACB-4FFB-A25D-69B38A80779C} = {2BA06D93-5980-40B4-BF14-38333D1E49F3}
+		{7CC4D6EF-AB13-4EA1-A014-EE260D7AF62D} = {2BA06D93-5980-40B4-BF14-38333D1E49F3}
+		{45E3E4DF-32F2-4ADA-AA27-B75B940A4B23} = {2BA06D93-5980-40B4-BF14-38333D1E49F3}
+		{8745CB54-9A5E-47B8-89E2-6311958BCB34} = {2BA06D93-5980-40B4-BF14-38333D1E49F3}
+		{F0B35A88-3F35-4B9E-A719-F19E40EBC604} = {2BA06D93-5980-40B4-BF14-38333D1E49F3}
+	EndGlobalSection
+EndGlobal

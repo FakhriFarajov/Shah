@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CopilotDiffPersistence">
+    <option name="pendingDiffs">
+      <map>
+        <entry key="$PROJECT_DIR$/ShahBuyerAuthApi.Contracts/DTOs/Request/AddressRequestDto.cs">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/ShahBuyerAuthApi.Contracts/DTOs/Request/AddressRequestDto.cs" />
+              <option name="originalContent" value="namespace ShahBuyerAuthApi.Contracts.DTOs.Request;&#10;&#10;public class AddressRequestDto&#10;{&#10;    public string Street { get; set; }&#10;    public string City { get; set; }&#10;    public string State { get; set; }&#10;    public string PostalCode { get; set; }&#10;    public Country Country { get; set; } // Changed from int to Country enum&#10;}" />
+              <option name="updatedContent" value="using ShahBuyerAuthApi.Data.Enums;&#10;&#10;namespace ShahBuyerAuthApi.Contracts.DTOs.Request;&#10;&#10;public class AddressRequestDto&#10;{&#10;    public string Street { get; set; }&#10;    public string City { get; set; }&#10;    public string State { get; set; }&#10;    public string PostalCode { get; set; }&#10;    public Country Country { get; set; } // Changed from int to Country enum&#10;}" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/ShahBuyerAuthApi.Contracts/DTOs/Request/BuyerProfileUpdateDto.cs">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/ShahBuyerAuthApi.Contracts/DTOs/Request/BuyerProfileUpdateDto.cs" />
+              <option name="originalContent" value="using ShahBuyerAuthApi.Contracts.DTOs.Request;&#10;using ShahBuyerAuthApi.Data.Enums;&#10;&#10;namespace ShahBuyerAuthApi.Contracts.DTOs.Request&#10;{&#10;    public class BuyerProfileUpdateDto&#10;    {&#10;        public string UserId { get; set; }&#10;        public string Name { get; set; }&#10;        public string Surname { get; set; }&#10;        public string Phone { get; set; }&#10;        public Country Country { get; set; }&#10;        public AddressRequestDto Address { get; set; }&#10;    }&#10;}&#10;" />
+              <option name="updatedContent" value="using ShahBuyerAuthApi.Contracts.DTOs.Request;&#10;using ShahBuyerAuthApi.Data.Enums;&#10;&#10;namespace ShahBuyerAuthApi.Contracts.DTOs.Request&#10;{&#10;    public class BuyerProfileUpdateDto&#10;    {&#10;        public string? UserId { get; set; }&#10;        public string? Name { get; set; }&#10;        public string? Surname { get; set; }&#10;        public string? Phone { get; set; }&#10;        public Country? Country { get; set; }&#10;        public AddressRequestDto? Address { get; set; }&#10;    }&#10;}" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/ShahBuyerAuthApi.Contracts/DTOs/Request/UpdateAddressRequestDTO.cs">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/ShahBuyerAuthApi.Contracts/DTOs/Request/UpdateAddressRequestDTO.cs" />
+              <option name="updatedContent" value="namespace ShahBuyerAuthApi.Contracts.DTOs.Request;&#10;&#10;public class UpdateAddressRequestDTO&#10;{&#10;    public string? Street { get; set; }&#10;    public string? City { get; set; }&#10;    public string? State { get; set; }&#10;    public string? PostalCode { get; set; }&#10;    public int? CountryCode { get; set; }&#10;}&#10;" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/ShahBuyerAuthApi.Contracts/DTOs/Response/AddressResponseDTO.cs">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/ShahBuyerAuthApi.Contracts/DTOs/Response/AddressResponseDTO.cs" />
+              <option name="updatedContent" value="namespace ShahBuyerAuthApi.Contracts.DTOs.Response;&#10;&#10;public class AddressResponseDTO&#10;{&#10;    public string Id { get; set; }&#10;    public string Street { get; set; }&#10;    public string City { get; set; }&#10;    public string State { get; set; }&#10;    public string PostalCode { get; set; }&#10;    public int Country { get; set; }&#10;    public string BuyerProfileId { get; set; }&#10;}&#10;" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/ShahBuyerAuthApi.Contracts/DTOs/Response/BuyerProfileResponseDTO.cs">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/ShahBuyerAuthApi.Contracts/DTOs/Response/BuyerProfileResponseDTO.cs" />
+              <option name="updatedContent" value="namespace ShahBuyerAuthApi.Contracts.DTOs.Response;&#10;&#10;public class BuyerProfileResponseDTO&#10;{&#10;    public string UserId { get; set; }&#10;    public string Name { get; set; }&#10;    public string Surname { get; set; }&#10;    public string Phone { get; set; }&#10;    public AddressResponseDTO Address { get; set; }&#10;}&#10;" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/ShahBuyerAuthApi.Data/Enums/CountryCode.cs">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/ShahBuyerAuthApi.Data/Enums/CountryCode.cs" />
+              <option name="originalContent" value="&#10;" />
+              <option name="updatedContent" value="namespace ShahBuyerAuthApi.Data.Enums&#10;{&#10;    public enum CountryCode&#10;    {&#10;        Unknown = 0,&#10;        AZ = 1,&#10;        TR = 2,&#10;        US = 3,&#10;        UK = 4,&#10;        DE = 5,&#10;        FR = 6,&#10;        RU = 7,&#10;        CN = 8,&#10;        IN = 9,&#10;        Other = 99&#10;    }&#10;}" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/ShahBuyerAuthApi.Data/Models/BuyerProfile.cs">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/ShahBuyerAuthApi.Data/Models/BuyerProfile.cs" />
+              <option name="originalContent" value="namespace ShahBuyerAuthApi.Data.Models&#10;{&#10;    public class BuyerProfile&#10;    {&#10;        // Shared PK with User&#10;        public string UserId { get; set; } = null!;&#10;        public User User { get; set; } = null!;&#10;        &#10;        public string AddressId { get; set; } = null!;&#10;        public Address Address { get; set; } = null!;&#10;&#10;        public ICollection&lt;Favorite&gt; Favorites { get; set; } = new List&lt;Favorite&gt;();&#10;        public ICollection&lt;Order&gt; Orders { get; set; } = new List&lt;Order&gt;();&#10;        public ICollection&lt;Review&gt; Reviews { get; set; } = new List&lt;Review&gt;();&#10;        public ICollection&lt;CartItem&gt; CartItems { get; set; } = new List&lt;CartItem&gt;();&#10;        &#10;        public ICollection&lt;Payment&gt; Payments { get; set; } = new List&lt;Payment&gt;();&#10;    }&#10;}&#10;" />
+              <option name="updatedContent" value="namespace ShahBuyerAuthApi.Data.Models&#10;{&#10;    public class BuyerProfile&#10;    {&#10;        // Shared PK with User&#10;        public string UserId { get; set; } = null!;&#10;        public User User { get; set; } = null!;&#10;        &#10;        public string AddressId { get; set; } = null!;&#10;        public Address Address { get; set; } = null!;&#10;&#10;        public ICollection&lt;Favorite&gt; Favorites { get; set; } = new List&lt;Favorite&gt;();&#10;        public ICollection&lt;Order&gt; Orders { get; set; } = new List&lt;Order&gt;();&#10;        public ICollection&lt;Review&gt; Reviews { get; set; } = new List&lt;Review&gt;();&#10;        public ICollection&lt;CartItem&gt; CartItems { get; set; } = new List&lt;CartItem&gt;();&#10;        &#10;        public ICollection&lt;Payment&gt; Payments { get; set; } = new List&lt;Payment&gt;();&#10;    }&#10;}" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/ShahBuyerAuthApi.Data/NewDirectory1/Role.cs">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/ShahBuyerAuthApi.Data/NewDirectory1/Role.cs" />
+              <option name="updatedContent" value="using System.Collections.Generic;&#10;&#10;namespace ShahBuyerAuthApi.Data.Models&#10;{&#10;    public class Role&#10;    {&#10;        public string Id { get; set; } = Guid.NewGuid().ToString();&#10;        public string RoleName { get; set; }&#10;        public ICollection&lt;UserRole&gt; UserRoles { get; set; } = new List&lt;UserRole&gt;();&#10;    }&#10;}&#10;" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/ShahBuyerAuthApi.Data/NewDirectory1/UserRole.cs">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/ShahBuyerAuthApi.Data/NewDirectory1/UserRole.cs" />
+              <option name="originalContent" value="&#10;" />
+              <option name="updatedContent" value="namespace ShahBuyerAuthApi.Data.Models&#10;{&#10;    public class UserRole&#10;    {&#10;        public string UserId { get; set; }&#10;        public User User { get; set; }&#10;        public string RoleId { get; set; }&#10;        public Role Role { get; set; }&#10;    }&#10;}" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

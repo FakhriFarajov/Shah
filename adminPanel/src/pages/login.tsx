@@ -1,0 +1,11 @@
+import LoginForm from "@/components/custom/login-form/login-form";
+
+export default function Login() {
+    return (
+        <div className="flex items-center justify-center min-h-screen bg-gray-100">
+            <div className="w-full max-w-md p-8 ">
+                <LoginForm />
+            </div>
+        </div>
+    );
+}
