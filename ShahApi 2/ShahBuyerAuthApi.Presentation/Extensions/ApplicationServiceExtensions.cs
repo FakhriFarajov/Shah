@@ -24,11 +24,9 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IAccountService, AccountService>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IAuthService, AuthService>();
-        services.AddScoped<IAddressService, AddressService>();
-        services.AddScoped<IBuyerService, BuyerService.Application.Services.Classes.BuyerService>();
+        services.AddScoped<IBuyerService, BuyerService>();
         
         services.AddAutoMapper(ops => ops.AddProfile(typeof(MappingProfile)));
-        
         
         services.AddScoped<EmailSender>();
         services.AddSingleton<GlobalExceptionMiddleware>();

@@ -40,24 +40,6 @@ namespace ShahBuyerAuthApi.Infrastructure.MappingConfigurations
                 .ForMember(dest => dest.Reviews, opt => opt.Ignore())
                 .ForMember(dest => dest.CartItems, opt => opt.Ignore())
                 .ForMember(dest => dest.OrderPayment, opt => opt.Ignore());
-
-            // AddressRequestDTO -> Address
-            CreateMap<AddressRequestDTO, Address>()
-                .ForMember(dest => dest.Id, opt => opt.Ignore())
-                .ForMember(dest => dest.BuyerProfile, opt => opt.Ignore())
-                .ForMember(dest => dest.Warehouse, opt => opt.Ignore());
-
-            // UpdateBuyerRequestDTO -> User
-            CreateMap<UpsertBuyerRequestDTO, User>()
-                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
-
-            // UpdateBuyerRequestDTO -> BuyerProfile
-            CreateMap<UpsertBuyerRequestDTO, BuyerProfile>()
-                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
-
-            // UpdateAddressRequestDTO -> Address
-            CreateMap<UpsertAddressRequestDTO, Address>()
-                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
         }
 
         // -------------------------

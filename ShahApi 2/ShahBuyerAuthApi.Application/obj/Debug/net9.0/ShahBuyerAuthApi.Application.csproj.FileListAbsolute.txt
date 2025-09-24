@@ -55,3 +55,4 @@
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Application/obj/Debug/net9.0/refint/ShahBuyerAuthApi.Application.dll
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Application/obj/Debug/net9.0/ShahBuyerAuthApi.Application.pdb
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Application/obj/Debug/net9.0/ref/ShahBuyerAuthApi.Application.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Application/obj/Debug/net9.0/ShahBuyerAuthApi.Application.sourcelink.json

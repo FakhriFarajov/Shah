@@ -528,3 +528,4 @@
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Presentation/obj/Debug/net9.0/ref/ShahBuyerAuthApi.Presentation.dll
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Presentation/bin/Debug/net9.0/ShahBuyerAuthApi.Presentation.staticwebassets.runtime.json
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Presentation/obj/Debug/net9.0/compressed/4utobdsivj-wa34wv67c9.gz
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Presentation/obj/Debug/net9.0/ShahBuyerAuthApi.Presentation.sourcelink.json

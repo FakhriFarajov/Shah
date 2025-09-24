@@ -32,3 +32,4 @@
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Data/obj/Debug/net9.0/ShahBuyerAuthApi.Data.pdb
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Data/obj/Debug/net9.0/ref/ShahBuyerAuthApi.Data.dll
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Data/obj/Debug/net9.0/ShahBuyerAuthApi.Data.csproj.AssemblyReference.cache
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Data/obj/Debug/net9.0/ShahBuyerAuthApi.Data.sourcelink.json

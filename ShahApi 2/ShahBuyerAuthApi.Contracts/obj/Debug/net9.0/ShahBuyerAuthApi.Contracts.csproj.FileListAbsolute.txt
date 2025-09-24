@@ -31,3 +31,4 @@
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Contracts/obj/Debug/net9.0/refint/ShahBuyerAuthApi.Contracts.dll
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Contracts/obj/Debug/net9.0/ShahBuyerAuthApi.Contracts.pdb
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Contracts/obj/Debug/net9.0/ref/ShahBuyerAuthApi.Contracts.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Contracts/obj/Debug/net9.0/ShahBuyerAuthApi.Contracts.sourcelink.json
