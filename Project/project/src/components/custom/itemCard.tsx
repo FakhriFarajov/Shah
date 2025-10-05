@@ -73,11 +73,13 @@ export default function ProductCard({ product }: { product: any }) {
 
       {/* Product Image */}
       <CardHeader className="p-0" onClick={() => navigator(`/product/${product.id}`)}>
-        <img
-          src={product.images[0]?.url || "https://via.placeholder.com/300x200"}
-          alt={product.title}
-          className="w-full h-80 object-cover rounded-t-xl bg-gray-200"
-        />
+        <div className="w-full aspect-square overflow-hidden rounded-t-xl bg-gray-200">
+          <img
+            src={product.images[0]?.url || "https://via.placeholder.com/300x200"}
+            alt={product.title}
+            className="w-full h-full object-cover"
+          />
+        </div>
       </CardHeader>
 
       {/* Content */}

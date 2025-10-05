@@ -21,6 +21,14 @@
             </PendingDiffInfo>
           </value>
         </entry>
+        <entry key="$PROJECT_DIR$/ShahBuyerAuthApi.Contracts/DTOs/Request/ResetPasswordRequestDTO.cs">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/ShahBuyerAuthApi.Contracts/DTOs/Request/ResetPasswordRequestDTO.cs" />
+              <option name="updatedContent" value="namespace ShahBuyerAuthApi.Contracts.DTOs.Request;&#10;    public string NewPassword { get; set; }&#10;}" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/ShahBuyerAuthApi.Contracts/DTOs/Request/UpdateAddressRequestDTO.cs">
           <value>
             <PendingDiffInfo>
@@ -54,15 +62,6 @@
             </PendingDiffInfo>
           </value>
         </entry>
-        <entry key="$PROJECT_DIR$/ShahBuyerAuthApi.Data/Models/BuyerProfile.cs">
-          <value>
-            <PendingDiffInfo>
-              <option name="filePath" value="$PROJECT_DIR$/ShahBuyerAuthApi.Data/Models/BuyerProfile.cs" />
-              <option name="originalContent" value="namespace ShahBuyerAuthApi.Data.Models&#10;{&#10;    public class BuyerProfile&#10;    {&#10;        // Shared PK with User&#10;        public string UserId { get; set; } = null!;&#10;        public User User { get; set; } = null!;&#10;        &#10;        public string AddressId { get; set; } = null!;&#10;        public Address Address { get; set; } = null!;&#10;&#10;        public ICollection&lt;Favorite&gt; Favorites { get; set; } = new List&lt;Favorite&gt;();&#10;        public ICollection&lt;Order&gt; Orders { get; set; } = new List&lt;Order&gt;();&#10;        public ICollection&lt;Review&gt; Reviews { get; set; } = new List&lt;Review&gt;();&#10;        public ICollection&lt;CartItem&gt; CartItems { get; set; } = new List&lt;CartItem&gt;();&#10;        &#10;        public ICollection&lt;Payment&gt; Payments { get; set; } = new List&lt;Payment&gt;();&#10;    }&#10;}&#10;" />
-              <option name="updatedContent" value="namespace ShahBuyerAuthApi.Data.Models&#10;{&#10;    public class BuyerProfile&#10;    {&#10;        // Shared PK with User&#10;        public string UserId { get; set; } = null!;&#10;        public User User { get; set; } = null!;&#10;        &#10;        public string AddressId { get; set; } = null!;&#10;        public Address Address { get; set; } = null!;&#10;&#10;        public ICollection&lt;Favorite&gt; Favorites { get; set; } = new List&lt;Favorite&gt;();&#10;        public ICollection&lt;Order&gt; Orders { get; set; } = new List&lt;Order&gt;();&#10;        public ICollection&lt;Review&gt; Reviews { get; set; } = new List&lt;Review&gt;();&#10;        public ICollection&lt;CartItem&gt; CartItems { get; set; } = new List&lt;CartItem&gt;();&#10;        &#10;        public ICollection&lt;Payment&gt; Payments { get; set; } = new List&lt;Payment&gt;();&#10;    }&#10;}" />
-            </PendingDiffInfo>
-          </value>
-        </entry>
         <entry key="$PROJECT_DIR$/ShahBuyerAuthApi.Data/NewDirectory1/Role.cs">
           <value>
             <PendingDiffInfo>
@@ -77,6 +76,39 @@
               <option name="filePath" value="$PROJECT_DIR$/ShahBuyerAuthApi.Data/NewDirectory1/UserRole.cs" />
               <option name="originalContent" value="&#10;" />
               <option name="updatedContent" value="namespace ShahBuyerAuthApi.Data.Models&#10;{&#10;    public class UserRole&#10;    {&#10;        public string UserId { get; set; }&#10;        public User User { get; set; }&#10;        public string RoleId { get; set; }&#10;        public Role Role { get; set; }&#10;    }&#10;}" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/ShahBuyerFeaturesApi.Application/Services/Interfaces/ICartItemService.cs">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/ShahBuyerFeaturesApi.Application/Services/Interfaces/ICartItemService.cs" />
+              <option name="originalContent" value="using System.Threading.Tasks;&#10;using ShahBuyerFeaturesApi.Contracts.DTOs.Request;&#10;using ShahBuyerFeaturesApi.Contracts.DTOs.Response;&#10;using ShahBuyerFeaturesApi.Data.Models;&#10;&#10;namespace ShahBuyerFeaturesApi.Application.Services.Interfaces&#10;{&#10;    public interface ICartItemService&#10;    {&#10;        Task AddToCart(string productId);&#10;        Task DeleteFromCart(string productId);&#10;        Task&lt;TypedResult&lt;object&gt;&gt; GetAllCartItems();&#10;    }&#10;}&#10;" />
+              <option name="updatedContent" value="using System.Threading.Tasks;&#10;using ShahBuyerFeaturesApi.Contracts.DTOs.Request;&#10;using ShahBuyerFeaturesApi.Contracts.DTOs.Response;&#10;using ShahBuyerFeaturesApi.Data.Models;&#10;&#10;namespace ShahBuyerFeaturesApi.Application.Services.Interfaces&#10;{&#10;    public interface ICartItemService&#10;    {&#10;        Task AddToCart(string productId);&#10;        Task DeleteFromCart(string productId);&#10;        Task&lt;TypedResult&lt;object&gt;&gt; GetAllCartItems();&#10;        Task IncreaseQuantity(string productId);&#10;        Task DecreaseQuantity(string productId);&#10;        Task DeleteAllCartItems();&#10;    }&#10;}" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/ShahBuyerFeaturesApi.Infrastructure/Contexts/DbContextSampleDataSeeder.cs">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/ShahBuyerFeaturesApi.Infrastructure/Contexts/DbContextSampleDataSeeder.cs" />
+              <option name="updatedContent" value="using System;&#10;using System.Collections.Generic;&#10;using System.Linq;&#10;using ShahBuyerFeaturesApi.Data.Models;&#10;&#10;namespace ShahBuyerFeaturesApi.Infrastructure.Contexts&#10;{&#10;    public static class DbContextSampleDataSeeder&#10;    {&#10;        public static void SeedSampleData(this ShahDbContext context)&#10;        {&#10;            if (context.BuyerProfiles.Any() || context.Products.Any())&#10;                return; // Already seeded&#10;&#10;            // Categories&#10;            var rootCategory = new Category { CategoryName = &quot;Clothing&quot; };&#10;            var subCategory = new Category { CategoryName = &quot;T-Shirts&quot;, ParentCategory = rootCategory };&#10;            context.Categories.AddRange(rootCategory, subCategory);&#10;&#10;            // Attributes&#10;            var sizeAttr = new ProductAttribute { Name = &quot;Size&quot; };&#10;            var colorAttr = new ProductAttribute { Name = &quot;Color&quot; };&#10;            context.ProductAttributes.AddRange(sizeAttr, colorAttr);&#10;&#10;            // Attribute Values&#10;            var small = new ProductAttributeValue { Value = &quot;Small&quot;, ProductAttribute = sizeAttr };&#10;            var medium = new ProductAttributeValue { Value = &quot;Medium&quot;, ProductAttribute = sizeAttr };&#10;            var white = new ProductAttributeValue { Value = &quot;White&quot;, ProductAttribute = colorAttr };&#10;            var green = new ProductAttributeValue { Value = &quot;Green&quot;, ProductAttribute = colorAttr };&#10;            context.ProductAttributeValues.AddRange(small, medium, white, green);&#10;&#10;            // Store&#10;            var store = new StoreInfo { StoreName = &quot;Best Store&quot; };&#10;            context.StoreInfos.Add(store);&#10;&#10;            // Product Details&#10;            var prodDetails = new ProductDetails { Title = &quot;Cool T-Shirt&quot;, Description = &quot;A very cool t-shirt.&quot; };&#10;            context.ProductDetails.Add(prodDetails);&#10;&#10;            // Product&#10;            var product = new Product&#10;            {&#10;                ProductDetails = prodDetails,&#10;                Category = subCategory,&#10;                StoreInfo = store&#10;            };&#10;            context.Products.Add(product);&#10;&#10;            // Product Variants&#10;            var variant1 = new ProductVariant { Product = product, Price = 19.99m, Stock = 10 };&#10;            var variant2 = new ProductVariant { Product = product, Price = 21.99m, Stock = 5 };&#10;            context.ProductVariants.AddRange(variant1, variant2);&#10;&#10;            // Variant Attribute Values&#10;            context.ProductVariantAttributeValues.AddRange(&#10;                new ProductVariantAttributeValue { ProductVariant = variant1, ProductAttributeValue = small },&#10;                new ProductVariantAttributeValue { ProductVariant = variant1, ProductAttributeValue = white },&#10;                new ProductVariantAttributeValue { ProductVariant = variant2, ProductAttributeValue = medium },&#10;                new ProductVariantAttributeValue { ProductVariant = variant2, ProductAttributeValue = green }&#10;            );&#10;&#10;            // Buyer&#10;            var buyer = new BuyerProfile { Name = &quot;John Doe&quot; };&#10;            context.BuyerProfiles.Add(buyer);&#10;&#10;            // Cart Item&#10;            context.CartItems.Add(new CartItem { BuyerProfile = buyer, Product = product, ProductVariant = variant1, Quantity = 2 });&#10;&#10;            // Favorite&#10;            context.Favorites.Add(new Favorite { BuyerProfile = buyer, Product = product });&#10;&#10;            // Review&#10;            context.Reviews.Add(new Review { Product = product, BuyerProfile = buyer, Rating = 5, Comment = &quot;Great!&quot; });&#10;&#10;            // Order Payment&#10;            context.OrderPayments.Add(new OrderPayment { BuyerProfile = buyer, TotalAmount = 39.98m, Currency = &quot;USD&quot;, Method = &quot;Card&quot;, Status = &quot;Paid&quot; });&#10;&#10;            context.SaveChanges();&#10;        }&#10;    }&#10;}&#10;" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/ShahSellerAuthApi.Presentation/Controllers/SampleController.cs">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/ShahSellerAuthApi.Presentation/Controllers/SampleController.cs" />
+              <option name="updatedContent" value="using Microsoft.AspNetCore.Mvc;&#10;&#10;namespace ShahSellerAuthApi.Presentation.Controllers&#10;{&#10;    [ApiController]&#10;    [Route(&quot;api/[controller]&quot;)]&#10;    public class SampleController : ControllerBase&#10;    {&#10;        [HttpGet]&#10;        public IActionResult Get() =&gt; Ok(&quot;ShahSellerAuthApi is running!&quot;);&#10;    }&#10;}&#10;" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/ShahSellerAuthApi.Presentation/appsettings.json">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/ShahSellerAuthApi.Presentation/appsettings.json" />
+              <option name="updatedContent" value="{&#10;  &quot;Logging&quot;: {&#10;    &quot;LogLevel&quot;: {&#10;      &quot;Default&quot;: &quot;Information&quot;,&#10;      &quot;Microsoft.AspNetCore&quot;: &quot;Warning&quot;&#10;    }&#10;  },&#10;  &quot;AllowedHosts&quot;: &quot;*&quot;&#10;}&#10;" />
             </PendingDiffInfo>
           </value>
         </entry>

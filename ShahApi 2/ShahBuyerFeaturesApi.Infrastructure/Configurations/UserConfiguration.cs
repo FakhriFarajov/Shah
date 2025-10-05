@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using ShahBuyerFeaturesApi.Data.Models;
+using ShahBuyerFeaturesApi.Core.Models;
 
 namespace ShahBuyerFeaturesApi.Infrastructure.Configurations
 {
@@ -21,6 +21,7 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Configurations
             builder.Property(u => u.Password).HasMaxLength(255).IsRequired();
             builder.Property(u => u.Phone).HasMaxLength(20).IsRequired();
             builder.Property(u => u.EmailConfirmed);
+            
                 
             
             

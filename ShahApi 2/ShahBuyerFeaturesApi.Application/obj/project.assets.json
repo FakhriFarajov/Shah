@@ -2023,27 +2023,17 @@
           }
         }
       },
-      "ShahBuyerFeaturesApi.Contracts/1.0.0": {
-        "type": "project",
-        "framework": ".NETCoreApp,Version=v9.0",
-        "compile": {
-          "bin/placeholder/ShahBuyerFeaturesApi.Contracts.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/ShahBuyerFeaturesApi.Contracts.dll": {}
-        }
-      },
-      "ShahBuyerFeaturesApi.Data/1.0.0": {
+      "ShahBuyerFeaturesApi.Core/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v9.0",
         "dependencies": {
           "Microsoft.EntityFrameworkCore": "9.0.8"
         },
         "compile": {
-          "bin/placeholder/ShahBuyerFeaturesApi.Data.dll": {}
+          "bin/placeholder/ShahBuyerFeaturesApi.Core.dll": {}
         },
         "runtime": {
-          "bin/placeholder/ShahBuyerFeaturesApi.Data.dll": {}
+          "bin/placeholder/ShahBuyerFeaturesApi.Core.dll": {}
         }
       },
       "ShahBuyerFeaturesApi.Infrastructure/1.0.0": {
@@ -2059,8 +2049,7 @@
           "Microsoft.EntityFrameworkCore.SqlServer": "9.0.8",
           "Microsoft.EntityFrameworkCore.Tools": "9.0.8",
           "Newtonsoft.Json": "13.0.3",
-          "ShahBuyerFeaturesApi.Contracts": "1.0.0",
-          "ShahBuyerFeaturesApi.Data": "1.0.0"
+          "ShahBuyerFeaturesApi.Core": "1.0.0"
         },
         "compile": {
           "bin/placeholder/ShahBuyerFeaturesApi.Infrastructure.dll": {}
@@ -5705,15 +5694,10 @@
         "useSharedDesignerContext.txt"
       ]
     },
-    "ShahBuyerFeaturesApi.Contracts/1.0.0": {
+    "ShahBuyerFeaturesApi.Core/1.0.0": {
       "type": "project",
-      "path": "../ShahBuyerFeaturesApi.Contracts/ShahBuyerFeaturesApi.Contracts.csproj",
-      "msbuildProject": "../ShahBuyerFeaturesApi.Contracts/ShahBuyerFeaturesApi.Contracts.csproj"
-    },
-    "ShahBuyerFeaturesApi.Data/1.0.0": {
-      "type": "project",
-      "path": "../ShahBuyerFeaturesApi.Data/ShahBuyerFeaturesApi.Data.csproj",
-      "msbuildProject": "../ShahBuyerFeaturesApi.Data/ShahBuyerFeaturesApi.Data.csproj"
+      "path": "../ShahBuyerFeaturesApi.Core/ShahBuyerFeaturesApi.Core.csproj",
+      "msbuildProject": "../ShahBuyerFeaturesApi.Core/ShahBuyerFeaturesApi.Core.csproj"
     },
     "ShahBuyerFeaturesApi.Infrastructure/1.0.0": {
       "type": "project",
@@ -5728,8 +5712,7 @@
       "Microsoft.AspNetCore.Hosting >= 2.3.0",
       "Microsoft.AspNetCore.Hosting.Abstractions >= 2.3.0",
       "Microsoft.AspNetCore.Http >= 2.3.0",
-      "ShahBuyerFeaturesApi.Contracts >= 1.0.0",
-      "ShahBuyerFeaturesApi.Data >= 1.0.0",
+      "ShahBuyerFeaturesApi.Core >= 1.0.0",
       "ShahBuyerFeaturesApi.Infrastructure >= 1.0.0"
     ]
   },
@@ -5758,11 +5741,8 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "projectReferences": {
-            "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Contracts/ShahBuyerFeaturesApi.Contracts.csproj": {
-              "projectPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Contracts/ShahBuyerFeaturesApi.Contracts.csproj"
-            },
-            "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Data/ShahBuyerFeaturesApi.Data.csproj": {
-              "projectPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Data/ShahBuyerFeaturesApi.Data.csproj"
+            "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Core/ShahBuyerFeaturesApi.Core.csproj": {
+              "projectPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Core/ShahBuyerFeaturesApi.Core.csproj"
             },
             "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Infrastructure/ShahBuyerFeaturesApi.Infrastructure.csproj": {
               "projectPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Infrastructure/ShahBuyerFeaturesApi.Infrastructure.csproj"

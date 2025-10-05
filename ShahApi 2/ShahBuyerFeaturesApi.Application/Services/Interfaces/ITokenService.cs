@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using ShahBuyerFeaturesApi.Data.Models;
+using ShahBuyerFeaturesApi.Core.Models;
 
 namespace ShahBuyerFeaturesApi.Application.Services.Interfaces;
 public interface ITokenService

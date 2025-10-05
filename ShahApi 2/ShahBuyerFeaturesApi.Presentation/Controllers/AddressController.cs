@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using ShahBuyerAuthApi.Infrastructure.Contexts;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using ShahBuyerFeaturesApi.Application.Services.Interfaces;
 using ShahBuyerFeaturesApi.Contracts.DTOs.Request;
 
@@ -22,19 +23,22 @@ namespace ShahBuyerAuthApi.Presentation.Controllers
             _addressService = addressService;
         }
         
-        
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetAddressByIdAsync(string id) 
             => Ok(await _addressService.GetAddressByIdAsync(id));
         
+        [Authorize]
         [HttpGet("Buyer/{buyerId}")]
         public async Task<IActionResult> GetBuyerAddressAsync(string buyerId) 
             => Ok(await _addressService.GetBuyerAddressAsync(buyerId));
-        
+
+        [Authorize]
         [HttpPost("Upsert")]
         public async Task<IActionResult> UpsertAddressAsync(UpsertAddressRequestDTO request)
             => Ok(await _addressService.UpsertAddressAsync(request));
-    
+        
+        [Authorize]
         [HttpDelete("Remove/{id}")]
         public async Task<IActionResult> DeleteAddressAsync(string id)
             => Ok(await _addressService.DeleteAddressAsync(id));

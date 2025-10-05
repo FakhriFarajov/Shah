@@ -1,0 +1,13 @@
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Core/bin/Debug/net9.0/ShahBuyerAuthApi.Core.deps.json
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Core/bin/Debug/net9.0/ShahBuyerAuthApi.Core.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Core/bin/Debug/net9.0/ShahBuyerAuthApi.Core.pdb
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Core/obj/Debug/net9.0/ShahBuyerAuthApi.Core.csproj.AssemblyReference.cache
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Core/obj/Debug/net9.0/ShahBuyerAuthApi.Core.GeneratedMSBuildEditorConfig.editorconfig
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Core/obj/Debug/net9.0/ShahBuyerAuthApi.Core.AssemblyInfoInputs.cache
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Core/obj/Debug/net9.0/ShahBuyerAuthApi.Core.AssemblyInfo.cs
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Core/obj/Debug/net9.0/ShahBuyerAuthApi.Core.csproj.CoreCompileInputs.cache
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Core/obj/Debug/net9.0/ShahBuyerAuthApi.Core.sourcelink.json
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Core/obj/Debug/net9.0/ShahBuyerAuthApi.Core.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Core/obj/Debug/net9.0/refint/ShahBuyerAuthApi.Core.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Core/obj/Debug/net9.0/ShahBuyerAuthApi.Core.pdb
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Core/obj/Debug/net9.0/ref/ShahBuyerAuthApi.Core.dll

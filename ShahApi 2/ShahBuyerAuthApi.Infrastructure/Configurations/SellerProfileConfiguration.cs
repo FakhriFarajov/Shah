@@ -1,7 +1,7 @@
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using ShahBuyerAuthApi.Data.Models;
+using ShahBuyerAuthApi.Core.Models;
 namespace ShahBuyerAuthApi.Infrastructure.Configurations
 {
     public class SellerProfileConfiguration : IEntityTypeConfiguration<SellerProfile>
@@ -12,7 +12,9 @@ namespace ShahBuyerAuthApi.Infrastructure.Configurations
             builder.Property(sp => sp.UserId).IsRequired().HasMaxLength(36);
             builder.Property(sp => sp.StoreInfoId).IsRequired().HasMaxLength(36);
             builder.Property(sp => sp.SellerTaxInfoId).IsRequired().HasMaxLength(36);
-
+            builder.Property(sp => sp.Passport).IsRequired().HasMaxLength(36);
+            builder.Property(sp => sp.IsVerified).IsRequired().HasDefaultValue(false);
+            
             builder.HasOne(sp => sp.User)
                    .WithOne(u => u.SellerProfile)
                    .HasForeignKey<SellerProfile>(sp => sp.UserId)

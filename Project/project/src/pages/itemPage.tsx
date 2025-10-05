@@ -38,7 +38,7 @@ export default function ItemPage({ product, onAddToCart }: ItemPageProps) {
     <div className="flex flex-col lg:flex-row gap-8 p-8 bg-gray-50 min-h-screen">
       {/* Image Gallery */}
       <div className="flex flex-col gap-2 w-full max-w-md">
-        <img src={product.image} alt={product.name} className="rounded-lg w-full h-80 object-cover border" />
+        <img src={product.image} alt={product.name} className="rounded-lg w-80 h-80 object-cover border" />
         <div className="flex gap-2 overflow-x-auto">
           {product.images?.map((img, i) => (
             <img key={i} src={img} alt="thumb" className="w-16 h-16 object-cover rounded border cursor-pointer" />

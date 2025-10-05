@@ -21,9 +21,10 @@ public static class ApplicationServiceExtensions
         services.AddDbContext<ShahDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("Mac")));
 
-        services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IAddressService, AddressService>();
-        services.AddScoped<IBuyerService, Application.Services.Classes.BuyerService>();
+        services.AddScoped<IBuyerService, BuyerService>();
+        services.AddScoped<ICartService, CartService>();
+        services.AddScoped<IFavoriteService, FavoriteService>();
         
         services.AddAutoMapper(ops => ops.AddProfile(typeof(MappingProfile)));
         

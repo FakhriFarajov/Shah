@@ -1,0 +1,9 @@
+using ShahBuyerFeaturesApi.Contracts.DTOs.Response;
+namespace ShahBuyerFeaturesApi.Application.Services.Interfaces;
+
+public interface IProductService
+{
+    Task<TypedResult<object>> GetProductDetailsByIdAsync(string productId);
+    
+    Task<TypedResult<List<object>>> GetRandomProductsAsync(int count = 45);
+}

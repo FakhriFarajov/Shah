@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using ShahBuyerAuthApi.Data.Models;
+using ShahBuyerAuthApi.Core.Models;
 
 namespace ShahBuyerAuthApi.Infrastructure.Configurations
 {

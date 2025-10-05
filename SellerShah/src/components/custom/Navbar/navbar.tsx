@@ -41,7 +41,7 @@ export default function Navbar() {
         <div className="flex flex-col bg-gray-800 w-full p-2 sm:p-4 text-white">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
                 <img
-                    src="/src/assets/images/ShahLogo2.png"
+                    src='src/assets/images/ShahLogo2.png'
                     className="w-20 h-20 sm:w-24 sm:h-24 cursor-pointer mb-2 sm:mb-0"
                     alt="Company Logo"
                 />

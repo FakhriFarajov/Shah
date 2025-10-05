@@ -1,6 +1,6 @@
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
-using ShahBuyerFeaturesApi.Data.Models;
+using ShahBuyerFeaturesApi.Core.Models;
 
 namespace ShahBuyerFeaturesApi.Infrastructure.Contexts;
 

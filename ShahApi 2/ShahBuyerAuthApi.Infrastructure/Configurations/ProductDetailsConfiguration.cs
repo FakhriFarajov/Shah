@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using ShahBuyerAuthApi.Data.Models;
+using ShahBuyerAuthApi.Core.Models;
 namespace ShahBuyerAuthApi.Infrastructure.Configurations
 {
     public class ProductDetailsConfiguration : IEntityTypeConfiguration<ProductDetails>
@@ -12,9 +12,6 @@ namespace ShahBuyerAuthApi.Infrastructure.Configurations
             builder.Property(pd => pd.Title).HasMaxLength(255);
             builder.Property(pd => pd.Description).HasMaxLength(4000);
             builder.Property(pd => pd.WeightInGrams).IsRequired();
-            builder.Property(pd => pd.WidthInGrams).IsRequired();
-            builder.Property(pd => pd.HeightInGrams).IsRequired();
-            builder.Property(pd => pd.LengthInGrams).IsRequired();
             builder.Property(pd => pd.ProductId).IsRequired().HasMaxLength(36);
             
             builder.HasOne(p => p.Product).

@@ -10,7 +10,6 @@ namespace ShahBuyerAuthApi.Presentation.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    
     private readonly IAuthService _authService;
 
     public AuthController(IAuthService authService)
@@ -22,5 +21,15 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> LoginAsync(BuyerLoginRequestDTO request)
     {
         return Ok(await _authService.LoginAsync(request));
+    }
+
+    [Authorize]
+    [HttpPost("Logout")]
+    public async Task<IActionResult> Logout()
+    {
+        var authHeader = Request.Headers["Authorization"].ToString();
+        var token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : authHeader;
+        var result = await _authService.LogoutAsync(token);
+        return Ok(result);
     }
 }

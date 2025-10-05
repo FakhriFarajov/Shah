@@ -40,10 +40,6 @@
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/bin/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.runtimeconfig.json
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/bin/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.dll
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/bin/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.pdb
-/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/bin/Debug/net9.0/ShahBuyerAuthApi.Contracts.dll
-/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/bin/Debug/net9.0/ShahBuyerAuthApi.Data.dll
-/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/bin/Debug/net9.0/ShahBuyerAuthApi.Contracts.pdb
-/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/bin/Debug/net9.0/ShahBuyerAuthApi.Data.pdb
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.csproj.AssemblyReference.cache
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.AssemblyInfoInputs.cache
@@ -55,3 +51,6 @@
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.pdb
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.genruntimeconfig.cache
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ref/ShahBuyerAuthApi.Infrastructure.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/obj/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.sourcelink.json
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/bin/Debug/net9.0/ShahBuyerAuthApi.Core.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/bin/Debug/net9.0/ShahBuyerAuthApi.Core.pdb

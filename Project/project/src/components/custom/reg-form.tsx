@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState } from "react"
+import { useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
@@ -20,6 +21,16 @@ export default function RegForm({
   const [address, setAddress] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [countryOptions, setCountryOptions] = useState<Array<{ code: string; name: string; phone: string }>>([])
+  // Fetch country codes from API
+  useEffect(() => {
+    fetch("/api/country-codes")
+      .then(res => res.json())
+      .then(data => setCountryOptions(data))
+      .catch(() => setCountryOptions([]))
+  }, [])
 
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault()
@@ -65,6 +76,7 @@ export default function RegForm({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
+                placeholder="John"
               />
             </div>
             <div className="grid gap-3">
@@ -75,6 +87,7 @@ export default function RegForm({
                 value={surname}
                 onChange={(e) => setSurname(e.target.value)}
                 required
+                placeholder="Doe"
               />
             </div>
             <div className="grid gap-3">
@@ -86,6 +99,7 @@ export default function RegForm({
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={t("m@example.com")}
                 required
+
               />
             </div>
             <div className="grid gap-3">
@@ -96,6 +110,8 @@ export default function RegForm({
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 required
+                placeholder="012 345 67 89"
+
               />
             </div>
             <div className="grid gap-3">
@@ -108,42 +124,64 @@ export default function RegForm({
                 className="border rounded px-2 py-1"
               >
                 <option value="">{t("Select country")}</option>
-                <option value="AZ">Azerbaijan (+994)</option>
-                <option value="RU">Russia (+7)</option>
-                <option value="TR">Turkey (+90)</option>
-                <option value="US">USA (+1)</option>
-                {/* Add more country codes as needed */}
+                {countryOptions.map(opt => (
+                  <option key={opt.code} value={opt.code}>
+                    {opt.name} ({opt.phone})
+                  </option>
+                ))}
               </select>
             </div>
             <div className="grid gap-3">
-              <Label htmlFor="address">{t("Address")}</Label>
-              <Input
-                id="address"
-                type="text"
-                value={address}
-                onChange={e => setAddress(e.target.value)}
-                required
-              />
-            </div>
-            <div className="grid gap-3">
               <Label htmlFor="password">{t("Password")}</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  placeholder="********"
+                />
+                <button
+                  type="button"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
+                  onClick={() => setShowPassword((v) => !v)}
+                  tabIndex={-1}
+                  aria-label={showPassword ? t("Hide password") : t("Show password")}
+                >
+                  {showPassword ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z"/><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2"/></svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z"/><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2"/><line x1="4" y1="4" x2="20" y2="20" stroke="currentColor" strokeWidth="2"/></svg>
+                  )}
+                </button>
+              </div>
             </div>
             <div className="grid gap-3">
               <Label htmlFor="confirmPassword">{t("Confirm Password")}</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-              />
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  placeholder="********"
+                />
+                <button
+                  type="button"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
+                  onClick={() => setShowConfirmPassword((v) => !v)}
+                  tabIndex={-1}
+                  aria-label={showConfirmPassword ? t("Hide password") : t("Show password")}
+                >
+                  {showConfirmPassword ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z"/><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2"/></svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z"/><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2"/><line x1="4" y1="4" x2="20" y2="20" stroke="currentColor" strokeWidth="2"/></svg>
+                  )}
+                </button>
+              </div>
             </div>
             <Button
               type="submit"

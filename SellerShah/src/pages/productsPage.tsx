@@ -5,7 +5,7 @@ import { AppSidebar } from "@/components/custom/sidebar";
 import { AdaptiveTable } from "@/components/custom/adaptive-table";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import AddProductModal from "../components/custom/ProductModal";
+import ProductModal from "../components/custom/ProductAddEdit";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { CircleX, Edit } from "lucide-react";
@@ -462,7 +462,7 @@ export default function ProductsPage() {
                   ← Back
                 </Button>
               </div>
-              <AddProductModal
+              <ProductModal
                 mode={showAddModal ? "add" : "edit"}
                 onOpenChange={showAddModal ? setShowAddModal : setShowEditModal}
                 onSubmit={(product: ProductForm, variants: ProductVariant[], mainImageIdx: number) => {
@@ -568,7 +568,7 @@ export default function ProductsPage() {
                     < div className="max-w-6xl mx-auto mt-4">
                       <div className="overflow-x-auto rounded-lg shadow border bg-white">
                         <div className="max-h-[750px] overflow-y-auto">
-                          <AdaptiveTable columns={productColumns} data={products} />
+                          <AdaptiveTable columns={productColumns} data={products} pageSize={5} />
                         </div>
                       </div>
                     </div>
@@ -590,7 +590,7 @@ export default function ProductsPage() {
                       ← Back
                     </Button>
                   </div>
-                  <AddProductModal
+                  <ProductModal
                     mode="edit"
                     onOpenChange={setShowEditModal}
                     onSubmit={(product: ProductForm, variants: ProductVariant[], mainImageIdx: number) => {
@@ -643,7 +643,6 @@ export default function ProductsPage() {
       </div >
       <Footer />
 
-      {/* Delete confirmation dialog */}
       {
         deleteConfirmId && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">

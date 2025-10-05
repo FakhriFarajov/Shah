@@ -11,8 +11,7 @@
           "Microsoft.AspNetCore.Authentication.JwtBearer": "9.0.8",
           "Microsoft.AspNetCore.OpenApi": "9.0.2",
           "Scalar.AspNetCore": "2.7.2",
-          "ShahBuyerAuthApi.Application": "1.0.0",
-          "ShahBuyerAuthApi.Contracts": "1.0.0"
+          "ShahBuyerAuthApi.Application": "1.0.0"
         },
         "runtime": {
           "ShahBuyerAuthApi.Presentation.dll": {}
@@ -1176,8 +1175,7 @@
           "Microsoft.AspNetCore.Hosting": "2.3.0",
           "Microsoft.AspNetCore.Hosting.Abstractions": "2.3.0",
           "Microsoft.AspNetCore.Http": "2.3.0",
-          "ShahBuyerAuthApi.Contracts": "1.0.0",
-          "ShahBuyerAuthApi.Data": "1.0.0",
+          "ShahBuyerAuthApi.Core": "1.0.0",
           "ShahBuyerAuthApi.Infrastructure": "1.0.0"
         },
         "runtime": {
@@ -1187,20 +1185,12 @@
           }
         }
       },
-      "ShahBuyerAuthApi.Contracts/1.0.0": {
-        "runtime": {
-          "ShahBuyerAuthApi.Contracts.dll": {
-            "assemblyVersion": "1.0.0.0",
-            "fileVersion": "1.0.0.0"
-          }
-        }
-      },
-      "ShahBuyerAuthApi.Data/1.0.0": {
+      "ShahBuyerAuthApi.Core/1.0.0": {
         "dependencies": {
           "Microsoft.EntityFrameworkCore": "9.0.8"
         },
         "runtime": {
-          "ShahBuyerAuthApi.Data.dll": {
+          "ShahBuyerAuthApi.Core.dll": {
             "assemblyVersion": "1.0.0.0",
             "fileVersion": "1.0.0.0"
           }
@@ -1217,8 +1207,7 @@
           "Microsoft.EntityFrameworkCore.SqlServer": "9.0.8",
           "Microsoft.EntityFrameworkCore.Tools": "9.0.8",
           "Newtonsoft.Json": "13.0.3",
-          "ShahBuyerAuthApi.Contracts": "1.0.0",
-          "ShahBuyerAuthApi.Data": "1.0.0"
+          "ShahBuyerAuthApi.Core": "1.0.0"
         },
         "runtime": {
           "ShahBuyerAuthApi.Infrastructure.dll": {
@@ -1961,12 +1950,7 @@
       "serviceable": false,
       "sha512": ""
     },
-    "ShahBuyerAuthApi.Contracts/1.0.0": {
-      "type": "project",
-      "serviceable": false,
-      "sha512": ""
-    },
-    "ShahBuyerAuthApi.Data/1.0.0": {
+    "ShahBuyerAuthApi.Core/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

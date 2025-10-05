@@ -2050,8 +2050,7 @@
           "Microsoft.AspNetCore.Hosting": "2.3.0",
           "Microsoft.AspNetCore.Hosting.Abstractions": "2.3.0",
           "Microsoft.AspNetCore.Http": "2.3.0",
-          "ShahBuyerAuthApi.Contracts": "1.0.0",
-          "ShahBuyerAuthApi.Data": "1.0.0",
+          "ShahBuyerAuthApi.Core": "1.0.0",
           "ShahBuyerAuthApi.Infrastructure": "1.0.0"
         },
         "compile": {
@@ -2064,27 +2063,17 @@
           "Microsoft.AspNetCore.App"
         ]
       },
-      "ShahBuyerAuthApi.Contracts/1.0.0": {
-        "type": "project",
-        "framework": ".NETCoreApp,Version=v9.0",
-        "compile": {
-          "bin/placeholder/ShahBuyerAuthApi.Contracts.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/ShahBuyerAuthApi.Contracts.dll": {}
-        }
-      },
-      "ShahBuyerAuthApi.Data/1.0.0": {
+      "ShahBuyerAuthApi.Core/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v9.0",
         "dependencies": {
           "Microsoft.EntityFrameworkCore": "9.0.8"
         },
         "compile": {
-          "bin/placeholder/ShahBuyerAuthApi.Data.dll": {}
+          "bin/placeholder/ShahBuyerAuthApi.Core.dll": {}
         },
         "runtime": {
-          "bin/placeholder/ShahBuyerAuthApi.Data.dll": {}
+          "bin/placeholder/ShahBuyerAuthApi.Core.dll": {}
         }
       },
       "ShahBuyerAuthApi.Infrastructure/1.0.0": {
@@ -2100,8 +2089,7 @@
           "Microsoft.EntityFrameworkCore.SqlServer": "9.0.8",
           "Microsoft.EntityFrameworkCore.Tools": "9.0.8",
           "Newtonsoft.Json": "13.0.3",
-          "ShahBuyerAuthApi.Contracts": "1.0.0",
-          "ShahBuyerAuthApi.Data": "1.0.0"
+          "ShahBuyerAuthApi.Core": "1.0.0"
         },
         "compile": {
           "bin/placeholder/ShahBuyerAuthApi.Infrastructure.dll": {}
@@ -2122,8 +2110,7 @@
           "Microsoft.AspNetCore.Hosting": "2.3.0",
           "Microsoft.AspNetCore.Hosting.Abstractions": "2.3.0",
           "Microsoft.AspNetCore.Http": "2.3.0",
-          "ShahBuyerFeaturesApi.Contracts": "1.0.0",
-          "ShahBuyerFeaturesApi.Data": "1.0.0",
+          "ShahBuyerFeaturesApi.Core": "1.0.0",
           "ShahBuyerFeaturesApi.Infrastructure": "1.0.0"
         },
         "compile": {
@@ -2136,27 +2123,17 @@
           "Microsoft.AspNetCore.App"
         ]
       },
-      "ShahBuyerFeaturesApi.Contracts/1.0.0": {
-        "type": "project",
-        "framework": ".NETCoreApp,Version=v9.0",
-        "compile": {
-          "bin/placeholder/ShahBuyerFeaturesApi.Contracts.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/ShahBuyerFeaturesApi.Contracts.dll": {}
-        }
-      },
-      "ShahBuyerFeaturesApi.Data/1.0.0": {
+      "ShahBuyerFeaturesApi.Core/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v9.0",
         "dependencies": {
           "Microsoft.EntityFrameworkCore": "9.0.8"
         },
         "compile": {
-          "bin/placeholder/ShahBuyerFeaturesApi.Data.dll": {}
+          "bin/placeholder/ShahBuyerFeaturesApi.Core.dll": {}
         },
         "runtime": {
-          "bin/placeholder/ShahBuyerFeaturesApi.Data.dll": {}
+          "bin/placeholder/ShahBuyerFeaturesApi.Core.dll": {}
         }
       },
       "ShahBuyerFeaturesApi.Infrastructure/1.0.0": {
@@ -2172,8 +2149,7 @@
           "Microsoft.EntityFrameworkCore.SqlServer": "9.0.8",
           "Microsoft.EntityFrameworkCore.Tools": "9.0.8",
           "Newtonsoft.Json": "13.0.3",
-          "ShahBuyerFeaturesApi.Contracts": "1.0.0",
-          "ShahBuyerFeaturesApi.Data": "1.0.0"
+          "ShahBuyerFeaturesApi.Core": "1.0.0"
         },
         "compile": {
           "bin/placeholder/ShahBuyerFeaturesApi.Infrastructure.dll": {}
@@ -5699,15 +5675,10 @@
       "path": "../ShahBuyerAuthApi.Application/ShahBuyerAuthApi.Application.csproj",
       "msbuildProject": "../ShahBuyerAuthApi.Application/ShahBuyerAuthApi.Application.csproj"
     },
-    "ShahBuyerAuthApi.Contracts/1.0.0": {
+    "ShahBuyerAuthApi.Core/1.0.0": {
       "type": "project",
-      "path": "../ShahBuyerAuthApi.Contracts/ShahBuyerAuthApi.Contracts.csproj",
-      "msbuildProject": "../ShahBuyerAuthApi.Contracts/ShahBuyerAuthApi.Contracts.csproj"
-    },
-    "ShahBuyerAuthApi.Data/1.0.0": {
-      "type": "project",
-      "path": "../ShahBuyerAuthApi.Data/ShahBuyerAuthApi.Data.csproj",
-      "msbuildProject": "../ShahBuyerAuthApi.Data/ShahBuyerAuthApi.Data.csproj"
+      "path": "../ShahBuyerAuthApi.Core/ShahBuyerAuthApi.Core.csproj",
+      "msbuildProject": "../ShahBuyerAuthApi.Core/ShahBuyerAuthApi.Core.csproj"
     },
     "ShahBuyerAuthApi.Infrastructure/1.0.0": {
       "type": "project",
@@ -5719,15 +5690,10 @@
       "path": "../ShahBuyerFeaturesApi.Application/ShahBuyerFeaturesApi.Application.csproj",
       "msbuildProject": "../ShahBuyerFeaturesApi.Application/ShahBuyerFeaturesApi.Application.csproj"
     },
-    "ShahBuyerFeaturesApi.Contracts/1.0.0": {
+    "ShahBuyerFeaturesApi.Core/1.0.0": {
       "type": "project",
-      "path": "../ShahBuyerFeaturesApi.Contracts/ShahBuyerFeaturesApi.Contracts.csproj",
-      "msbuildProject": "../ShahBuyerFeaturesApi.Contracts/ShahBuyerFeaturesApi.Contracts.csproj"
-    },
-    "ShahBuyerFeaturesApi.Data/1.0.0": {
-      "type": "project",
-      "path": "../ShahBuyerFeaturesApi.Data/ShahBuyerFeaturesApi.Data.csproj",
-      "msbuildProject": "../ShahBuyerFeaturesApi.Data/ShahBuyerFeaturesApi.Data.csproj"
+      "path": "../ShahBuyerFeaturesApi.Core/ShahBuyerFeaturesApi.Core.csproj",
+      "msbuildProject": "../ShahBuyerFeaturesApi.Core/ShahBuyerFeaturesApi.Core.csproj"
     },
     "ShahBuyerFeaturesApi.Infrastructure/1.0.0": {
       "type": "project",
@@ -5741,8 +5707,7 @@
       "Microsoft.AspNetCore.OpenApi >= 9.0.2",
       "Scalar.AspNetCore >= 2.7.2",
       "ShahBuyerAuthApi.Application >= 1.0.0",
-      "ShahBuyerFeaturesApi.Application >= 1.0.0",
-      "ShahBuyerFeaturesApi.Contracts >= 1.0.0"
+      "ShahBuyerFeaturesApi.Application >= 1.0.0"
     ]
   },
   "packageFolders": {
@@ -5775,9 +5740,6 @@
             },
             "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Application/ShahBuyerFeaturesApi.Application.csproj": {
               "projectPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Application/ShahBuyerFeaturesApi.Application.csproj"
-            },
-            "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Contracts/ShahBuyerFeaturesApi.Contracts.csproj": {
-              "projectPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Contracts/ShahBuyerFeaturesApi.Contracts.csproj"
             }
           }
         }

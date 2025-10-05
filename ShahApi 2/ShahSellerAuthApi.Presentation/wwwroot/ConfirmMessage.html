@@ -1,0 +1,93 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Email Confirmation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            padding: 40px 0;
+            color: #333333;
+        }
+
+        .container {
+            max-width: 600px;
+            background: #ffffff;
+            margin: auto;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .logo img {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: oklch(27.8% 0.033 256.848);
+        }
+
+        p {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #555555;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        a.button {
+            display: inline-block;
+            padding: 14px 28px;
+            background-color: oklch(27.8% 0.033 256.848);
+            color: #ffffff !important;
+            font-weight: 500;
+            font-size: 16px;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 25px auto;
+            text-align: center;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 13px;
+            color: #888888;
+            margin-top: 30px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="logo">
+        <img src="https://picsvg.com/svg/nH2q7t.jpg" alt="Logo">
+    </div>
+
+    <h2>Здравствуйте, {User}!</h2>
+
+    <p>Спасибо за регистрацию!</p>
+       <p>Пожалуйста, подтвердите свой email, нажав на кнопку ниже:</p>
+
+    <div style="text-align: center;">
+        <a class="button" href="{ConfirmationLink}">Подтвердить Email</a>
+    </div>
+
+    <div class="footer">
+        Если вы не запрашивали регистрацию, просто проигнорируйте это письмо.<br>
+        Это автоматическое сообщение — отвечать на него не нужно.
+    </div>
+</div>
+</body>
+</html>

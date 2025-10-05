@@ -497,12 +497,8 @@
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Presentation/bin/Debug/net9.0/runtimes/win/lib/net6.0/System.Security.Cryptography.ProtectedData.dll
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Presentation/bin/Debug/net9.0/runtimes/win/lib/net6.0/System.Windows.Extensions.dll
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Presentation/bin/Debug/net9.0/ShahBuyerAuthApi.Application.dll
-/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Presentation/bin/Debug/net9.0/ShahBuyerAuthApi.Contracts.dll
-/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Presentation/bin/Debug/net9.0/ShahBuyerAuthApi.Data.dll
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Presentation/bin/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.dll
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Presentation/bin/Debug/net9.0/ShahBuyerAuthApi.Application.pdb
-/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Presentation/bin/Debug/net9.0/ShahBuyerAuthApi.Contracts.pdb
-/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Presentation/bin/Debug/net9.0/ShahBuyerAuthApi.Data.pdb
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Presentation/bin/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.pdb
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Presentation/obj/Debug/net9.0/ShahBuyerAuthApi.Presentation.csproj.AssemblyReference.cache
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Presentation/obj/Debug/net9.0/rpswa.dswa.cache.json
@@ -527,5 +523,7 @@
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Presentation/obj/Debug/net9.0/ShahBuyerAuthApi.Presentation.genruntimeconfig.cache
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Presentation/obj/Debug/net9.0/ref/ShahBuyerAuthApi.Presentation.dll
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Presentation/bin/Debug/net9.0/ShahBuyerAuthApi.Presentation.staticwebassets.runtime.json
-/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Presentation/obj/Debug/net9.0/compressed/4utobdsivj-wa34wv67c9.gz
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Presentation/obj/Debug/net9.0/ShahBuyerAuthApi.Presentation.sourcelink.json
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Presentation/bin/Debug/net9.0/ShahBuyerAuthApi.Core.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Presentation/bin/Debug/net9.0/ShahBuyerAuthApi.Core.pdb
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Presentation/obj/Debug/net9.0/compressed/4utobdsivj-zubfqgz0t2.gz

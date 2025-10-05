@@ -24,6 +24,7 @@ import { updateProductStock } from "@/store/productSlice";
 import { BsCart3 } from "react-icons/bs";
 import CartItem from "@/components/custom/CartItem";
 import { useNavigate } from "react-router-dom";
+import BackToTopButton from "@/components/custom/BackToTopButton";
 
 export default function Cart() {
     const dispatch = useDispatch();
@@ -167,6 +168,7 @@ export default function Cart() {
                     </DialogContent>
                 </Dialog>
             )}
+            <BackToTopButton />
             <Footer />
 
         </>

@@ -2010,27 +2010,17 @@
           }
         }
       },
-      "ShahBuyerAuthApi.Contracts/1.0.0": {
-        "type": "project",
-        "framework": ".NETCoreApp,Version=v9.0",
-        "compile": {
-          "bin/placeholder/ShahBuyerAuthApi.Contracts.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/ShahBuyerAuthApi.Contracts.dll": {}
-        }
-      },
-      "ShahBuyerAuthApi.Data/1.0.0": {
+      "ShahBuyerAuthApi.Core/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v9.0",
         "dependencies": {
           "Microsoft.EntityFrameworkCore": "9.0.8"
         },
         "compile": {
-          "bin/placeholder/ShahBuyerAuthApi.Data.dll": {}
+          "bin/placeholder/ShahBuyerAuthApi.Core.dll": {}
         },
         "runtime": {
-          "bin/placeholder/ShahBuyerAuthApi.Data.dll": {}
+          "bin/placeholder/ShahBuyerAuthApi.Core.dll": {}
         }
       }
     }
@@ -5635,15 +5625,10 @@
         "useSharedDesignerContext.txt"
       ]
     },
-    "ShahBuyerAuthApi.Contracts/1.0.0": {
+    "ShahBuyerAuthApi.Core/1.0.0": {
       "type": "project",
-      "path": "../ShahBuyerAuthApi.Contracts/ShahBuyerAuthApi.Contracts.csproj",
-      "msbuildProject": "../ShahBuyerAuthApi.Contracts/ShahBuyerAuthApi.Contracts.csproj"
-    },
-    "ShahBuyerAuthApi.Data/1.0.0": {
-      "type": "project",
-      "path": "../ShahBuyerAuthApi.Data/ShahBuyerAuthApi.Data.csproj",
-      "msbuildProject": "../ShahBuyerAuthApi.Data/ShahBuyerAuthApi.Data.csproj"
+      "path": "../ShahBuyerAuthApi.Core/ShahBuyerAuthApi.Core.csproj",
+      "msbuildProject": "../ShahBuyerAuthApi.Core/ShahBuyerAuthApi.Core.csproj"
     }
   },
   "projectFileDependencyGroups": {
@@ -5657,8 +5642,7 @@
       "Microsoft.EntityFrameworkCore.SqlServer >= 9.0.8",
       "Microsoft.EntityFrameworkCore.Tools >= 9.0.8",
       "Newtonsoft.Json >= 13.0.3",
-      "ShahBuyerAuthApi.Contracts >= 1.0.0",
-      "ShahBuyerAuthApi.Data >= 1.0.0"
+      "ShahBuyerAuthApi.Core >= 1.0.0"
     ]
   },
   "packageFolders": {
@@ -5686,11 +5670,8 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "projectReferences": {
-            "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Contracts/ShahBuyerAuthApi.Contracts.csproj": {
-              "projectPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Contracts/ShahBuyerAuthApi.Contracts.csproj"
-            },
-            "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Data/ShahBuyerAuthApi.Data.csproj": {
-              "projectPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Data/ShahBuyerAuthApi.Data.csproj"
+            "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Core/ShahBuyerAuthApi.Core.csproj": {
+              "projectPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Core/ShahBuyerAuthApi.Core.csproj"
             }
           }
         }

@@ -6,4 +6,5 @@ namespace ShahBuyerAuthApi.Application.Services.Interfaces;
 public interface IAuthService
 {
     public Task<TypedResult<object>> LoginAsync(BuyerLoginRequestDTO request);
+    public Task<TypedResult<object>> LogoutAsync(string token);
 }

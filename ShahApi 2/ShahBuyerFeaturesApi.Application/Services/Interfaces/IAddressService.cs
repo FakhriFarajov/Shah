@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using ShahBuyerFeaturesApi.Contracts.DTOs.Request;
 using ShahBuyerFeaturesApi.Contracts.DTOs.Response;
-using ShahBuyerFeaturesApi.Data.Models;
+using ShahBuyerFeaturesApi.Core.Models;
 
 namespace ShahBuyerFeaturesApi.Application.Services.Interfaces
 {

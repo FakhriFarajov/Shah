@@ -10,6 +10,7 @@ import OrdersPage from './pages/orders'
 import ReportPage from './pages/report'
 import ReviewsPage from './pages/reviews'
 import { Toaster } from 'sonner';
+import ProductStatisticsPage from './pages/ProductDetails'
 
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
           <Route path='/home' element={<Main />} />
           <Route path='/profile' element={<SellerProfile />} />
           <Route path='/products' element={<ProductsPage />} />
+          <Route path='/product-details' element={<ProductStatisticsPage />} />
           <Route path='/orders' element={<OrdersPage />} />
           <Route path='/report' element={<ReportPage />} />
           <Route path='/reviews' element={<ReviewsPage />} />

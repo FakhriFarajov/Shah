@@ -6,6 +6,7 @@ import Main from './pages/main';
 import BuyersPage from './pages/buyers';
 import SellersPage from './pages/sellers';
 import BuyerDetailsPage from './pages/buyer-details';
+import BuyerStatisticsPage from './pages/buyer-statistics';
 
 function App() {
 
@@ -19,6 +20,7 @@ function App() {
           <Route path='/buyers' element={<BuyersPage />} />
           <Route path='/sellers' element={<SellersPage />} />
           <Route path='/buyer-details/:id' element={<BuyerDetailsPage />} />
+          <Route path='/buyer-statistics' element={<BuyerStatisticsPage />} />
         </Routes>
       </BrowserRouter>
     </>

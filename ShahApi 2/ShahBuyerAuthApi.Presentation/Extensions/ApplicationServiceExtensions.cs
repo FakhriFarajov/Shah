@@ -7,6 +7,7 @@ using ShahBuyerAuthApi.Infrastructure.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using ShahBuyerAuthApi.Application.Utils;
 using ShahBuyerAuthApi.Infrastructure.MappingConfigurations;
 
 namespace ShahBuyerAuthApi.Presentation.Extensions;
@@ -22,16 +23,17 @@ public static class ApplicationServiceExtensions
             options.UseSqlServer(configuration.GetConnectionString("Mac")));
 
         services.AddScoped<IAccountService, AccountService>();
-        services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<TokenManager>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IBuyerService, BuyerService>();
-        
-        services.AddAutoMapper(ops => ops.AddProfile(typeof(MappingProfile)));
-        
-        services.AddScoped<EmailSender>();
+        services.AddSingleton<EmailSender>();
         services.AddSingleton<GlobalExceptionMiddleware>();
 
+        
+        
+        services.AddAutoMapper(ops => ops.AddProfile(typeof(MappingProfile)));
         services.AddAutoMapper(Assembly.GetExecutingAssembly());
+
 
         services.AddAuthentication(options =>
             {
@@ -49,7 +51,44 @@ public static class ApplicationServiceExtensions
                     ValidIssuer = configuration["JWT:Issuer"],
                     ValidAudience = configuration["JWT:Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(configuration["JWT:SecretKey"]))
+                        Encoding.UTF8.GetBytes(configuration["JWT:SecretKey"] ?? string.Empty))
+                };
+
+                // Custom OnAuthenticationFailed event for refresh token logic
+                options.Events = new JwtBearerEvents
+                {
+                    OnAuthenticationFailed = async context =>
+                    {
+                        var req = context.Request;
+                        var res = context.Response;
+
+                        if (req.Headers.TryGetValue("refreshToken", out var hdr) && !string.IsNullOrWhiteSpace(hdr))
+                        {
+                            var tokenManager = context.HttpContext.RequestServices.GetRequiredService<TokenManager>();
+                            var refreshToken = hdr.ToString();
+                            var refreshed = await tokenManager.RefreshTokenAsync(refreshToken);
+
+                            if (refreshed != null && refreshed.IsSuccess && refreshed.Data != null)
+                            {
+                                var data = refreshed.Data;
+                                var accessTokenProp = data.GetType().GetProperty("AccessToken");
+                                var refreshTokenProp = data.GetType().GetProperty("RefreshToken");
+
+                                var accessToken = accessTokenProp?.GetValue(data)?.ToString();
+                                var refreshTokenNew = refreshTokenProp?.GetValue(data)?.ToString();
+
+                                if (!string.IsNullOrEmpty(accessToken) && !string.IsNullOrEmpty(refreshTokenNew))
+                                {
+                                    res.Headers["accessToken"] = accessToken;
+                                    res.Headers["refreshToken"] = refreshTokenNew;
+                                    res.StatusCode = StatusCodes.Status200OK;
+                                    return;
+                                }
+                            }
+                        }
+
+                        res.StatusCode = StatusCodes.Status401Unauthorized;
+                    }
                 };
             });
 

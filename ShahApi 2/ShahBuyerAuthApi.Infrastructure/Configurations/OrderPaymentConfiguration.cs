@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using ShahBuyerAuthApi.Data.Models;
+using ShahBuyerAuthApi.Core.Models;
 namespace ShahBuyerAuthApi.Infrastructure.Configurations
 {
     public class OrderPaymentConfiguration : IEntityTypeConfiguration<OrderPayment>
@@ -9,15 +9,13 @@ namespace ShahBuyerAuthApi.Infrastructure.Configurations
         {
             builder.HasKey(p => p.Id);
             builder.Property(p => p.Id).IsRequired().HasMaxLength(36);
-            builder.Property(p => p.OrderId).IsRequired().HasMaxLength(36);
             builder.Property(p => p.BuyerProfileId).IsRequired().HasMaxLength(36);
             builder.Property(p => p.TotalAmount).HasColumnType("decimal(18,2)");
             builder.Property(p => p.RefundAmount).HasColumnType("decimal(18,2)");
             
             // 🔹 One Order → One Payment
-            builder.HasOne(p => p.Order)
+            builder.HasMany(p => p.Orders)
                 .WithOne(o => o.OrderPayment)
-                .HasForeignKey<OrderPayment>(p => p.OrderId)
                 .OnDelete(DeleteBehavior.Restrict); // prevent multiple cascade paths
 
             // 🔹 One BuyerProfile → One Payment

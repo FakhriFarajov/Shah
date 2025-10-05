@@ -1,5 +1,6 @@
 
-import { User, ShoppingBag, ListOrdered, Home, Warehouse, List, Package } from "lucide-react";
+import { IconCategory } from "@tabler/icons-react";
+import { User, ShoppingBag, ListOrdered, Home, Warehouse, Package } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
@@ -9,11 +10,12 @@ export function AppSidebar() {
     const navigator = useNavigate();
     const sidebarItems = [
         { icon: <Home className="w-5 h-5 mr-2" />, label: t("Home") },
+        { icon: <IconCategory className="w-5 h-5 mr-2" />, label: t("Categories") },
         { icon: <User className="w-5 h-5 mr-2" />, label: t("Buyers") },
-        { icon: <ShoppingBag className="w-5 h-5 mr-2" />, label: t("Sellers") },
+        { icon: <User className="w-5 h-5 mr-2" />, label: t("Sellers") },
         { icon: <ListOrdered className="w-5 h-5 mr-2" />, label: t("Orders") },
         { icon: <Package className="w-5 h-5 mr-2" />, label: t("Products") },
-        { icon: <Warehouse className="w-5 h-5 mr-2" />, label: t("Warehouse") },
+        { icon: <Warehouse className="w-5 h-5 mr-2" />, label: t("Warehouses") },
     ];
     return (
         <aside className="w-64 bg-white border-r flex flex-col items-center py-8 px-4">

@@ -31,6 +31,7 @@ type Order = {
 	payment?: Payment;
 };
 
+
 const initialOrders: Order[] = [
 	{
 		id: "1",
@@ -255,7 +256,7 @@ export default function OrdersPage() {
 					<div className="max-w-6xl mx-auto mt-4">
 						<div className="overflow-x-auto rounded-lg shadow border bg-white">
 							<div className="max-h-[750px] overflow-y-auto">
-								<AdaptiveTable columns={orderColumns} data={filteredOrders} />
+								<AdaptiveTable columns={orderColumns} data={initialOrders} pageSize={5} />
 							</div>
 						</div>
 					</div>

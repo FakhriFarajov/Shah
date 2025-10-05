@@ -1,7 +1,9 @@
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import type { ProductVariant, ProductVariantAttributeValue } from "../../pages/products";
+import ImageCropDialog from "@/components/ui/image-crop-dialog";
+import { useState } from "react";
+import type { ProductVariant, ProductVariantAttributeValue } from "../../pages/productsPage";
 // Add mainImageIdx to ProductVariant type via intersection
 type VariantWithMain = ProductVariant & { mainImageIdx?: number };
 
@@ -56,7 +58,14 @@ const attributeValues = [
     { id: "av11", name: "MacOS", propertyId: "os-1" },
 ];
 
+
+
 function EditProductVariants({ variants, onChange, categoryId, subcategoryId, disableAdd }: EditProductVariantsProps) {
+    const [zoomImg, setZoomImg] = useState<string | null>(null);
+    // State for cropping
+    const [cropDialogOpen, setCropDialogOpen] = useState(false);
+    const [cropFile, setCropFile] = useState<File | null>(null);
+    const [cropVariantIdx, setCropVariantIdx] = useState<number | null>(null);
     // Helper to update images for a variant
         // Helper to compare attributeValues arrays
     function areAttributeValuesEqual(a: ProductVariantAttributeValue[], b: ProductVariantAttributeValue[]) {
@@ -66,35 +75,38 @@ function EditProductVariants({ variants, onChange, categoryId, subcategoryId, di
         return aSorted.every((val, idx) => val === bSorted[idx]);
     }
     function handleVariantImagesChange(idx: number, files: FileList | null) {
-        if (!files) return;
+        if (!files || files.length === 0) return;
+        // Only allow one at a time for cropping
+        setCropFile(files[0]);
+        setCropVariantIdx(idx);
+        setCropDialogOpen(true);
+    }
+
+    function handleCropDone(croppedImg: string) {
+        if (cropVariantIdx === null) return;
         const maxImages = 5;
-        const fileArr = Array.from(files).slice(0, maxImages);
-        Promise.all(
-            fileArr.map(
-                (file) =>
-                    new Promise<string>((resolve, reject) => {
-                        const reader = new FileReader();
-                        reader.onload = () => resolve(reader.result as string);
-                        reader.onerror = reject;
-                        reader.readAsDataURL(file);
-                    })
-            )
-        ).then((imgs) => {
-            // Only store base64 strings in images property
-            const updated = (variants || []).map((v, i) => {
-                if (i !== idx) return v;
-                const existingImages = v.images || [];
-                // Filter out images that already exist (by base64 string)
-                const uniqueImgs = imgs.filter(img => !existingImages.includes(img));
-                const newImages = [...existingImages, ...uniqueImgs].slice(0, maxImages);
-                return {
-                    ...v,
-                    images: newImages,
-                    mainImageIdx: v.mainImageIdx !== undefined ? v.mainImageIdx : 0,
-                };
-            });
-            onChange(updated);
+        const updated = (variants || []).map((v, i) => {
+            if (i !== cropVariantIdx) return v;
+            const existingImages = v.images || [];
+            if (existingImages.length >= maxImages) return v;
+            // Prevent duplicates
+            if (existingImages.includes(croppedImg)) return v;
+            return {
+                ...v,
+                images: [...existingImages, croppedImg].slice(0, maxImages),
+                mainImageIdx: v.mainImageIdx !== undefined ? v.mainImageIdx : 0,
+            };
         });
+        onChange(updated);
+        setCropDialogOpen(false);
+        setCropFile(null);
+        setCropVariantIdx(null);
+    }
+
+    function handleCropReset() {
+        setCropDialogOpen(false);
+        setCropFile(null);
+        setCropVariantIdx(null);
     }
     function handleRemoveVariantImage(idx: number, imgIdx: number) {
         const updated = (variants || []).map((v, i) => {
@@ -123,7 +135,11 @@ function EditProductVariants({ variants, onChange, categoryId, subcategoryId, di
     }
 
     function handleVariantChange(idx: number, field: keyof ProductVariant, value: any) {
-        const updated = (variants || []).map((v: ProductVariant, i: number) => i === idx ? { ...v, [field]: value } : v);
+        // For price, stock, weight: store as string for editing
+        const updated = (variants || []).map((v: ProductVariant, i: number) => {
+            if (i !== idx) return v;
+            return { ...v, [field]: value };
+        });
         onChange(updated);
     }
     function handleAttributeValueChange(idx: number, propertyId: string, value: string) {
@@ -175,76 +191,98 @@ function EditProductVariants({ variants, onChange, categoryId, subcategoryId, di
         <div className="space-y-4">
             {/* Validation: show error if any variant has no image on save attempt */}
             {/* Call validateAllVariantsHaveImages() before parent save/submit if needed */}
-            <div className="max-h-70 overflow-y-auto pr-2">
+            <div className="max-h-150 overflow-y-auto pr-2">
                 {(variants || []).map((variant: ProductVariant, idx: number) => (
                     <div key={variant.id} className="border rounded-lg p-4 mb-2 bg-gray-50">
                         <div className="flex gap-4 mb-2">
                             <div className="flex-1">
-                                <Label>Stock</Label>
+                                <Label className="mb-2">Stock</Label>
                                 <input
                                     className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
                                     placeholder="Stock"
                                     type="text"
                                     inputMode="decimal"
                                     pattern="^[0-9]*\.?[0-9]*$"
-                                    value={typeof variant.stock === "number" && !isNaN(variant.stock) ? variant.stock : (typeof variant.stock === "string" ? variant.stock : "")}
+                                    value={typeof variant.stock === "string" ? variant.stock : (typeof variant.stock === "number" && !isNaN(variant.stock) ? String(variant.stock) : "")}
                                     onChange={e => {
                                         const val = e.target.value;
                                         if (/^\d*\.?\d*$/.test(val) || val === "") {
-                                            handleVariantChange(idx, "stock", val === "" ? "" : Number(val));
+                                            handleVariantChange(idx, "stock", val);
                                         }
                                     }}
                                 />
                             </div>
                             <div className="flex-1">
-                                <Label>Price</Label>
+                                <Label className="mb-2">Price</Label>
                                 <input
                                     className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
                                     placeholder="Price"
                                     type="text"
                                     inputMode="decimal"
                                     pattern="^[0-9]*\.?[0-9]*$"
-                                    value={typeof variant.price === "number" && !isNaN(variant.price) ? variant.price : (typeof variant.price === "string" ? variant.price : "")}
+                                    value={typeof variant.price === "string" ? variant.price : (typeof variant.price === "number" && !isNaN(variant.price) ? String(variant.price) : "")}
                                     onChange={e => {
                                         const val = e.target.value;
                                         if (/^\d*\.?\d*$/.test(val) || val === "") {
-                                            handleVariantChange(idx, "price", val === "" ? "" : Number(val));
+                                            handleVariantChange(idx, "price", val);
                                         }
                                     }}
                                 />
                             </div>
+                            {/* Weight input removed: not present in ProductVariant type */}
                             <Button type="button" variant="destructive" className="h-8 mt-6" onClick={() => handleRemoveVariant(idx)}>-</Button>
                         </div>
                         {/* Variant Images */}
                         <div className="mb-2">
-                            <Label>Variant Images</Label>
+                            <Label className="">Variant Images </Label>
+                            <span className="text-xs text-gray-500">(Attention! all images on the website have square dimensions)</span>
                             <div className="flex flex-wrap gap-2 mb-1">
-                                {(variant.images || []).map((img, imgIdx: number) => (
-                                    <div key={imgIdx} className={`relative group ${variant.mainImageIdx === imgIdx ? ' ring-indigo-500' : ''}`}>
-                                        <img
-                                            src={img}
-                                            alt="variant preview"
-                                            className={`w-12 h-12 object-cover rounded border ${variant.mainImageIdx === imgIdx ? 'border-4 border-indigo-500' : 'border-indigo-200'} shadow cursor-pointer`}
-                                            onClick={() => handleSetMainImage(idx, imgIdx)}
-                                            title={variant.mainImageIdx === imgIdx ? 'Main Image' : 'Set as Main'}
-                                        />
-                                        {variant.mainImageIdx === imgIdx && (
-                                            <span className="absolute top-0 left-0 bg-indigo-500 text-white text-xs px-1 rounded-br">Main</span>
-                                        )}
-                                        <button
-                                            className="absolute -top-2 -right-2 bg-white border border-gray-300 rounded-full text-red-500 px-1 py-0.5 text-xs shadow group-hover:opacity-100 opacity-70"
-                                            onClick={() => handleRemoveVariantImage(idx, imgIdx)}
-                                            type="button"
-                                            aria-label="Remove variant image"
-                                        >×</button>
-                                    </div>
-                                ))}
+                                {(variant.images || []).map((img, imgIdx: number) => {
+                                    const v = variant as VariantWithMain;
+                                    return (
+                                        <div key={imgIdx} className={`relative group ${v.mainImageIdx === imgIdx ? ' ring-indigo-500' : ''}`}>
+                                            <img
+                                                src={img}
+                                                alt="variant preview"
+                                                className={`w-12 h-12 object-cover rounded border ${v.mainImageIdx === imgIdx ? 'border-4 border-indigo-500' : 'border-indigo-200'} shadow cursor-pointer`}
+                                                onClick={() => handleSetMainImage(idx, imgIdx)}
+                                                title={v.mainImageIdx === imgIdx ? 'Main Image' : 'Set as Main'}
+                                            />
+                                            {v.mainImageIdx === imgIdx && (
+                                                <span className="absolute top-0 left-0 bg-indigo-500 text-white text-xs px-1 rounded-br">Main</span>
+                                            )}
+                                            <button
+                                                className="absolute -top-2 -right-2 bg-white border border-gray-300 rounded-full text-red-500 px-1 py-0.5 text-xs shadow group-hover:opacity-100 opacity-70"
+                                                onClick={() => handleRemoveVariantImage(idx, imgIdx)}
+                                                type="button"
+                                                aria-label="Remove variant image"
+                                            >×</button>
+                                            <button
+                                                className="absolute bottom-0 right-0 bg-indigo-600 text-white text-xs px-1.5 py-0.5 rounded shadow opacity-80 hover:opacity-100"
+                                                style={{ transform: 'translateY(50%)' }}
+                                                type="button"
+                                                onClick={() => setZoomImg(img)}
+                                                aria-label="Zoom variant image"
+                                            >
+                                                Zoom
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+        {/* Zoom Modal */}
+        {zoomImg && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70" onClick={() => setZoomImg(null)}>
+                <div className="bg-white rounded-2xl shadow-xl p-4 max-w-2xl w-full flex flex-col items-center relative" onClick={e => e.stopPropagation()}>
+                    <button className="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-2xl font-bold" onClick={() => setZoomImg(null)}>&times;</button>
+                    <img src={zoomImg} alt="Zoomed" className="max-h-[70vh] max-w-full rounded-xl" />
+                </div>
+            </div>
+        )}
                                 <label className="w-12 h-12 flex items-center justify-center border-2 border-dashed border-indigo-300 rounded-lg text-indigo-400 hover:bg-indigo-50 focus:outline-none cursor-pointer">
                                     +
                                     <input
                                         type="file"
                                         accept="image/*"
-                                        multiple
                                         className="hidden"
                                         onChange={e => handleVariantImagesChange(idx, e.target.files)}
                                         disabled={variant.images && variant.images.length >= 5}
@@ -265,7 +303,7 @@ function EditProductVariants({ variants, onChange, categoryId, subcategoryId, di
                                 const values = getAttributeValues(prop.id);
                                 return (
                                     <div key={prop.id} className="flex flex-col">
-                                        <Label>{prop.name}</Label>
+                                        <Label className="mb-2">{prop.name}</Label>
                                         <select
                                             className="border rounded px-2 py-1"
                                             value={val}
@@ -294,7 +332,16 @@ function EditProductVariants({ variants, onChange, categoryId, subcategoryId, di
                     Add Variant
                 </Button>
             )}
-        </div>
+        {/* Image Crop Dialog for variant images */}
+        <ImageCropDialog
+            open={cropDialogOpen}
+            onOpenChange={setCropDialogOpen}
+            file={cropFile}
+            onCrop={handleCropDone}
+            onReset={handleCropReset}
+            aspect={1}
+        />
+    </div>
     );
 }
 

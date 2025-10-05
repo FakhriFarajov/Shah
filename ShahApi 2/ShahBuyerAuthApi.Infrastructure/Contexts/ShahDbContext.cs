@@ -1,6 +1,6 @@
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
-using ShahBuyerAuthApi.Data.Models;
+using ShahBuyerAuthApi.Core.Models;
 
 namespace ShahBuyerAuthApi.Infrastructure.Contexts;
 
@@ -29,6 +29,7 @@ public class ShahDbContext : DbContext
     public DbSet<Warehouse> Warehouses { get; set; }
     public DbSet<WarehouseOrder> WarehouseOrders { get; set; }
     public DbSet<Receipt> Receipts { get; set; }
+    
     public ShahDbContext(DbContextOptions<ShahDbContext> options) : base(options)
     {
     }
@@ -36,5 +37,6 @@ public class ShahDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+
     }
 }

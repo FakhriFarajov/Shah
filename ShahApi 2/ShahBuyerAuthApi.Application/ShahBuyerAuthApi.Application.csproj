@@ -19,9 +19,7 @@
     </ItemGroup>
     
     <ItemGroup>
-      <ProjectReference Include="..\ShahBuyerAuthApi.Contracts\ShahBuyerAuthApi.Contracts.csproj" />
-      <ProjectReference Include="..\ShahBuyerAuthApi.Data\ShahBuyerAuthApi.Data.csproj" />
+      <ProjectReference Include="..\ShahBuyerAuthApi.Core\ShahBuyerAuthApi.Core.csproj" />
       <ProjectReference Include="..\ShahBuyerAuthApi.Infrastructure\ShahBuyerAuthApi.Infrastructure.csproj" />
     </ItemGroup>
-
 </Project>

@@ -4,7 +4,7 @@ using ShahBuyerAuthApi.Infrastructure.Contexts;
 using Microsoft.EntityFrameworkCore;
 using ShahBuyerAuthApi.Contracts.DTOs.Request;
 using ShahBuyerAuthApi.Contracts.DTOs.Response;
-using ShahBuyerAuthApi.Data.Models;
+using ShahBuyerAuthApi.Core.Models;
 
 namespace ShahBuyerAuthApi.Application.Services.Classes;
 

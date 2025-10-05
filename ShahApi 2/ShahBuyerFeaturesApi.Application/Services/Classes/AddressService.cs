@@ -4,7 +4,7 @@ using ShahBuyerFeaturesApi.Application.Services.Interfaces;
 using ShahBuyerFeaturesApi.Application.Services.Interfaces;
 using ShahBuyerFeaturesApi.Contracts.DTOs.Request;
 using ShahBuyerFeaturesApi.Contracts.DTOs.Response;
-using ShahBuyerFeaturesApi.Data.Models;
+using ShahBuyerFeaturesApi.Core.Models;
 using ShahBuyerFeaturesApi.Infrastructure.Contexts;
 
 namespace ShahBuyerFeaturesApi.Application.Services.Classes;

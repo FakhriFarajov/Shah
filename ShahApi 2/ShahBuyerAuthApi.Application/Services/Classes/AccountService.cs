@@ -7,8 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using ShahBuyerAuthApi.Application.Services.Interfaces;
 using ShahBuyerAuthApi.Contracts.DTOs.Request;
 using ShahBuyerAuthApi.Contracts.DTOs.Response;
-using ShahBuyerAuthApi.Data.Enums;
-using ShahBuyerAuthApi.Data.Models;
+using ShahBuyerAuthApi.Core.Enums;
+using ShahBuyerAuthApi.Core.Models;
 using ShahBuyerAuthApi.Infrastructure.Contexts;
 using static BCrypt.Net.BCrypt;
 
@@ -31,22 +31,32 @@ public class AccountService : IAccountService
     }
     
 
+    
     public async Task<Result> RegisterBuyerAsync(BuyerRegisterRequestDTO request)
     {
+        // Normalize email to lowercase
+        var normalizedEmail = request.Email.Trim().ToLowerInvariant();
+        var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
+        if (existingUser != null)
+        {
+            return Result.Error("Email is already registered.", 409);
+        }
+
         var userToAdd = _mapper.Map<User>(request);
+        userToAdd.Email = normalizedEmail;
         userToAdd.Password = HashPassword(request.Password);
         userToAdd.Role = Role.Buyer; // Set role directly
 
         var buyerProfile = _mapper.Map<BuyerProfile>(request);
         buyerProfile.UserId = userToAdd.Id;
-        
+
         userToAdd.BuyerProfileId = buyerProfile.Id;
-        
+
         _context.Users.Add(userToAdd);
         _context.BuyerProfiles.Add(buyerProfile);
 
         await _context.SaveChangesAsync();
-        
+
         return Result.Success("Buyer registered successfully");
     }
 
@@ -61,7 +71,7 @@ public class AccountService : IAccountService
 
         var messageContent = new StringBuilder(await File.ReadAllTextAsync(filePath));
 
-        var link = $"{context.Request.Scheme}://{context.Request.Host}/api/Account/Verify/{user.Id}/{token}";
+        var link = $"{context.Request.Scheme}://{context.Request.Host}/api/Account/VerifyToken/{user.Id}/{token}";
         
         messageContent.Replace("{User}", user.Name);
         messageContent.Replace("{ConfirmationLink}", link);
@@ -77,4 +87,17 @@ public class AccountService : IAccountService
         
         return Result.Success("Email confirmed");
     }
+
+    public async Task<Result> ForgotPasswordAsync(string email, string newPassword, string OldPassword)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
+        if (user == null || !Verify(OldPassword, user.Password))
+            return Result.Error("User with this email does not exist or the password is incorrect.", 404);
+
+        user.Password = HashPassword(newPassword);
+        await _context.SaveChangesAsync();
+
+        return Result.Success("Password has been reset successfully.");
+    }
+    
 }

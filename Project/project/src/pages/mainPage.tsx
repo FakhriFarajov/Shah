@@ -7,6 +7,7 @@ import { generateSampleProducts } from "@/components/custom/generateSampleProduc
 import "../i18n"; // Import i18n configuration
 import { useTranslation } from "react-i18next";
 import Grid from "@/components/custom/ProductGrid";
+import BackToTopButton from "@/components/custom/BackToTopButton";
 
 
 
@@ -53,6 +54,7 @@ export default function Main() {
                     </div>
                 </div>
             </div>
+            <BackToTopButton />
             <Footer />
         </>
     );

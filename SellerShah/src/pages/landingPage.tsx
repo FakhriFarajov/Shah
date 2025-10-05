@@ -3,11 +3,11 @@ import NavBar from "../components/custom/Navbar/navbar";
 import { Card, CardTitle, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import Footer from "../components/custom/footer";
+import { FeatureSteps } from "@/components/custom/steps_to_sell";
 
 function useCountUp(target: number, duration = 1000, decimals = 0) {
     const [count, setCount] = useState(0);
     const startTimestamp = useRef<number | null>(null);
-
 
     //Effect to handle the counting animation
     useEffect(() => {
@@ -39,6 +39,27 @@ function useCountUp(target: number, duration = 1000, decimals = 0) {
 export default function LandingPage() {
     const animatedUsers = useCountUp(63500000, 2000);
     const animatedCommission = useCountUp(9, 2000, 1);
+        const features = [
+        {
+            step: 'Step 1',
+            title: 'Sign Up',
+            content: 'Create your account and set up your seller profile in just a few easy steps.',
+            image: 'https://images.unsplash.com/photo-1723958929247-ef054b525153?q=80&w=2070&auto=format&fit=crop'
+        },
+        {
+            step: 'Step 2',
+            title: 'Get verified',
+            content: 'Complete the verification process to ensure a secure trading environment.',
+            image: 'https://images.unsplash.com/photo-1723931464622-b7df7c71e380?q=80&w=2070&auto=format&fit=crop'
+        },
+        {
+            step: 'Step 3',
+            title: 'List Products',
+            content: 'Showcase your products to a global audience and start selling.',
+            image: 'https://images.unsplash.com/photo-1725961476494-efa87ae3106a?q=80&w=2070&auto=format&fit=crop'
+        },
+    ]
+
     return (
         <>
             <NavBar />
@@ -168,38 +189,15 @@ export default function LandingPage() {
                 </div>
             </section>
             <div className="w-full bg-[#f5faff] py-8 flex flex-col items-center">
-            <h1 className="text-2xl font-bold text-[#19222a] mb-6 text-center bg-[#f5faff] py-4">Ready to take your business global?</h1>
-                <div className="flex gap-10 md:gap-16 items-center mb-6">
-                    {/* Step 1 - Active */}
-                    <div className="flex items-center gap-3">
-                        <span className="flex items-center justify-center w-12 h-12 rounded-full bg-[#19222a] text-white text-2xl font-bold">1</span>
-                        <span className="text-xl md:text-2xl font-extrabold text-[#19222a]">ACCOUNT CREATION</span>
-                    </div>
-                    {/* Step 2 */}
-                    <div className="flex items-center gap-3">
-                        <span className="flex items-center justify-center w-12 h-12 rounded-full border-2 border-[#19222a] text-[#19222a] text-2xl font-bold bg-white">2</span>
-                        <span className="text-xl md:text-2xl font-semibold text-[#19222a] opacity-80">BUSINESS DETAILS</span>
-                    </div>
-                    {/* Step 3 */}
-                    <div className="flex items-center gap-3">
-                        <span className="flex items-center justify-center w-12 h-12 rounded-full border-2 border-[#19222a] text-[#19222a] text-2xl font-bold bg-white">3</span>
-                        <span className="text-xl md:text-2xl font-semibold text-[#19222a] opacity-80">FINISH</span>
-                    </div>
-                </div>
+                <h1 className="text-2xl font-bold text-[#19222a] mb-6 text-center bg-[#f5faff] py-4">Ready to take your business global?</h1>
+
                 {/* Step Descriptions */}
                 <div className="flex flex-col md:flex-row gap-8 w-full max-w-4xl justify-center">
-                    <div className="flex-1 flex flex-col items-center">
-                        <span className="font-bold text-[#19222a] mb-2">1. Account Creation</span>
-                        <span className="text-[#263238] text-center text-sm">Sign up with your email and set a secure password to start your journey.</span>
-                    </div>
-                    <div className="flex-1 flex flex-col items-center">
-                        <span className="font-bold text-[#19222a] mb-2">2. Business Details</span>
-                        <span className="text-[#263238] text-center text-sm">Provide your business information and verify your identity for a smooth onboarding.</span>
-                    </div>
-                    <div className="flex-1 flex flex-col items-center">
-                        <span className="font-bold text-[#19222a] mb-2">3. Finish</span>
-                        <span className="text-[#263238] text-center text-sm">Complete the process and start listing your products to reach global customers!</span>
-                    </div>
+                    <FeatureSteps
+                        features={features}
+                        title="Your Journey Starts Here"
+                        autoPlayInterval={4000}
+                        imageHeight="h-[500px]" />
                 </div>
             </div>
             <Footer></Footer>

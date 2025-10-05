@@ -24,8 +24,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\ShahBuyerFeaturesApi.Contracts\ShahBuyerFeaturesApi.Contracts.csproj" />
-      <ProjectReference Include="..\ShahBuyerFeaturesApi.Data\ShahBuyerFeaturesApi.Data.csproj" />
+      <ProjectReference Include="..\ShahBuyerFeaturesApi.Core\ShahBuyerFeaturesApi.Core.csproj" />
     </ItemGroup>
 
     <ItemGroup>

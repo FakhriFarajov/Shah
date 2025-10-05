@@ -1,7 +1,7 @@
 using AutoMapper;
 using ShahBuyerAuthApi.Contracts.DTOs.Request;
 using ShahBuyerAuthApi.Contracts.DTOs.Response;
-using ShahBuyerAuthApi.Data.Models;
+using ShahBuyerAuthApi.Core.Models;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
@@ -28,7 +28,7 @@ namespace ShahBuyerAuthApi.Infrastructure.MappingConfigurations
                 .ForMember(dest => dest.RefreshToken, opt => opt.Ignore())
                 .ForMember(dest => dest.RefreshTokenExpiryTime, opt => opt.Ignore())
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
-                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => ShahBuyerAuthApi.Data.Enums.Role.Buyer));
+                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => ShahBuyerAuthApi.Core.Enums.Role.Buyer));
 
             // BuyerRegisterRequestDTO -> BuyerProfile
             CreateMap<BuyerRegisterRequestDTO, BuyerProfile>()
@@ -42,9 +42,6 @@ namespace ShahBuyerAuthApi.Infrastructure.MappingConfigurations
                 .ForMember(dest => dest.OrderPayment, opt => opt.Ignore());
         }
 
-        // -------------------------
-        // Validation & Hashing
-        // -------------------------
 
         private static string ValidateEmail(string email)
         {

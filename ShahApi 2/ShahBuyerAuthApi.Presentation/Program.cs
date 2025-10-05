@@ -1,7 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using Scalar.AspNetCore;
-using ShahBuyerAuthApi.Infrastructure.Contexts;
-
 using ShahBuyerAuthApi.Presentation.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);

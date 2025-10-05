@@ -1,8 +1,8 @@
-using ShahBuyerAuthApi.Data.Models;
+using ShahBuyerAuthApi.Core.Models;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using ShahBuyerAuthApi.Data.Models;
+
 namespace ShahBuyerAuthApi.Data.Configurations
 {
     public class ReceiptConfiguration : IEntityTypeConfiguration<Receipt>

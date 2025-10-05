@@ -2,11 +2,11 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useState } from "react"
-import ReactCountryFlag from "react-country-flag"
+import { useState, type ChangeEvent } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { Eye, EyeOff } from "lucide-react"
+import ImageUploadCropZoom from "./image-upload"
 
 // Category and Tax ID Type lists (same as profile)
 const categories = [
@@ -63,10 +63,28 @@ export default function RegForm({
   // Step 2 fields (SellerProfile & Address)
   const [phone, setPhone] = useState("");
   const [contactPhone, setContactPhone] = useState("");
+  const [storeEmail, setStoreEmail] = useState("");
+
   const [storeName, setStoreName] = useState("");
-  const [storeDescription, setStoreDescription] = useState("");
+  const [storeDescription, setStoreDescription] = useState("");``
   const [storeLogoUrl, setStoreLogoUrl] = useState("");
   const [storeLogoPreview, setStoreLogoPreview] = useState<string>("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [croppedImage, setCroppedImage] = useState<string | null>(null);
+  const [cropperOpen, setCropperOpen] = useState(false);
+
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      setCroppedImage(null);
+      setCropperOpen(true);
+    }
+  };
+  const handleReset = () => {
+    setSelectedFile(null);
+    setCroppedImage(null);
+  };
   const [sellerTaxInfoId, setSellerTaxInfoId] = useState("");
   // Address fields
   const [street, setStreet] = useState("");
@@ -163,6 +181,7 @@ export default function RegForm({
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
+                  placeholder={t("John")}
                 />
               </div>
               <div className="grid gap-3">
@@ -173,6 +192,7 @@ export default function RegForm({
                   value={surname}
                   onChange={(e) => setSurname(e.target.value)}
                   required
+                  placeholder={t("Doe")}
                 />
               </div>
 
@@ -195,7 +215,7 @@ export default function RegForm({
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder={t("+1 (555) 123-4567")}
+                  placeholder={t("055 555 55 55")}
                   required
                 />
               </div>
@@ -207,6 +227,7 @@ export default function RegForm({
                   value={idPassport}
                   onChange={(e) => setIdPassport(e.target.value)}
                   required
+                  placeholder={t("AB1234567")}
                 />
               </div>
               <div className="grid gap-3">
@@ -218,6 +239,7 @@ export default function RegForm({
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    placeholder={t("*********")}
                   />
                   <button
                     type="button"
@@ -238,6 +260,7 @@ export default function RegForm({
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
+                    placeholder={t("*********")}
                   />
                   <button
                     type="button"
@@ -261,36 +284,19 @@ export default function RegForm({
               <div className="grid grid-cols-1 gap-8 w-full">
                 <div className="flex flex-col gap-6">
                   <h1 className="border-b pb-2">{t("Store Information")}</h1>
-                  <div className="flex flex-col items-center gap-3 pb-2">
-                    <Label>{t("Store Logo")}</Label>
-                    <div className="w-28 h-28 rounded-lg border flex items-center justify-center bg-gray-50 mb-2 shadow">
-                      <img
-                        src={storeLogoPreview || storeLogoUrl || "/src/assets/images/ShahLogo2.png"}
-                        alt="Store Logo Preview"
-                        className="w-24 h-24 object-cover rounded"
-                      />
-                    </div>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      id="store-logo-upload"
-                      className="hidden"
-                      onChange={e => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onloadend = () => {
-                            setStoreLogoPreview(reader.result as string);
-                            setStoreLogoUrl(reader.result as string);
-                          };
-                          reader.readAsDataURL(file);
-                        }
-                      }}
-                    />
-                    <Button type="button" variant="outline" size="sm" className="mt-1" onClick={() => document.getElementById('store-logo-upload')?.click()}>
-                      {t("Upload Logo")}
-                    </Button>
-                  </div>
+                  <ImageUploadCropZoom
+                    croppedImage={croppedImage}
+                    storeLogoPreview={storeLogoPreview}
+                    storeLogoUrl={storeLogoUrl}
+                    selectedFile={selectedFile}
+                    cropperOpen={cropperOpen}
+                    onFileChange={handleFileChange}
+                    onCropperOpenChange={setCropperOpen}
+                    onCrop={img => setCroppedImage(img)}
+                    onReset={handleReset}
+                    setStoreLogoPreview={setStoreLogoPreview}
+                    setStoreLogoUrl={setStoreLogoUrl}
+                  />
                   <div className="grid gap-3">
                     <Label htmlFor="storeName">{t("Store Name")}</Label>
                     <Input
@@ -314,7 +320,7 @@ export default function RegForm({
                     />
                   </div>
                   <div className="grid gap-3">
-                    <Label htmlFor="contactPhone">{t("Contact Phone")}</Label>
+                    <Label htmlFor="contactPhone">{t("Store Contact Phone")}</Label>
                     <Input
                       id="contactPhone"
                       type="tel"
@@ -324,6 +330,18 @@ export default function RegForm({
                       placeholder={t("e.g. +994501234567")}
                     />
                   </div>
+                  <div className="grid gap-3">
+                    <Label htmlFor="storeEmail">{t("Store Email")}</Label>
+                    <Input
+                      id="storeEmail"
+                      type="email"
+                      value={storeEmail}
+                      onChange={(e) => setStoreEmail(e.target.value)}
+                      required
+                      placeholder={t("e.g. info@shah.com")}
+                    />
+                  </div>
+
                 </div>
                 <div className="flex flex-col gap-6">
                   <h1 className="border-b pb-2">
@@ -355,6 +373,9 @@ export default function RegForm({
                       placeholder={t("123456789")}
                     />
                   </div>
+                  <h1 className="border-b pb-2">
+                    {t("Address Information")}
+                  </h1>
                   <div className="grid gap-3">
                     <Label htmlFor="addressStreet">{t("Street")}</Label>
                     <Input

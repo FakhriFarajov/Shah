@@ -1,8 +1,9 @@
 using System.ComponentModel.DataAnnotations;
-using ShahBuyerAuthApi.Contracts.DTOs.Response;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
+using ShahBuyerAuthApi.Contracts.DTOs.Response;
 
 namespace ShahBuyerAuthApi.Infrastructure.Middlewares;
 
@@ -37,7 +38,9 @@ public class GlobalExceptionMiddleware : IMiddleware
             case AutoMapperMappingException mapEx:
                 errorRes = TypedResult<string>.Error("Ошибка маппинга: проверьте DTO и конфигурацию AutoMapper.");
                 break;
-
+            case SecurityTokenException securityEx:
+                errorRes = TypedResult<string>.Error("Token Error");
+                break;
             default:
                 errorRes = TypedResult<string>.Error(exception.Message);
                 break;
