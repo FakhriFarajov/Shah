@@ -3,10 +3,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState, type ChangeEvent } from "react"
+import ImageCropper from "@/components/ui/image-crop"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { Eye, EyeOff } from "lucide-react"
-import ImageUploadCropZoom from "./image-upload"
+import { Dialog, DialogContent } from "../ui/dialog"
+import { MdAccountCircle } from "react-icons/md"
 
 // Category and Tax ID Type lists (same as profile)
 const categories = [
@@ -59,6 +61,7 @@ export default function RegForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [country, setCountry] = useState("");
 
   // Step 2 fields (SellerProfile & Address)
   const [phone, setPhone] = useState("");
@@ -66,12 +69,38 @@ export default function RegForm({
   const [storeEmail, setStoreEmail] = useState("");
 
   const [storeName, setStoreName] = useState("");
-  const [storeDescription, setStoreDescription] = useState("");``
+  const [storeDescription, setStoreDescription] = useState(""); ``
   const [storeLogoUrl, setStoreLogoUrl] = useState("");
   const [storeLogoPreview, setStoreLogoPreview] = useState<string>("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [croppedImage, setCroppedImage] = useState<string | null>(null);
   const [cropperOpen, setCropperOpen] = useState(false);
+  const [editValues, setEditValues] = useState({
+    avatar: "",
+    storeLogoUrl: ""
+  });
+  const [avatar, setAvatar] = useState<string>("");
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+
+  // Ref for avatar file input
+  const avatarInputRef = useState<HTMLInputElement | null>(null);
+
+  // Handle avatar icon click to open file input
+  const handleAvatarClick = () => {
+    const input = document.getElementById("avatar-upload") as HTMLInputElement | null;
+    if (input) {
+      input.click();
+    }
+  };
+
+  // Handle avatar file change
+  const handleAvatarFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setAvatarFile(file);
+      setCropperOpen(true);
+    }
+  };
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -80,6 +109,13 @@ export default function RegForm({
       setCroppedImage(null);
       setCropperOpen(true);
     }
+  };
+
+  const handleCropDone = (croppedUrl: string) => {
+    setCroppedImage(croppedUrl);
+    setStoreLogoPreview(croppedUrl);
+    setStoreLogoUrl(croppedUrl);
+    setCropperOpen(false);
   };
   const handleReset = () => {
     setSelectedFile(null);
@@ -106,6 +142,12 @@ export default function RegForm({
       return;
     }
     setStep(2);
+  };
+
+  const handleAvatarCrop = (croppedUrl: string) => {
+    setAvatar(croppedUrl);
+    setCropperOpen(false);
+    setAvatarFile(null);
   };
 
   const handleRegister = (e: React.FormEvent) => {
@@ -148,6 +190,13 @@ export default function RegForm({
   return (
     <div className={cn("flex flex-col gap-6 w-full max-w-4xl mx-auto", className)} {...props}>
       <form onSubmit={step === 1 ? handleNext : handleRegister}>
+        {cropperOpen && (
+          <Dialog open={cropperOpen} onOpenChange={setCropperOpen}>
+            <DialogContent className="min-w-2xl w-full">
+              <ImageCropper onCrop={handleAvatarCrop} />
+            </DialogContent>
+          </Dialog>
+        )}
         <div className="flex flex-col gap-6 ">
           <div className="flex flex-col items-center gap-2">
             <a
@@ -156,7 +205,7 @@ export default function RegForm({
             >
               <div className="flex w-50 h-30 items-center justify-center rounded-md">
                 <img
-                  src="/src/assets/images/ShahLogo2.png"
+                  src={storeLogoPreview || "/src/assets/images/ShahLogo2.png"}
                   className="w-50 h-50"
                   alt={t("Company Logo")}
                 />
@@ -218,6 +267,21 @@ export default function RegForm({
                   placeholder={t("055 555 55 55")}
                   required
                 />
+              </div>
+              <div>
+                <Label className="mb-4">{t("Country Citizen")}</Label>
+                <select
+                  id="country"
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                  required
+                  className="border rounded px-2 py-1 w-full"
+                >
+                  <option value="" disabled>{t("Select country")}</option>
+                  {countries.map((c) => (
+                    <option key={c.code} value={c.code}>{c.name}</option>
+                  ))}
+                </select>
               </div>
               <div className="grid gap-3">
                 <Label htmlFor="idPassport">{t("ID/Passport")}</Label>
@@ -282,21 +346,38 @@ export default function RegForm({
           ) : (
             <div className="flex flex-col items-center justify-center gap-6 max-w-2xl mx-auto w-full">
               <div className="grid grid-cols-1 gap-8 w-full">
-                <div className="flex flex-col gap-6">
+                <div className="flex flex-col gap-6 justify-center">
                   <h1 className="border-b pb-2">{t("Store Information")}</h1>
-                  <ImageUploadCropZoom
-                    croppedImage={croppedImage}
-                    storeLogoPreview={storeLogoPreview}
-                    storeLogoUrl={storeLogoUrl}
-                    selectedFile={selectedFile}
-                    cropperOpen={cropperOpen}
-                    onFileChange={handleFileChange}
-                    onCropperOpenChange={setCropperOpen}
-                    onCrop={img => setCroppedImage(img)}
-                    onReset={handleReset}
-                    setStoreLogoPreview={setStoreLogoPreview}
-                    setStoreLogoUrl={setStoreLogoUrl}
-                  />
+                  <div className="flex flex-col items-center mb-6">
+                    <span
+                      className="w-24 h-24 rounded-full border mb-2 flex items-center justify-center bg-gray-100 text-gray-400"
+                      style={{ cursor: 'pointer', fontSize: '96px' }}
+                      onClick={handleAvatarClick}
+                    >
+                      {avatar ? (
+                        <img src={avatar} alt={t("Avatar")} className="w-24 h-24 rounded-full object-cover" />
+                      ) : (
+                        <MdAccountCircle />
+                      )}
+                    </span>
+                    <input
+                      id="avatar-upload"
+                      type="file"
+                      accept="image/*"
+                      style={{ display: "none" }}
+                      onChange={handleAvatarFileChange}
+                    />
+                    <div className="text-sm text-gray-500 mb-2">
+                      <Label>{t("Click icon to change")}</Label>
+                    </div>
+                    {cropperOpen && avatarFile && (
+                      <Dialog open={cropperOpen} onOpenChange={setCropperOpen}>
+                        <DialogContent className="min-w-2xl w-full">
+                          <ImageCropper file={avatarFile} onCrop={handleAvatarCrop} />
+                        </DialogContent>
+                      </Dialog>
+                    )}
+                  </div>
                   <div className="grid gap-3">
                     <Label htmlFor="storeName">{t("Store Name")}</Label>
                     <Input
@@ -311,7 +392,7 @@ export default function RegForm({
                   <div className="grid gap-3">
                     <Label htmlFor="storeDescription">{t("Store Description")}</Label>
                     <textarea
-                      className="border rounded px-2 py-1 w-full"
+                      className="border rounded px-2 py-1 w-full resize-none"
                       id="storeDescription"
                       value={storeDescription}
                       onChange={(e) => setStoreDescription(e.target.value)}
@@ -449,7 +530,7 @@ export default function RegForm({
                       ))}
                     </select>
                   </div>
-           
+
                 </div>
               </div>
               <div className="flex flex-col md:flex-row gap-3 mt-8">

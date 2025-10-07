@@ -7,11 +7,12 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import ReactCountryFlag from "react-country-flag";
 import Navbar from "../components/custom/Navbar/navbar";
-import Footer from "../components/custom/footer";
 import { AppSidebar } from "@/components/custom/sidebar";
 import { Eye, EyeOff } from "lucide-react";
+import ImageCropper from "@/components/ui/image-crop";
+import { MdAccountCircle } from "react-icons/md";
 
-export default function Profile() {
+export default function ProfileSeller() {//It must accept the userId as prop to fetch the data
     const [showCurrent, setShowCurrent] = useState(false);
     const [showNew, setShowNew] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
@@ -19,6 +20,7 @@ export default function Profile() {
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmNewPassword, setConfirmNewPassword] = useState("");
+    const [cropperOpen, setCropperOpen] = useState(false); // State to control cropper modal
     // Simulate hashed password for demo (in real app, never store plain password)
     const [hashedPassword, setHashedPassword] = useState("AA1234567");  //test
     const handleOpenPasswordModal = () => {
@@ -56,7 +58,7 @@ export default function Profile() {
         email: "seller@example.com",
         phone: "+1 555-123-4567",
         country: "US",
-        avatar: "/src/assets/images/ShahLogo2.png", // StoreLogoUrl/ImageUrl
+        avatar: null, // StoreLogoUrl/ImageUrl
         idPassport: "AA1234567",
         emailConfirmed: false,
         // SellerProfile fields
@@ -154,6 +156,12 @@ export default function Profile() {
         });
     };
 
+    // Handler for avatar crop
+    const handleAvatarCrop = (croppedImage: string) => {
+        setEditValues((prev) => ({ ...prev, avatar: croppedImage, storeLogoUrl: croppedImage }));
+        setCropperOpen(false);
+    };
+
     return (
         <>
             <Navbar />
@@ -167,28 +175,27 @@ export default function Profile() {
                         <CardContent>
                             <div className="flex flex-col items-center mb-6">
                                 <label htmlFor="avatar-upload" className={editMode ? "cursor-pointer" : undefined}>
-                                    <img
-                                        src={editMode ? editValues.avatar : profile.avatar}
-                                        alt="Avatar"
-                                        className="w-24 h-24 rounded-full border mb-2"
+                                    <span
+                                        className="w-24 h-24 rounded-full border mb-2 flex items-center justify-center bg-gray-100 text-gray-400"
+                                        style={editMode ? { cursor: 'pointer', fontSize: '96px' } : { fontSize: '96px' }}
                                         onClick={editMode ? () => document.getElementById('avatar-upload')?.click() : undefined}
-                                        style={editMode ? { cursor: 'pointer' } : {}}
-                                    />
+                                    >
+                                        {(editMode ? editValues.avatar : profile.avatar)
+                                            ? <img src={editMode ? editValues.avatar : profile.avatar} alt="Avatar" className="w-24 h-24 rounded-full object-cover" />
+                                            : <MdAccountCircle />}
+                                    </span>
                                 </label>
                                 {editMode && (
-                                    <>
-                                        <input
-                                            id="avatar-upload"
-                                            type="file"
-                                            accept="image/*"
-                                            name="avatar"
-                                            onChange={handleChange}
-                                            className="mb-2 hidden"
-                                        />
-                                        <Button variant="outline" size="sm" onClick={() => document.getElementById('avatar-upload')?.click()}>
+                                    <div className="text-sm text-gray-500">
+                                        <Button variant="outline" size="sm" onClick={() => setCropperOpen(true)}>
                                             Change Avatar
                                         </Button>
-                                    </>
+                                        <Dialog open={cropperOpen} onOpenChange={setCropperOpen}>
+                                            <DialogContent className="min-w-2xl w-full">
+                                                <ImageCropper onCrop={handleAvatarCrop} />
+                                            </DialogContent>
+                                        </Dialog>
+                                    </div>
                                 )}
                                 {!editMode ? (
                                     <>
@@ -297,6 +304,37 @@ export default function Profile() {
                                             />
                                         </div>
                                         <div className="mb-3">
+                                            <label className="block text-sm font-medium mb-1">Store Contact Phone</label>
+                                            <Input
+                                                name="contactPhone"
+                                                value={editMode ? editValues.contactPhone : profile.contactPhone}
+                                                onChange={handleChange}
+                                                disabled={!editMode}
+                                                placeholder="e.g. +1 555-987-6543"
+                                            />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="block text-sm font-medium mb-1">Store Contact Email</label>
+                                            <Input
+                                                name="contactEmail"
+                                                value={editMode ? editValues.contactEmail : profile.contactEmail}
+                                                onChange={handleChange}
+                                                disabled={!editMode}
+                                                placeholder="e.g. seller@example.com"
+                                            />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="block text-sm font-medium mb-1">Store Description</label>
+                                            <textarea
+                                                name="storeDescription"
+                                                value={editMode ? editValues.storeDescription : profile.storeDescription}
+                                                onChange={handleChange}
+                                                disabled={!editMode}
+                                                className="w-full border rounded p-2 resize-none max-h-[100px] "
+                                                placeholder="Describe your store"
+                                            />
+                                        </div>
+                                        <div className="mb-3">
                                             <label className="block text-sm font-medium mb-1">Street</label>
                                             <Input
                                                 name="address.street"
@@ -364,16 +402,7 @@ export default function Profile() {
                                                 )}
                                             </div>
                                         </div>
-                                        <div className="mb-3">
-                                            <label className="block text-sm font-medium mb-1">Contact Phone</label>
-                                            <Input
-                                                name="contactPhone"
-                                                value={editMode ? editValues.contactPhone : profile.contactPhone}
-                                                onChange={handleChange}
-                                                disabled={!editMode}
-                                                placeholder="e.g. +1 555-987-6543"
-                                            />
-                                        </div>
+
 
                                         <div className="mb-3">
                                             <label className="block text-sm font-medium mb-1">Tax ID Type</label>
@@ -407,17 +436,7 @@ export default function Profile() {
                                             />
                                         </div>
 
-                                        <div className="mb-3">
-                                            <label className="block text-sm font-medium mb-1">Store Description</label>
-                                            <textarea
-                                                name="storeDescription"
-                                                value={editMode ? editValues.storeDescription : profile.storeDescription}
-                                                onChange={handleChange}
-                                                disabled={!editMode}
-                                                className="w-full border rounded p-2 resize-none max-h-[100px] "
-                                                placeholder="Describe your store"
-                                            />
-                                        </div>
+
                                         <div className="mb-3">
                                             <label className="block text-sm font-medium mb-1">Category</label>
                                             {editMode ? (
@@ -455,14 +474,15 @@ export default function Profile() {
                                                 <Button type="button" onClick={() => setEditMode(true)}>
                                                     Edit Profile
                                                 </Button>
-                                                <Button type="button" variant="outline" onClick={handleOpenPasswordModal}>
-                                                    Change Password
-                                                </Button>
+
                                             </>
                                         ) : (
                                             <>
                                                 <Button type="button" onClick={handleSave}>
                                                     Save
+                                                </Button>
+                                                <Button type="button" onClick={handleOpenPasswordModal} variant="outline" className="ml-4">
+                                                    Change Password
                                                 </Button>
                                                 <Button type="button" variant="outline" onClick={handleCancel}>
                                                     Cancel
@@ -552,7 +572,6 @@ export default function Profile() {
                     </Card>
                 </div>
             </div>
-            <Footer />
         </>
     );
 }

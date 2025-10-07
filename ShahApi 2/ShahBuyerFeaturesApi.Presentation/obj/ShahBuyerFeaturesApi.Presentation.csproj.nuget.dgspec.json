@@ -70,6 +70,14 @@
             "Microsoft.AspNetCore.Http": {
               "target": "Package",
               "version": "[2.3.0, )"
+            },
+            "Minio.AspNetCore": {
+              "target": "Package",
+              "version": "[6.0.1, )"
+            },
+            "SixLabors.ImageSharp": {
+              "target": "Package",
+              "version": "[3.1.11, )"
             }
           },
           "imports": [
@@ -138,6 +146,14 @@
             "Microsoft.EntityFrameworkCore": {
               "target": "Package",
               "version": "[9.0.8, )"
+            },
+            "Minio.AspNetCore": {
+              "target": "Package",
+              "version": "[6.0.1, )"
+            },
+            "SixLabors.ImageSharp": {
+              "target": "Package",
+              "version": "[3.1.11, )"
             }
           },
           "imports": [
@@ -236,9 +252,17 @@
               "target": "Package",
               "version": "[9.0.8, )"
             },
+            "Minio.AspNetCore": {
+              "target": "Package",
+              "version": "[6.0.1, )"
+            },
             "Newtonsoft.Json": {
               "target": "Package",
               "version": "[13.0.3, )"
+            },
+            "SixLabors.ImageSharp": {
+              "target": "Package",
+              "version": "[3.1.11, )"
             }
           },
           "imports": [
@@ -330,6 +354,14 @@
             "Microsoft.AspNetCore.Http": {
               "target": "Package",
               "version": "[2.3.0, )"
+            },
+            "Minio.AspNetCore": {
+              "target": "Package",
+              "version": "[6.0.1, )"
+            },
+            "SixLabors.ImageSharp": {
+              "target": "Package",
+              "version": "[3.1.11, )"
             }
           },
           "imports": [
@@ -398,6 +430,14 @@
             "Microsoft.EntityFrameworkCore": {
               "target": "Package",
               "version": "[9.0.8, )"
+            },
+            "Minio.AspNetCore": {
+              "target": "Package",
+              "version": "[6.0.1, )"
+            },
+            "SixLabors.ImageSharp": {
+              "target": "Package",
+              "version": "[3.1.11, )"
             }
           },
           "imports": [
@@ -496,9 +536,17 @@
               "target": "Package",
               "version": "[9.0.8, )"
             },
+            "Minio.AspNetCore": {
+              "target": "Package",
+              "version": "[6.0.1, )"
+            },
             "Newtonsoft.Json": {
               "target": "Package",
               "version": "[13.0.3, )"
+            },
+            "SixLabors.ImageSharp": {
+              "target": "Package",
+              "version": "[3.1.11, )"
             }
           },
           "imports": [
@@ -579,9 +627,17 @@
               "target": "Package",
               "version": "[9.0.2, )"
             },
+            "Minio.AspNetCore": {
+              "target": "Package",
+              "version": "[6.0.1, )"
+            },
             "Scalar.AspNetCore": {
               "target": "Package",
               "version": "[2.7.2, )"
+            },
+            "SixLabors.ImageSharp": {
+              "target": "Package",
+              "version": "[3.1.11, )"
             }
           },
           "imports": [

@@ -1,13 +1,14 @@
-"use client";
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Navbar from "@/components/custom/Navbar/navbar";
-import { FaUser, FaMapMarkerAlt, FaCamera } from "react-icons/fa";
+import Footer from "@/components/custom/footer";
+import { FaUser, FaCamera, FaHistory, FaRegBell } from "react-icons/fa";
+import ImageCropper from "@/components/ui/image-crop"; // Import the ImageCropper component
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { MdAccountCircle } from "react-icons/md";
 
 // Mock user data
 const initialUser = {
@@ -30,14 +31,14 @@ const initialUser = {
 };
 
 export default function AccountPage() {
-  // Edit mode for profile
+  // Unified edit mode for all fields
   const [editMode, setEditMode] = useState(false);
-  // Edit mode for each address
-  const [addressEditModes, setAddressEditModes] = useState<{ [id: string]: boolean }>({});
+  const [user, setUser] = useState(initialUser);
+  const [draftUser, setDraftUser] = useState(initialUser);
+  const [cropperOpen, setCropperOpen] = useState(false); // State to control cropper dialog
+  const [croppedPreview, setCroppedPreview] = useState<string | null>(null); // State to store cropped image preview
 
-  const handleAddressEditToggle = (id: string) => {
-    setAddressEditModes((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
+
   // Order status enum
   type OrderStatus = "Pending" | "Shipped" | "Delivered" | "Cancelled";
   // Mock order history data
@@ -121,20 +122,26 @@ export default function AccountPage() {
       ],
     },
   ];
-  const [activePage, setActivePage] = useState<"profile" | "addresses" | "history">("profile");
+  const [activePage, setActivePage] = useState<"profileAddresses" | "history" | "notifications">("profileAddresses");
   // Change password modal state
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
+
   // History mock data
   const history = [
     { id: "h1", action: "Profile updated", date: "2025-09-01" },
     { id: "h2", action: "Password changed", date: "2025-08-25" },
     { id: "h3", action: "Address added", date: "2025-08-20" },
   ];
-  // Save handler for profile
+  // Order status filter for history page
+  const [orderStatusFilter, setOrderStatusFilter] = useState("");
+  // Save handler for profile and addresses
   const handleSaveProfile = () => {
+    setUser(draftUser);
+    setEditMode(false);
     alert("Profile saved!");
   };
   // Save handler for password
@@ -153,112 +160,104 @@ export default function AccountPage() {
     setConfirmPassword("");
     alert("Password changed!");
   };
-  const [user, setUser] = useState(initialUser);
-
-  // Profile picture upload
-  const handleProfilePictureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = URL.createObjectURL(e.target.files[0]);
-      setUser({ ...user, profilePicture: file });
-    }
-  };
-
+  // Handle change for profile fields (edit draft)
   const handleChange = (field: string, value: string) => {
-    setUser({ ...user, [field]: value });
+    setDraftUser({ ...draftUser, [field]: value });
   };
 
+  // Handle change for address fields (edit draft)
   const handleAddressChange = (
     index: number,
     field: keyof typeof initialUser.addresses[0],
     value: string
   ) => {
-    const addresses = [...user.addresses];
+    const addresses = [...draftUser.addresses];
     addresses[index] = { ...addresses[index], [field]: value };
-    setUser({ ...user, addresses });
+    setDraftUser({ ...draftUser, addresses });
   };
 
-  const addAddress = () => {
-    const newAddress = {
-      id: `a${user.addresses.length + 1}`,
-      street: "",
-      city: "",
-      state: "",
-      postalCode: "",
-      country: "",
-    };
-    setUser({ ...user, addresses: [...user.addresses, newAddress] });
-  };
+
+  const handleCrop = (croppedImage: string) => {
+    setCroppedPreview(croppedImage);
+    setDraftUser((prev) => ({ ...prev, avatar: croppedImage }));
+    setCropperOpen(false);
+  }
+
 
   return (
     <>
-      <Navbar></Navbar>
+      <Navbar />
       <div className="flex min-h-screen bg-gray-50">
         {/* Sidebar */}
-        <aside className="w-64 bg-white shadow-md p-4 space-y-4">
+        <aside className="w-64 bg-white p-4 space-y-4">
           <h2 className="text-xl font-bold mb-4">My Account</h2>
           <nav className="space-y-2">
             <Button
-              variant={activePage === "profile" ? "default" : "outline"}
+              variant={activePage === "profileAddresses" ? "default" : "outline"}
               className="w-full justify-start"
-              onClick={() => setActivePage("profile")}
+              onClick={() => setActivePage("profileAddresses")}
             >
-              <FaUser className="mr-2" /> Profile
-            </Button>
-            <Button
-              variant={activePage === "addresses" ? "default" : "outline"}
-              className="w-full justify-start"
-              onClick={() => setActivePage("addresses")}
-            >
-              <FaMapMarkerAlt className="mr-2" /> Addresses
+              <FaUser className="mr-2" /> Profile & Addresses
             </Button>
             <Button
               variant={activePage === "history" ? "default" : "outline"}
               className="w-full justify-start"
               onClick={() => setActivePage("history")}
             >
-              <FaUser className="mr-2" /> History
+              <FaHistory className="mr-2" /> Orders History
+            </Button>
+            <Button
+              variant={activePage === "notifications" ? "default" : "outline"}
+              className="w-full justify-start"
+              onClick={() => setActivePage("notifications")}
+            >
+              <FaRegBell className="mr-2" /> Notifications
             </Button>
           </nav>
         </aside>
-
         {/* Main Content */}
         <main className="flex-1 p-6 space-y-6 overflow-y-auto">
-          {/* Profile Page */}
-          {activePage === "profile" && (
+          {activePage === "profileAddresses" && (
             <Card>
               <CardHeader>
-                <CardTitle>Profile Information</CardTitle>
+                <CardTitle>Profile & Addresses</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center space-x-4">
-                  <Avatar className="h-20 w-20">
-                    <AvatarImage src={user.profilePicture ?? ""} />
-                    <AvatarFallback>{user.name[0]}{user.surname[0]}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <Label
-                      htmlFor="profilePic"
-                      className="cursor-pointer flex items-center space-x-2 text-blue-600"
-                    >
-                      <FaCamera /> <span>Change Picture</span>
-                    </Label>
-                    <Input
-                      id="profilePic"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleProfilePictureChange}
-                      disabled={!editMode}
+              <CardContent>
+                {/* Profile Section */}
+                <div className="flex flex-col items-center mb-6">
+                  {editMode && draftUser.avatar ? (
+                    <img
+                      src={draftUser.avatar}
+                      alt="Avatar"
+                      className="w-24 h-24 rounded-full border mb-2"
+                      onClick={() => setCropperOpen(true)}
+                      style={{ cursor: 'pointer' }}
                     />
-                  </div>
-
+                  ) : (
+                    <span
+                      className="w-24 h-24 rounded-full border mb-2 flex items-center justify-center bg-gray-100 text-gray-400"
+                      style={{ fontSize: '96px', cursor: editMode ? 'pointer' : 'default' }}
+                      onClick={editMode ? () => setCropperOpen(true) : undefined}
+                    >
+                      <MdAccountCircle />
+                    </span>
+                  )}
+                  {editMode && (
+                    <div className="text-sm text-gray-500 mb-2">
+                      <Label>Click {draftUser.avatar ? 'image' : 'icon'} to change</Label>
+                      <Dialog open={cropperOpen} onOpenChange={setCropperOpen}>
+                        <DialogContent className="min-w-2xl w-full">
+                          <ImageCropper onCrop={handleCrop} />
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  )}
                 </div>
-
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4 mb-6">
                   <div>
                     <Label>Name</Label>
                     <Input
-                      value={user.name}
+                      value={editMode ? draftUser.name : user.name}
                       onChange={(e) => handleChange("name", e.target.value)}
                       disabled={!editMode}
                     />
@@ -266,7 +265,7 @@ export default function AccountPage() {
                   <div>
                     <Label>Surname</Label>
                     <Input
-                      value={user.surname}
+                      value={editMode ? draftUser.surname : user.surname}
                       onChange={(e) => handleChange("surname", e.target.value)}
                       disabled={!editMode}
                     />
@@ -275,7 +274,7 @@ export default function AccountPage() {
                     <Label>Email</Label>
                     <Input
                       type="email"
-                      value={user.email}
+                      value={editMode ? draftUser.email : user.email}
                       onChange={(e) => handleChange("email", e.target.value)}
                       disabled={!editMode}
                     />
@@ -283,7 +282,7 @@ export default function AccountPage() {
                   <div>
                     <Label>Phone</Label>
                     <Input
-                      value={user.phone}
+                      value={editMode ? draftUser.phone : user.phone}
                       onChange={(e) => handleChange("phone", e.target.value)}
                       disabled={!editMode}
                     />
@@ -292,7 +291,7 @@ export default function AccountPage() {
                     <Label>Country</Label>
                     <select
                       className="w-full border rounded px-2 py-1"
-                      value={user.country ?? "Azerbaijan"}
+                      value={editMode ? draftUser.country : user.country}
                       onChange={(e) => handleChange("country", e.target.value)}
                       disabled={!editMode}
                     >
@@ -308,59 +307,14 @@ export default function AccountPage() {
                     </select>
                   </div>
                 </div>
-                <div className="text-sm text-gray-500 mt-2">Created: 2025-01-01</div>
-                <div className="flex justify-end gap-2 pt-4">
-                  <Button variant="outline" onClick={() => setEditMode((e) => !e)}>
-                    {editMode ? "Cancel" : "Edit"}
-                  </Button>
-                  {
-                    editMode ? (
-                      <Button variant="outline" onClick={() => setShowPasswordModal(true)}>
-                        Change Password
-                      </Button>
-                    ) : null
-                  }
-
-                  <Button onClick={handleSaveProfile} disabled={!editMode}>Save</Button>
+                <div className="text-sm text-gray-500 mb-6">Created: 2025-01-01</div>
+                {/* Addresses Section */}
+                <div className="mb-2">
+                  <h3 className="text-lg font-semibold">Addresses</h3>
                 </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Addresses Page */}
-          {activePage === "addresses" && (
-            <Card>
-              <CardHeader className="flex justify-between items-center">
-                <CardTitle>Addresses</CardTitle>
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={addAddress}>
-                    + Add Address
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {user.addresses.map((addr, idx) => {
-                  const editMode = addressEditModes[addr.id] || false;
-                  return (
-                    <div key={addr.id} className="grid grid-cols-2 gap-4 border p-3 rounded shadow-md">
-                      {/* ...existing address fields... */}
-                      <div className="col-span-2 flex justify-end gap-2 mt-4">
-                        <Button size="sm" variant={editMode ? "outline" : "default"} className="rounded-full px-3" onClick={() => handleAddressEditToggle(addr.id)}>
-                          {editMode ? "Cancel" : "Edit"}
-                        </Button>
-                        {editMode && (
-                          <Button
-                            size="sm"
-                            variant="default"
-                            className="rounded-full px-3"
-                            onClick={() => {
-                              // ...existing save logic...
-                            }}
-                          >
-                            Save
-                          </Button>
-                        )}
-                      </div>
+                <div className="space-y-4">
+                  {(editMode ? draftUser.addresses : user.addresses).map((addr, idx) => (
+                    <div key={addr.id} className="grid grid-cols-1 sm:grid-cols-2 gap-4 ">
                       <div>
                         <Label>Street</Label>
                         <Input
@@ -413,39 +367,104 @@ export default function AccountPage() {
                         </select>
                       </div>
                     </div>
-                  );
-                })}
+                  ))}
+                </div>
+                <div className="flex justify-end gap-2 mt-8">
+                  {editMode ? (
+                    <>
+                      <Button variant="outline" onClick={() => setEditMode(false)}>
+                        Cancel
+                      </Button>
+                      <Button variant="outline" onClick={() => setShowPasswordModal(true)}>
+                        Change Password
+                      </Button>
+                      <Button onClick={handleSaveProfile}>Save</Button>
+                    </>
+                  ) : (
+                    <Button variant="outline" onClick={() => { setDraftUser(user); setEditMode(true); }}>
+                      Edit
+                    </Button>
+                  )}
+                </div>
               </CardContent>
             </Card>
           )}
-          {/* History Page */}
           {activePage === "history" && (
+            <div className="flex flex-col gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Order History</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-2">
+                    <label htmlFor="order-status-filter" className="font-medium">Filter by status:</label>
+                    <select
+                      id="order-status-filter"
+                      className="border rounded px-2 py-1"
+                      value={orderStatusFilter}
+                      onChange={e => setOrderStatusFilter(e.target.value)}
+                    >
+                      <option value="">All</option>
+                      <option value="Pending">Pending</option>
+                      <option value="Shipped">Shipped</option>
+                      <option value="Delivered">Delivered</option>
+                      <option value="Cancelled">Cancelled</option>
+                    </select>
+                  </div>
+                  <ul className="divide-y">
+                    {orderHistory
+                      .filter(order => !orderStatusFilter || order.status === orderStatusFilter)
+                      .map((order) => (
+                        <li key={order.id} className="py-2">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium">Order #{order.id}</span>
+                            <span>{order.createdAt}</span>
+                            <span className={`text-xs px-2 py-1 rounded ${order.status === "Delivered" ? "bg-green-200" : order.status === "Cancelled" ? "bg-red-200" : "bg-yellow-200"}`}>{order.status}</span>
+                          </div>
+                          <div className="ml-2 text-sm text-gray-600">Total: ${order.totalAmount}</div>
+                          <div className="ml-2 text-sm text-gray-600">Shipping: {order.shippingAddress.street}, {order.shippingAddress.city}</div>
+                          <div className="ml-2 mt-1">
+                            <span className="font-semibold">Items:</span>
+                            <ul className="ml-4 list-disc">
+                              {order.orderItems.map((item) => (
+                                <li key={item.id} className="flex items-center gap-2">
+                                  <a
+                                    href={`/product/${item.product.id}`}
+                                    className="flex items-center gap-2 hover:underline"
+                                    style={{ display: 'inline-flex', alignItems: 'center' }}
+                                  >
+                                    {/* Replace with actual image path or fallback */}
+                                    <img
+                                      src={item.product.image || <MdAccountCircle />}
+                                      alt={item.product.title}
+                                      className="w-10 h-10 object-cover rounded mr-2 border"
+                                      style={{ minWidth: 40, minHeight: 40 }}
+                                    />
+                                    <span>{item.product.title}</span>
+                                  </a>
+                                  <span className="ml-2">x{item.quantity} (${item.product.price})</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </li>
+                      ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+          {activePage === "notifications" && (
             <Card>
               <CardHeader>
-                <CardTitle>History</CardTitle>
+                <CardTitle>Notifications</CardTitle>
               </CardHeader>
               <CardContent>
-                <h3 className="font-semibold mb-2">Order History</h3>
                 <ul className="divide-y">
-                  {orderHistory.map((order) => (
-                    <li key={order.id} className="py-2">
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium">Order #{order.id}</span>
-                        <span>{order.createdAt}</span>
-                        <span className={`text-xs px-2 py-1 rounded ${order.status === "Delivered" ? "bg-green-200" : order.status === "Cancelled" ? "bg-red-200" : "bg-yellow-200"}`}>{order.status}</span>
-                      </div>
-                      <div className="ml-2 text-sm text-gray-600">Total: ${order.totalAmount}</div>
-                      <div className="ml-2 text-sm text-gray-600">Shipping: {order.shippingAddress.street}, {order.shippingAddress.city}</div>
-                      <div className="ml-2 mt-1">
-                        <span className="font-semibold">Items:</span>
-                        <ul className="ml-4 list-disc">
-                          {order.orderItems.map((item) => (
-                            <li key={item.id}>
-                              {item.product.title} x{item.quantity} (${item.product.price})
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+                  {history.map((notif) => (
+                    <li key={notif.id} className="py-2 flex justify-between items-center">
+                      <span>{notif.action}</span>
+                      <span className="text-xs text-gray-500">{notif.date}</span>
                     </li>
                   ))}
                 </ul>
@@ -478,6 +497,7 @@ export default function AccountPage() {
           )}
         </main>
       </div>
+      <Footer />
     </>
   );
 }

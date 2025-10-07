@@ -1,9 +1,0 @@
-/* Force cropper image to always fit the crop area */
-.react-cropper img, .ReactCrop__image, .image-cropper img {
-  object-fit: contain !important;
-  width: 100% !important;
-  height: 100% !important;
-  max-width: 100% !important;
-  max-height: 100% !important;
-  background: #222;
-}

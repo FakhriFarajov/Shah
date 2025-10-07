@@ -5,12 +5,12 @@ import Reg from './pages/register'
 import LandingPage from './pages/landingPage'
 import Main from './pages/main'
 import SellerProfile from './pages/profile'
-import ProductsPage from './pages/productsPage'
+import ProductsPage from './pages/products'
 import OrdersPage from './pages/orders'
 import ReportPage from './pages/report'
 import ReviewsPage from './pages/reviews'
 import { Toaster } from 'sonner';
-import ProductStatisticsPage from './pages/ProductDetails'
+import ProductDetailsPage from './pages/ProductDetails'
 
 
 function App() {
@@ -26,7 +26,7 @@ function App() {
           <Route path='/home' element={<Main />} />
           <Route path='/profile' element={<SellerProfile />} />
           <Route path='/products' element={<ProductsPage />} />
-          <Route path='/product-details' element={<ProductStatisticsPage />} />
+          <Route path='/product-details' element={<ProductDetailsPage />} />
           <Route path='/orders' element={<OrdersPage />} />
           <Route path='/report' element={<ReportPage />} />
           <Route path='/reviews' element={<ReviewsPage />} />

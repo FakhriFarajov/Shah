@@ -40,7 +40,30 @@ namespace ShahSellerAuthApi.Infrastructure.MappingConfigurations
                 .ForMember(dest => dest.SellerTaxInfoId, opt => opt.Ignore())
                 .ForMember(dest => dest.SellerTaxInfo, opt => opt.Ignore());
 
-            // Optionally, add mappings for StoreInfo and SellerTaxInfo if needed
+            // SellerRegisterRequestDTO -> StoreInfo
+            CreateMap<SellerRegisterRequestDTO, StoreInfo>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.StoreName, opt => opt.MapFrom(src => src.StoreName))
+                .ForMember(dest => dest.StoreDescription, opt => opt.MapFrom(src => src.StoreDescription))
+                .ForMember(dest => dest.StoreEmail, opt => opt.MapFrom(src => src.StoreEmail))
+                .ForMember(dest => dest.StorePhone, opt => opt.MapFrom(src => src.StorePhone))
+                .ForMember(dest => dest.StoreLogoUrl, opt => opt.MapFrom(src => src.ImageUrl))
+                .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.CategoryId))
+                .ForMember(dest => dest.Address, opt => opt.Ignore())
+                .ForMember(dest => dest.AddressId, opt => opt.Ignore())
+                .ForMember(dest => dest.SellerProfile, opt => opt.Ignore())
+                .ForMember(dest => dest.SellerProfileId, opt => opt.Ignore())
+                .ForMember(dest => dest.Products, opt => opt.Ignore());
+
+            // SellerRegisterRequestDTO -> SellerTaxInfo
+            CreateMap<SellerRegisterRequestDTO, SellerTaxInfo>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.TaxIdType, opt => opt.MapFrom(src => src.TaxIdType))
+                .ForMember(dest => dest.TaxId, opt => opt.MapFrom(src => src.TaxId))
+                .ForMember(dest => dest.SellerProfile, opt => opt.Ignore())
+                .ForMember(dest => dest.SellerProfileId, opt => opt.Ignore());
+
+            // Optionally, add mappings for other entities if needed
         }
 
         // -------------------------

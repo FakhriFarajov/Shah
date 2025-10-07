@@ -54,7 +54,7 @@ export default function ReviewsPage() {
                   />
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-lg font-semibold text-indigo-700">{review.product.title}</span>
+                      <a href={`/products/${review.product.id}`} className="text-lg font-semibold text-indigo-700 hover:underline">{review.product.title}</a>
                       <span className="text-yellow-500 text-base">{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)} <span className="text-gray-400">({review.rating})</span></span>
                     </div>
                     <div className="text-gray-700 mb-1">{review.comment}</div>

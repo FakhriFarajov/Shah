@@ -44,19 +44,19 @@ export default function LandingPage() {
             step: 'Step 1',
             title: 'Sign Up',
             content: 'Create your account and set up your seller profile in just a few easy steps.',
-            image: 'https://images.unsplash.com/photo-1723958929247-ef054b525153?q=80&w=2070&auto=format&fit=crop'
+            image: 'https://i.pinimg.com/736x/08/8f/0a/088f0a8462a65c1efaecac2d74707690.jpg'
         },
         {
             step: 'Step 2',
             title: 'Get verified',
             content: 'Complete the verification process to ensure a secure trading environment.',
-            image: 'https://images.unsplash.com/photo-1723931464622-b7df7c71e380?q=80&w=2070&auto=format&fit=crop'
+            image: 'https://i.pinimg.com/1200x/90/f8/05/90f8056503906ca4f745ea8b96dbb025.jpg'
         },
         {
             step: 'Step 3',
             title: 'List Products',
             content: 'Showcase your products to a global audience and start selling.',
-            image: 'https://images.unsplash.com/photo-1725961476494-efa87ae3106a?q=80&w=2070&auto=format&fit=crop'
+            image: 'https://i.pinimg.com/1200x/95/09/03/950903645f8b7940aaf095c605d019ff.jpg'
         },
     ]
 
@@ -196,8 +196,7 @@ export default function LandingPage() {
                     <FeatureSteps
                         features={features}
                         title="Your Journey Starts Here"
-                        autoPlayInterval={4000}
-                        imageHeight="h-[500px]" />
+                        autoPlayInterval={4000}/>
                 </div>
             </div>
             <Footer></Footer>

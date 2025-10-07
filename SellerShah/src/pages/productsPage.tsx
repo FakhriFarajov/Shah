@@ -5,11 +5,10 @@ import { AppSidebar } from "@/components/custom/sidebar";
 import { AdaptiveTable } from "@/components/custom/adaptive-table";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import ProductModal from "../components/custom/ProductAddEdit";
+import ProductModal from "./productEditPage";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { CircleX, Edit } from "lucide-react";
-import { ProductDetailsModal } from "../components/custom/ProductDetailsModal";
 
 // --- Types ---
 type Review = { id: string; rating: number; comment: string };
@@ -22,8 +21,9 @@ type ProductPropertiesValue = {
   id: string;
   productId?: string;
   categoryPropertyId: string;
+  propertyId?: string;
   categoryProperty: CategoryProperty;
-  value: string;
+  valueId?: string;
 };
 
 type Product = {
@@ -71,8 +71,9 @@ export type ProductVariantAttributeValue = {
 export type ProductVariant = {
   id: string;
   productId: string;
-  stock: number;
-  price: number;
+  propertyId?: string;
+  stock: number | null;
+  price: number | null;
   attributeValues: ProductVariantAttributeValue[];
   images?: string[];
 };
@@ -162,26 +163,6 @@ const initialProducts: Product[] =
       { productId: "p1", propertyId: "color-1", valueId: "av2" },
       { productId: "p1", propertyId: "size-1", valueId: "av3" },
     ]
-  },  {
-    id: "p1",
-    title: "Sample Product",
-    description: "This is a sample product description.",
-    price: 99.99,
-    stock: 50,
-    weight: 1.5,
-    height: 10,
-    width: 5,
-    depth: 2,
-    categoryId: "electronics-1",
-    subcategoryId: "phones-1",
-    images: [{ id: "img1", url: "https://via.placeholder.com/150" }],
-    reviews: [
-      { id: "r1", rating: 4, comment: "Great product!" },
-    ],
-    productPropertiesValues: [
-      { productId: "p1", propertyId: "color-1", valueId: "av2" },
-      { productId: "p1", propertyId: "size-1", valueId: "av3" },
-    ]
   },
   {
     id: "p1",
@@ -204,141 +185,12 @@ const initialProducts: Product[] =
       { productId: "p1", propertyId: "size-1", valueId: "av3" },
     ]
   },
-  {
-    id: "p1",
-    title: "Sample Product",
-    description: "This is a sample product description.",
-    price: 99.99,
-    stock: 50,
-    weight: 1.5,
-    height: 10,
-    width: 5,
-    depth: 2,
-    categoryId: "electronics-1",
-    subcategoryId: "phones-1",
-    images: [{ id: "img1", url: "https://via.placeholder.com/150" }],
-    reviews: [
-      { id: "r1", rating: 4, comment: "Great product!" },
-    ],
-    productPropertiesValues: [
-      { productId: "p1", propertyId: "color-1", valueId: "av2" },
-      { productId: "p1", propertyId: "size-1", valueId: "av3" },
-    ]
-  },
-  {
-    id: "p1",
-    title: "Sample Product",
-    description: "This is a sample product description.",
-    price: 99.99,
-    stock: 50,
-    weight: 1.5,
-    height: 10,
-    width: 5,
-    depth: 2,
-    categoryId: "electronics-1",
-    subcategoryId: "phones-1",
-    images: [{ id: "img1", url: "https://via.placeholder.com/150" }],
-    reviews: [
-      { id: "r1", rating: 4, comment: "Great product!" },
-    ],
-    productPropertiesValues: [
-      { productId: "p1", propertyId: "color-1", valueId: "av2" },
-      { productId: "p1", propertyId: "size-1", valueId: "av3" },
-    ]
-  },
-  {
-    id: "p1",
-    title: "Sample Product",
-    description: "This is a sample product description.",
-    price: 99.99,
-    stock: 50,
-    weight: 1.5,
-    height: 10,
-    width: 5,
-    depth: 2,
-    categoryId: "electronics-1",
-    subcategoryId: "phones-1",
-    images: [{ id: "img1", url: "https://via.placeholder.com/150" }],
-    reviews: [
-      { id: "r1", rating: 4, comment: "Great product!" },
-    ],
-    productPropertiesValues: [
-      { productId: "p1", propertyId: "color-1", valueId: "av2" },
-      { productId: "p1", propertyId: "size-1", valueId: "av3" },
-    ]
-  },
-  {
-    id: "p1",
-    title: "Sample Product",
-    description: "This is a sample product description.",
-    price: 99.99,
-    stock: 50,
-    weight: 1.5,
-    height: 10,
-    width: 5,
-    depth: 2,
-    categoryId: "electronics-1",
-    subcategoryId: "phones-1",
-    images: [{ id: "img1", url: "https://via.placeholder.com/150" }],
-    reviews: [
-      { id: "r1", rating: 4, comment: "Great product!" },
-    ],
-    productPropertiesValues: [
-      { productId: "p1", propertyId: "color-1", valueId: "av2" },
-      { productId: "p1", propertyId: "size-1", valueId: "av3" },
-    ]
-  },
-  {
-    id: "p1",
-    title: "Sample Product",
-    description: "This is a sample product description.",
-    price: 99.99,
-    stock: 50,
-    weight: 1.5,
-    height: 10,
-    width: 5,
-    depth: 2,
-    categoryId: "electronics-1",
-    subcategoryId: "phones-1",
-    images: [{ id: "img1", url: "https://via.placeholder.com/150" }],
-    reviews: [
-      { id: "r1", rating: 4, comment: "Great product!" },
-    ],
-    productPropertiesValues: [
-      { productId: "p1", propertyId: "color-1", valueId: "av2" },
-      { productId: "p1", propertyId: "size-1", valueId: "av3" },
-    ]
-  },
-  {
-    id: "p1",
-    title: "Sample Product",
-    description: "This is a sample product description.",
-    price: 99.99,
-    stock: 50,
-    weight: 1.5,
-    height: 10,
-    width: 5,
-    depth: 2,
-    categoryId: "electronics-1",
-    subcategoryId: "phones-1",
-    images: [{ id: "img1", url: "https://via.placeholder.com/150" }],
-    reviews: [
-      { id: "r1", rating: 4, comment: "Great product!" },
-    ],
-    productPropertiesValues: [
-      { productId: "p1", propertyId: "color-1", valueId: "av2" },
-      { productId: "p1", propertyId: "size-1", valueId: "av3" },
-    ]
-  },
-
-
 ];
 
 // --- Component ---
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showDetail, setShowDetail] = useState<Product | null>(null);
   const [editProduct, setEditProduct] = useState<Product | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editVariants, setEditVariants] = useState<ProductVariant[]>([]);
@@ -414,11 +266,6 @@ export default function ProductsPage() {
       label: "Action",
       render: (_: any, row: Product) => (
         <div className="flex gap-2">
-          <ProductDetailsModal
-            row={row}
-            open={showDetail?.id === row.id}
-            onOpenChange={(open) => setShowDetail(open ? row : null)}
-          />
           <Button
             className="bg-transparent border-none p-0 m-0 cursor-pointer hover:bg-indigo-100 rounded"
             title="Edit"
@@ -590,51 +437,6 @@ export default function ProductsPage() {
                       ← Back
                     </Button>
                   </div>
-                  <ProductModal
-                    mode="edit"
-                    onOpenChange={setShowEditModal}
-                    onSubmit={(product: ProductForm, variants: ProductVariant[], mainImageIdx: number) => {
-                      setProducts((products) =>
-                        products.map((p) =>
-                          p.id === editProduct?.id
-                            ? {
-                              ...p,
-                              ...product,
-                              id: p.id,
-                              date: p.date,
-                              price: Number(product.price),
-                              stock: product.stock.trim() === "" || isNaN(Number(product.stock)) ? 0 : Number(product.stock),
-                              weight: product.weight.trim() === "" || isNaN(Number(product.weight)) ? 0 : Number(product.weight),
-                              height: product.height.trim() === "" || isNaN(Number(product.height)) ? 0 : Number(product.height),
-                              width: product.width.trim() === "" || isNaN(Number(product.width)) ? 0 : Number(product.width),
-                              depth: product.depth.trim() === "" || isNaN(Number(product.depth)) ? 0 : Number(product.depth),
-                              variants,
-                            }
-                            : p
-                        )
-                      );
-                      setShowEditModal(false);
-                      setEditProduct(null);
-                      setEditVariants([]);
-                      toast.success("Product updated successfully.", {
-                        description: `Product '${product.title}' has been saved.`,
-                      });
-                    }}
-                    initialProduct={editProduct ? {
-                      ...editProduct,
-                      price: String(editProduct.price),
-                      stock: String(editProduct.stock),
-                      weight: String(editProduct.weight),
-                      height: String(editProduct.height),
-                      width: String(editProduct.width),
-                      depth: String(editProduct.depth),
-                    } : undefined}
-                    initialVariants={editVariants}
-                    categoryProperties={categoryProperties}
-                    subcategoryProperties={subcategoryProperties}
-                    attributeValues={attributeValues}
-                    categories={categoriesState}
-                  />
                 </div>
               )}
             </>

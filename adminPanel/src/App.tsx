@@ -2,12 +2,17 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 import './App.css'
 import Login from './pages/login';
-import Main from './pages/main';
-import BuyersPage from './pages/buyers';
+import Home from './pages/home';
+import BuyersPage from './pages/Buyer/buyers';
 import SellersPage from './pages/sellers';
-import BuyerDetailsPage from './pages/buyer-details';
-import BuyerStatisticsPage from './pages/buyer-statistics';
-
+import ProfileBuyer from './pages/Buyer/profileBuyer';
+import ProfileSeller from './pages/profileSeller';
+import OrdersPage from './pages/ordersPageUniversal';
+import ReviewsBuyerPage from './pages/Buyer/reviewsBuyer';
+import OrdersBuyer from './pages/Buyer/ordersBuyer';
+// import OrderDetailsPage from './pages/orderDetails';
+// import WarehousePage from './pages/warehouse';
+// import WarehouseDetailPage from './pages/warehouseDetail';
 function App() {
 
   return (
@@ -15,12 +20,20 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path='/login' element={<Login />} />
-          <Route path='/' element={<Main />} />
-          <Route path='/main' element={<Main />} />
+          <Route path='/' element={<Home />} />
+          <Route path='/home' element={<Home />} />
           <Route path='/buyers' element={<BuyersPage />} />
+          <Route path='/buyer-details' element={<ProfileBuyer />} /> // Will pass userId as prop later
           <Route path='/sellers' element={<SellersPage />} />
-          <Route path='/buyer-details/:id' element={<BuyerDetailsPage />} />
-          <Route path='/buyer-statistics' element={<BuyerStatisticsPage />} />
+          <Route path='/seller-details' element={<ProfileSeller />} /> // Will pass userId as prop later
+          <Route path='/orders' element={<OrdersPage />} />
+          <Route path='/reviews-buyer' element={<ReviewsBuyerPage />} />
+          <Route path='/' element={<OrdersBuyer />} />
+          {/* <Route path='/order-details/' element={<OrderDetailsPage />} /> */}
+          {/* <Route path='/warehouse' element={<WarehousePage />} /> */}
+          {/* <Route path='/warehouse-datails/' element={<WarehouseDetailPage />} /> */}
+
+
         </Routes>
       </BrowserRouter>
     </>

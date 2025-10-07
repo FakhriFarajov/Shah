@@ -9,15 +9,21 @@ import ReactCountryFlag from "react-country-flag";
 import Navbar from "../components/custom/Navbar/navbar";
 import { AppSidebar } from "@/components/custom/sidebar";
 import { Eye, EyeOff } from "lucide-react";
+import ImageCropper from "@/components/ui/image-crop"; // Import the ImageCropper component
+import { Label } from "@/components/ui/label";
+import { MdAccountCircle } from "react-icons/md";
+import { useNavigate } from "react-router-dom";
 
 export default function ProfileSeller() {//It must accept the userId as prop to fetch the data
     const [showCurrent, setShowCurrent] = useState(false);
+    const navigate = useNavigate();
     const [showNew, setShowNew] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmNewPassword, setConfirmNewPassword] = useState("");
+    const [cropperOpen, setCropperOpen] = useState(false); // State to control cropper modal
     // Simulate hashed password for demo (in real app, never store plain password)
     const [hashedPassword, setHashedPassword] = useState("AA1234567");  //test
     const handleOpenPasswordModal = () => {
@@ -55,7 +61,7 @@ export default function ProfileSeller() {//It must accept the userId as prop to 
         email: "seller@example.com",
         phone: "+1 555-123-4567",
         country: "US",
-        avatar: "/src/assets/images/ShahLogo2.png", // StoreLogoUrl/ImageUrl
+        avatar: null, // StoreLogoUrl/ImageUrl
         idPassport: "AA1234567",
         emailConfirmed: false,
         // SellerProfile fields
@@ -80,6 +86,7 @@ export default function ProfileSeller() {//It must accept the userId as prop to 
     });
     const [editMode, setEditMode] = useState(false);
     const [editValues, setEditValues] = useState(profile);
+
 
     // List of countries for the selector (add more as needed)
     const countries = [
@@ -153,6 +160,12 @@ export default function ProfileSeller() {//It must accept the userId as prop to 
         });
     };
 
+    // Handler for avatar crop
+    const handleCrop = (croppedImage: string) => {
+        setEditValues((prev) => ({ ...prev, avatar: croppedImage, storeLogoUrl: croppedImage }));
+        setCropperOpen(false);
+    };
+
     return (
         <>
             <Navbar />
@@ -160,41 +173,52 @@ export default function ProfileSeller() {//It must accept the userId as prop to 
                 <AppSidebar />
                 <div className="flex-1 py-8 px-2 md:px-8 flex flex-col items-center">
                     <Card className="w-full mt-8">
+                        <Button variant="outline" className="m-4 w-[70px]" onClick={() => navigate(-1)}>
+                            ← Back
+                        </Button>
                         <CardHeader>
-                            <CardTitle>Profile</CardTitle>
+                            <CardTitle>Edit Seller Profile</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="flex flex-col items-center mb-6">
                                 <label htmlFor="avatar-upload" className={editMode ? "cursor-pointer" : undefined}>
-                                    <img
-                                        src={editMode ? editValues.avatar : profile.avatar}
-                                        alt="Avatar"
-                                        className="w-24 h-24 rounded-full border mb-2"
-                                        onClick={editMode ? () => document.getElementById('avatar-upload')?.click() : undefined}
-                                        style={editMode ? { cursor: 'pointer' } : {}}
-                                    />
+                                    {editMode ? (
+                                        editValues.avatar ? (
+                                            <img
+                                                src={editValues.avatar}
+                                                alt="Avatar"
+                                                className="w-24 h-24 rounded-full border mb-2 cursor-pointer"
+                                                onClick={() => setCropperOpen(true)}
+                                                style={{ cursor: 'pointer' }}
+                                            />
+                                        ) : (
+                                            <MdAccountCircle size={96} className="text-gray-400 mb-2 cursor-pointer" onClick={() => setCropperOpen(true)} />
+                                        )
+                                    ) : (
+                                        profile.avatar ? (
+                                            <img
+                                                src={profile.avatar}
+                                                alt="Avatar"
+                                                className="w-24 h-24 rounded-full border mb-2"
+                                            />
+                                        ) : (
+                                            <MdAccountCircle size={96} className="text-gray-400 mb-2" />
+                                        )
+                                    )}
                                 </label>
-                                {editMode && (
-                                    <>
-                                        <input
-                                            id="avatar-upload"
-                                            type="file"
-                                            accept="image/*"
-                                            name="avatar"
-                                            onChange={handleChange}
-                                            className="mb-2 hidden"
-                                        />
-                                        <Button variant="outline" size="sm" onClick={() => document.getElementById('avatar-upload')?.click()}>
-                                            Change Avatar
-                                        </Button>
-                                    </>
-                                )}
-                                {!editMode ? (
-                                    <>
-                                        <div className="text-lg font-semibold">{profile.name}</div>
-                                        <div className="text-gray-500 text-sm">{profile.email}</div>
-                                    </>
-                                ) : null}
+                                {
+                                    editMode && (
+                                        <div className="text-sm text-gray-500 mb-2">
+                                            <Label>Click image to change</Label>
+                                            <Dialog open={cropperOpen} onOpenChange={setCropperOpen}>
+                                                <DialogContent className="min-w-2xl w-full">
+                                                    <ImageCropper onCrop={handleCrop} />
+                                                </DialogContent>
+                                            </Dialog>
+                                        </div>
+                                    )
+                                }
+
                             </div>
                             <form className="space-y-4">
                                 <div className="flex flex-col md:flex-row md:items-start gap-8">
@@ -293,6 +317,37 @@ export default function ProfileSeller() {//It must accept the userId as prop to 
                                                 value={editMode ? editValues.storeName : profile.storeName}
                                                 onChange={handleChange}
                                                 disabled={!editMode}
+                                            />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="block text-sm font-medium mb-1">Store Contact Phone</label>
+                                            <Input
+                                                name="contactPhone"
+                                                value={editMode ? editValues.contactPhone : profile.contactPhone}
+                                                onChange={handleChange}
+                                                disabled={!editMode}
+                                                placeholder="e.g. +1 555-987-6543"
+                                            />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="block text-sm font-medium mb-1">Store Contact Email</label>
+                                            <Input
+                                                name="contactEmail"
+                                                value={editMode ? editValues.contactEmail : profile.contactEmail}
+                                                onChange={handleChange}
+                                                disabled={!editMode}
+                                                placeholder="e.g. seller@example.com"
+                                            />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="block text-sm font-medium mb-1">Store Description</label>
+                                            <textarea
+                                                name="storeDescription"
+                                                value={editMode ? editValues.storeDescription : profile.storeDescription}
+                                                onChange={handleChange}
+                                                disabled={!editMode}
+                                                className="w-full border rounded p-2 resize-none max-h-[100px] "
+                                                placeholder="Describe your store"
                                             />
                                         </div>
                                         <div className="mb-3">
@@ -405,18 +460,6 @@ export default function ProfileSeller() {//It must accept the userId as prop to 
                                                 placeholder="e.g. TAX-2025-00123"
                                             />
                                         </div>
-
-                                        <div className="mb-3">
-                                            <label className="block text-sm font-medium mb-1">Store Description</label>
-                                            <textarea
-                                                name="storeDescription"
-                                                value={editMode ? editValues.storeDescription : profile.storeDescription}
-                                                onChange={handleChange}
-                                                disabled={!editMode}
-                                                className="w-full border rounded p-2 resize-none max-h-[100px] "
-                                                placeholder="Describe your store"
-                                            />
-                                        </div>
                                         <div className="mb-3">
                                             <label className="block text-sm font-medium mb-1">Category</label>
                                             {editMode ? (
@@ -454,14 +497,15 @@ export default function ProfileSeller() {//It must accept the userId as prop to 
                                                 <Button type="button" onClick={() => setEditMode(true)}>
                                                     Edit Profile
                                                 </Button>
-                                                <Button type="button" variant="outline" onClick={handleOpenPasswordModal}>
-                                                    Change Password
-                                                </Button>
+
                                             </>
                                         ) : (
                                             <>
                                                 <Button type="button" onClick={handleSave}>
                                                     Save
+                                                </Button>
+                                                <Button type="button" onClick={handleOpenPasswordModal} variant="outline" className="ml-4">
+                                                    Change Password
                                                 </Button>
                                                 <Button type="button" variant="outline" onClick={handleCancel}>
                                                     Cancel

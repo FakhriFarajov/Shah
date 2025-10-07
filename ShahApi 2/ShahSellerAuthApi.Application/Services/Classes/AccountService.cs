@@ -33,7 +33,7 @@ public class AccountService : IAccountService
     
 
     
-    public async Task<Result> RegisterBuyerAsync(SellerRegisterRequestDTO request)
+    public async Task<Result> RegisterSellerAsync(SellerRegisterRequestDTO request)
     {
         // Normalize email to lowercase
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
@@ -43,22 +43,43 @@ public class AccountService : IAccountService
             return Result.Error("Email is already registered.", 409);
         }
 
+        // Map and create User
         var userToAdd = _mapper.Map<User>(request);
         userToAdd.Email = normalizedEmail;
         userToAdd.Password = HashPassword(request.Password);
-        userToAdd.Role = Role.Buyer; // Set role directly
-
-        var buyerProfile = _mapper.Map<BuyerProfile>(request);
-        buyerProfile.UserId = userToAdd.Id;
-
-        userToAdd.BuyerProfileId = buyerProfile.Id;
-
+        userToAdd.Role = Role.Seller;
+        userToAdd.CreatedAt = DateTime.UtcNow;
         _context.Users.Add(userToAdd);
-        _context.BuyerProfiles.Add(buyerProfile);
-
         await _context.SaveChangesAsync();
 
-        return Result.Success("Buyer registered successfully");
+        // Map and create SellerProfile
+        var sellerProfile = _mapper.Map<SellerProfile>(request);
+        sellerProfile.UserId = userToAdd.Id;
+        sellerProfile.Passport = request.Passport;
+        _context.SellerProfiles.Add(sellerProfile);
+        await _context.SaveChangesAsync();
+
+        // Map and create StoreInfo
+        var storeInfo = _mapper.Map<StoreInfo>(request);
+        storeInfo.SellerProfileId = sellerProfile.Id;
+        _context.StoreInfos.Add(storeInfo);
+        await _context.SaveChangesAsync();
+
+        // Map and create SellerTaxInfo
+        var taxInfo = _mapper.Map<SellerTaxInfo>(request);
+        taxInfo.SellerProfileId = sellerProfile.Id;
+        _context.SellerTaxInfos.Add(taxInfo);
+        await _context.SaveChangesAsync();
+
+        // Link everything together
+        sellerProfile.StoreInfoId = storeInfo.Id;
+        sellerProfile.SellerTaxInfoId = taxInfo.Id;
+        userToAdd.SellerProfileId = sellerProfile.Id;
+        _context.Users.Update(userToAdd);
+        _context.SellerProfiles.Update(sellerProfile);
+        await _context.SaveChangesAsync();
+
+        return Result.Success("Seller registered successfully");
     }
 
 

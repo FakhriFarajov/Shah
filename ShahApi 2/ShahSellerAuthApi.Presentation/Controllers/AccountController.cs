@@ -25,7 +25,7 @@ public class AccountController : ControllerBase
     [HttpPost("Register")]
     public async Task<IActionResult> RegisterAsync([FromBody] SellerRegisterRequestDTO requestDto)
     {
-        var res = await _accountService.RegisterBuyerAsync(requestDto);
+        var res = await _accountService.RegisterSellerAsync(requestDto);
         return Ok(res);
     }
 

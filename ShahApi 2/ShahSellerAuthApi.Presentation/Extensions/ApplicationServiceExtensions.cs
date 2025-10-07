@@ -3,7 +3,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using ShahBuyerAuthApi.Infrastructure.MappingConfigurations;
+using ShahSellerAuthApi.Infrastructure.MappingConfigurations;
 using ShahSellerAuthApi.Application.Services.Classes;
 using ShahSellerAuthApi.Application.Services.Interfaces;
 using ShahSellerAuthApi.Application.Utils;

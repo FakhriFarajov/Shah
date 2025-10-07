@@ -134,9 +134,9 @@ function OrderDetailsModal({ order }: { order: Order }) {
 
 export default function Main() {
   const { t } = useTranslation();
-  const navigator = useNavigate();
+  const navigator = useNavigate();23
   const [goods, setGoods] = useState<Product[]>([]); // unused, but kept for now
-  const [orderData, setOrderData] = useState<Order[]>(initialOrderData);
+  const [orderData] = useState<Order[]>(initialOrderData);
 
 
 

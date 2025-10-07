@@ -1,9 +1,20 @@
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import ImageCropDialog from "@/components/ui/image-crop-dialog";
+import ImageCropper from "@/components/ui/image-crop";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useState } from "react";
-import type { ProductVariant, ProductVariantAttributeValue } from "../../pages/productsPage";
+import type { ProductVariantAttributeValue } from "../../pages/products";
+type ProductVariant = {
+    id: string;
+    productId: string;
+    propertyId?: string;
+    stock: number | null;
+    price: number | null;
+    weight: number | null;
+    attributeValues: ProductVariantAttributeValue[];
+    images?: string[];
+};
 // Add mainImageIdx to ProductVariant type via intersection
 type VariantWithMain = ProductVariant & { mainImageIdx?: number };
 
@@ -60,36 +71,30 @@ const attributeValues = [
 
 
 
-function EditProductVariants({ variants, onChange, categoryId, subcategoryId, disableAdd }: EditProductVariantsProps) {
-    const [zoomImg, setZoomImg] = useState<string | null>(null);
-    // State for cropping
-    const [cropDialogOpen, setCropDialogOpen] = useState(false);
-    const [cropFile, setCropFile] = useState<File | null>(null);
-    const [cropVariantIdx, setCropVariantIdx] = useState<number | null>(null);
-    // Helper to update images for a variant
-        // Helper to compare attributeValues arrays
+export default function EditProductVariants({ variants, onChange, categoryId, subcategoryId, disableAdd }: EditProductVariantsProps) {
+    // Helper to compare attribute values arrays
     function areAttributeValuesEqual(a: ProductVariantAttributeValue[], b: ProductVariantAttributeValue[]) {
         if (a.length !== b.length) return false;
-        const aSorted = [...a].map(av => av.attributeValueId).sort();
-        const bSorted = [...b].map(av => av.attributeValueId).sort();
-        return aSorted.every((val, idx) => val === bSorted[idx]);
+        const aSorted = [...a].sort((x, y) => x.attributeValueId.localeCompare(y.attributeValueId));
+        const bSorted = [...b].sort((x, y) => x.attributeValueId.localeCompare(y.attributeValueId));
+        return aSorted.every((val, idx) => val.attributeValueId === bSorted[idx].attributeValueId);
     }
-    function handleVariantImagesChange(idx: number, files: FileList | null) {
-        if (!files || files.length === 0) return;
-        // Only allow one at a time for cropping
-        setCropFile(files[0]);
-        setCropVariantIdx(idx);
+    // State for cropping
+    const [cropDialogOpen, setCropDialogOpen] = useState(false);
+    const [pendingVariantIdx, setPendingVariantIdx] = useState<number | null>(null);
+
+    function handlePlusClick(idx: number) {
+        setPendingVariantIdx(idx);
         setCropDialogOpen(true);
     }
-
+    // No file input needed, handled by ImageCropper
     function handleCropDone(croppedImg: string) {
-        if (cropVariantIdx === null) return;
+        if (pendingVariantIdx === null) return;
         const maxImages = 5;
         const updated = (variants || []).map((v, i) => {
-            if (i !== cropVariantIdx) return v;
+            if (i !== pendingVariantIdx) return v;
             const existingImages = v.images || [];
             if (existingImages.length >= maxImages) return v;
-            // Prevent duplicates
             if (existingImages.includes(croppedImg)) return v;
             return {
                 ...v,
@@ -99,15 +104,9 @@ function EditProductVariants({ variants, onChange, categoryId, subcategoryId, di
         });
         onChange(updated);
         setCropDialogOpen(false);
-        setCropFile(null);
-        setCropVariantIdx(null);
+        setPendingVariantIdx(null);
     }
-
-    function handleCropReset() {
-        setCropDialogOpen(false);
-        setCropFile(null);
-        setCropVariantIdx(null);
-    }
+    // handleCropReset removed (not needed)
     function handleRemoveVariantImage(idx: number, imgIdx: number) {
         const updated = (variants || []).map((v, i) => {
             if (i !== idx) return v;
@@ -145,11 +144,12 @@ function EditProductVariants({ variants, onChange, categoryId, subcategoryId, di
     function handleAttributeValueChange(idx: number, propertyId: string, value: string) {
         const updated = (variants || []).map((v: ProductVariant, i: number) => {
             if (i !== idx) return v;
-            let attrValues = v.attributeValues.filter((av: ProductVariantAttributeValue) => av.productVariantId !== v.id || av.attributeValueId.split('___')[0] !== propertyId);
-            attrValues = attrValues.filter(av => av.attributeValueId.split('___')[0] !== propertyId || (av.attributeValueId.split('___')[1] !== undefined && av.attributeValueId.split('___')[1] !== ""));
+            // Replace or add the attribute value for this property
+            let attrValues = v.attributeValues.filter((av: ProductVariantAttributeValue) => av.attributeValueId.split('___')[0] !== propertyId);
+            attrValues.push({ productVariantId: v.id, attributeValueId: propertyId + '___' + value });
             return {
                 ...v,
-                attributeValues: [...attrValues, { productVariantId: v.id, attributeValueId: propertyId + '___' + value }],
+                attributeValues: attrValues,
             };
         });
         // Check for duplicate variants (excluding the one being edited)
@@ -167,8 +167,9 @@ function EditProductVariants({ variants, onChange, categoryId, subcategoryId, di
         const newVariant = {
             id: newId,
             productId: "",
-            stock: 0,
-            price: 0,
+            stock: null,
+            price: null,
+            weight: null,
             attributeValues: allProps.map(() => ({ productVariantId: newId, attributeValueId: "" })),
             images: [],
         };
@@ -201,12 +202,15 @@ function EditProductVariants({ variants, onChange, categoryId, subcategoryId, di
                                     className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
                                     placeholder="Stock"
                                     type="text"
-                                    inputMode="decimal"
-                                    pattern="^[0-9]*\.?[0-9]*$"
+                                    inputMode="numeric"
+                                    pattern="^[0-9]*$"
+                                    maxLength={4}
                                     value={typeof variant.stock === "string" ? variant.stock : (typeof variant.stock === "number" && !isNaN(variant.stock) ? String(variant.stock) : "")}
                                     onChange={e => {
-                                        const val = e.target.value;
-                                        if (/^\d*\.?\d*$/.test(val) || val === "") {
+                                        let val = e.target.value;
+                                        // Only allow digits, no dot, and max 9999
+                                        if (/^\d*$/.test(val) || val === "") {
+                                            if (val !== "" && Number(val) > 9999) val = "9999";
                                             handleVariantChange(idx, "stock", val);
                                         }
                                     }}
@@ -220,16 +224,38 @@ function EditProductVariants({ variants, onChange, categoryId, subcategoryId, di
                                     type="text"
                                     inputMode="decimal"
                                     pattern="^[0-9]*\.?[0-9]*$"
+                                    maxLength={5}
                                     value={typeof variant.price === "string" ? variant.price : (typeof variant.price === "number" && !isNaN(variant.price) ? String(variant.price) : "")}
                                     onChange={e => {
-                                        const val = e.target.value;
+                                        let val = e.target.value;
+                                        // Allow digits and dot, but max 9999
                                         if (/^\d*\.?\d*$/.test(val) || val === "") {
+                                            if (val !== "" && Number(val) > 9999) val = "9999";
                                             handleVariantChange(idx, "price", val);
                                         }
                                     }}
                                 />
                             </div>
-                            {/* Weight input removed: not present in ProductVariant type */}
+                            <div className="flex-1">
+                                <Label className="mb-2">Weight</Label>
+                                <input
+                                    className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                                    placeholder="Weight"
+                                    type="text"
+                                    inputMode="decimal"
+                                    pattern="^[0-9]*\.?[0-9]*$"
+                                    maxLength={5}
+                                    value={typeof variant.weight === "string" ? variant.weight : (typeof variant.weight === "number" && !isNaN(variant.weight) ? String(variant.weight) : "")}
+                                    onChange={e => {
+                                        let val = e.target.value;
+                                        // Allow digits and dot, but max 9999
+                                        if (/^\d*\.?\d*$/.test(val) || val === "") {
+                                            if (val !== "" && Number(val) > 9999) val = "9999";
+                                            handleVariantChange(idx, "weight", val);
+                                        }
+                                    }}
+                                />
+                            </div>
                             <Button type="button" variant="destructive" className="h-8 mt-6" onClick={() => handleRemoveVariant(idx)}>-</Button>
                         </div>
                         {/* Variant Images */}
@@ -257,37 +283,21 @@ function EditProductVariants({ variants, onChange, categoryId, subcategoryId, di
                                                 type="button"
                                                 aria-label="Remove variant image"
                                             >×</button>
-                                            <button
-                                                className="absolute bottom-0 right-0 bg-indigo-600 text-white text-xs px-1.5 py-0.5 rounded shadow opacity-80 hover:opacity-100"
-                                                style={{ transform: 'translateY(50%)' }}
-                                                type="button"
-                                                onClick={() => setZoomImg(img)}
-                                                aria-label="Zoom variant image"
-                                            >
-                                                Zoom
-                                            </button>
                                         </div>
                                     );
                                 })}
-        {/* Zoom Modal */}
-        {zoomImg && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70" onClick={() => setZoomImg(null)}>
-                <div className="bg-white rounded-2xl shadow-xl p-4 max-w-2xl w-full flex flex-col items-center relative" onClick={e => e.stopPropagation()}>
-                    <button className="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-2xl font-bold" onClick={() => setZoomImg(null)}>&times;</button>
-                    <img src={zoomImg} alt="Zoomed" className="max-h-[70vh] max-w-full rounded-xl" />
-                </div>
-            </div>
-        )}
-                                <label className="w-12 h-12 flex items-center justify-center border-2 border-dashed border-indigo-300 rounded-lg text-indigo-400 hover:bg-indigo-50 focus:outline-none cursor-pointer">
-                                    +
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        className="hidden"
-                                        onChange={e => handleVariantImagesChange(idx, e.target.files)}
-                                        disabled={variant.images && variant.images.length >= 5}
-                                    />
-                                </label>
+                                {(variant.images?.length ?? 0) < 5 && (
+                                    <label className="w-12 h-12 flex items-center justify-center border-2 border-dashed border-indigo-300 rounded-lg text-indigo-400 hover:bg-indigo-50 focus:outline-none cursor-pointer" onClick={() => handlePlusClick(idx)}>
+                                        <span >+</span>
+                                    </label>
+                                )}
+                                {cropDialogOpen && pendingVariantIdx === idx && (
+                                    <Dialog open={cropDialogOpen} onOpenChange={setCropDialogOpen}>
+                                        <DialogContent className="min-w-2xl w-full">
+                                            <ImageCropper onCrop={handleCropDone} />
+                                        </DialogContent>
+                                    </Dialog>
+                                )}
                                 {variant.images && variant.images.length > 0 && (
                                     <div className="text-xs text-gray-500 w-full">Click an image to set as main (thumbnail).</div>
                                 )}
@@ -311,7 +321,7 @@ function EditProductVariants({ variants, onChange, categoryId, subcategoryId, di
                                         >
                                             <option value="">Select {prop.name}</option>
                                             {values.map(av => (
-                                                <option key={av.id} value={av.name}>{av.name}</option>
+                                                <option key={av.id} value={av.id}>{av.name}</option>
                                             ))}
                                         </select>
                                     </div>
@@ -332,17 +342,8 @@ function EditProductVariants({ variants, onChange, categoryId, subcategoryId, di
                     Add Variant
                 </Button>
             )}
-        {/* Image Crop Dialog for variant images */}
-        <ImageCropDialog
-            open={cropDialogOpen}
-            onOpenChange={setCropDialogOpen}
-            file={cropFile}
-            onCrop={handleCropDone}
-            onReset={handleCropReset}
-            aspect={1}
-        />
-    </div>
+            {/* Image Crop Dialog for variant images */}
+
+        </div>
     );
 }
-
-export default EditProductVariants;
