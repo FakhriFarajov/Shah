@@ -527,3 +527,9 @@
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Presentation/bin/Debug/net9.0/ShahBuyerAuthApi.Core.dll
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Presentation/bin/Debug/net9.0/ShahBuyerAuthApi.Core.pdb
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Presentation/obj/Debug/net9.0/compressed/4utobdsivj-zubfqgz0t2.gz
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Presentation/bin/Debug/net9.0/CommunityToolkit.HighPerformance.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Presentation/bin/Debug/net9.0/Minio.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Presentation/bin/Debug/net9.0/Minio.AspNetCore.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Presentation/bin/Debug/net9.0/SixLabors.ImageSharp.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Presentation/bin/Debug/net9.0/System.IO.Hashing.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Presentation/bin/Debug/net9.0/System.Reactive.dll

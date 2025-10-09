@@ -29,4 +29,8 @@
         <ProjectReference Include="..\ShahAdminAuthApi.Core\ShahAdminAuthApi.Core.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Migrations\" />
+    </ItemGroup>
+
 </Project>

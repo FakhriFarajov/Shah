@@ -1,9 +1,9 @@
-using ShahBuyerAuthApi.Application.Services.Interfaces;
-using ShahBuyerAuthApi.Contracts.DTOs.Request;
+using ShahAdminAuthApi.Application.Services.Interfaces;
+using ShahAdminAuthApi.Contracts.DTOs.Request;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ShahBuyerAuthApi.Presentation.Controllers;
+namespace ShahAdminAuthApi.Presentation.Controllers;
 
 
 [ApiController]
@@ -18,7 +18,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("Login")]
-    public async Task<IActionResult> LoginAsync(BuyerLoginRequestDTO request)
+    public async Task<IActionResult> LoginAsync(AdminLoginRequestDTO request)
     {
         return Ok(await _authService.LoginAsync(request));
     }

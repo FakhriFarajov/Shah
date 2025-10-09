@@ -2,7 +2,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
-using ShahSellerAuthApi.Application.Services.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using ShahSellerAuthApi.Contracts.DTOs.Response;
@@ -107,11 +106,11 @@ public class TokenManager
         return principal.IsValid;
     }
 
-    public async Task<TokenResponse> RefreshTokenAsync(string refreshToken)
+    public async Task<TypedResult<TokenResponse>> RefreshTokenAsync(string refreshToken)
     {
         var userFromDb = await _context.Users.FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
         if (userFromDb == null || userFromDb.RefreshTokenExpiryTime <= DateTime.UtcNow)
-            return null;
+            return TypedResult<TokenResponse>.Error( "Invalid or expired refresh token", 401);
 
         // Generate new refresh token
         var newRefreshToken = Guid.NewGuid().ToString();
@@ -121,11 +120,11 @@ public class TokenManager
 
         // Generate new access token
         var accessToken = await CreateTokenAsync(userFromDb);
-        return new TokenResponse
+        return TypedResult<TokenResponse>.Success(new TokenResponse
         {
             AccessToken = accessToken,
             RefreshToken = newRefreshToken
-        };
+        }, "Token refreshed successfully");
     }
 
     public async Task<string> CreateRefreshTokenAsync(User user)

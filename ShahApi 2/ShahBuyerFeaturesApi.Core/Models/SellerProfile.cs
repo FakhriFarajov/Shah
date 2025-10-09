@@ -10,7 +10,9 @@ namespace ShahBuyerFeaturesApi.Core.Models
         public User User { get; set; } = null!;
 
         public bool IsVerified { get; set; } = false;
-
+        
+        public string Passport { get; set; }
+        
         public string StoreInfoId { get; set; }
         public StoreInfo StoreInfo { get; set; }
 

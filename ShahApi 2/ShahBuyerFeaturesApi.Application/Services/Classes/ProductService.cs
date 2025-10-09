@@ -4,8 +4,6 @@ using ShahBuyerFeaturesApi.Contracts.DTOs.Response;
 using ShahBuyerFeaturesApi.Core.Models;
 using ShahBuyerFeaturesApi.Infrastructure.Contexts;
 using ShahBuyerFeaturesApi.Application.Utils;
-
-
 namespace ShahBuyerFeaturesApi.Application.Services.Classes;
 
 public class ProductService : IProductService
@@ -17,7 +15,7 @@ public class ProductService : IProductService
         _context = context;
     }
 
-    public async Task<TypedResult<object>> GetProductDetailsByIdAsync(string productId)
+    public async Task<TypedResult<object>> GetProductDetailsByIdAsync(string productId) //Correct 
     {
         var product = await _context.Products
             .Include(p => p.ProductDetails)
@@ -43,7 +41,6 @@ public class ProductService : IProductService
                 product.ProductDetails.Id,
                 product.ProductDetails.Title,
                 product.ProductDetails.Description,
-                product.ProductDetails.WeightInGrams
             },
             Variants = product.ProductVariants.Select(v => new
             {

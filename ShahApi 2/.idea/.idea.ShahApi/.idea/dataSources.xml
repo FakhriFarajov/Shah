@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="@localhost" uuid="8f96f7d2-83dd-4d93-9db3-d0047e731279">
+    <data-source source="LOCAL" name="Microsoft SQL Server (JetBrains)" uuid="6797f3df-d4c3-4914-8637-8946ea76be30">
       <driver-ref>sqlserver.jb</driver-ref>
       <synchronize>true</synchronize>
+      <configured-by-url>true</configured-by-url>
       <jdbc-driver>com.jetbrains.jdbc.sqlserver.SqlServerDriver</jdbc-driver>
-      <jdbc-url>Server=localhost,1433</jdbc-url>
+      <jdbc-url>Data Source=localhost; Initial Catalog=ShahDatabase; User Id=sa; Password=Password_123; Trust Server Certificate=True</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
   </component>

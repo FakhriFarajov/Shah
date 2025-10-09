@@ -1,9 +1,8 @@
-using ShahBuyerAuthApi.Core.Models;
-
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using ShahAdminAuthApi.Core.Models;
 
-namespace ShahBuyerAuthApi.Infrastructure.Configurations
+namespace ShahAdminAuthApi.Infrastructure.Configurations
 {
        public class AddressConfiguration : IEntityTypeConfiguration<Address>
        {

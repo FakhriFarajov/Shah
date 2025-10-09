@@ -22,7 +22,6 @@ public class AccountService : IAccountService
     private readonly IMapper _mapper;
     private readonly IWebHostEnvironment _env;
     private readonly EmailSender _emailSender;
-
     public AccountService(ShahDbContext context, IMapper mapper, IWebHostEnvironment env, EmailSender emailSender)
     {
         _context = context;
@@ -30,54 +29,25 @@ public class AccountService : IAccountService
         _env = env;
         _emailSender = emailSender;
     }
-    
-
-    
     public async Task<Result> RegisterSellerAsync(SellerRegisterRequestDTO request)
     {
         // Normalize email to lowercase
-        var normalizedEmail = request.Email.Trim().ToLowerInvariant();
-        var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
+        var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == request.Email.ToLower());
         if (existingUser != null)
-        {
             return Result.Error("Email is already registered.", 409);
-        }
-
-        // Map and create User
+        
         var userToAdd = _mapper.Map<User>(request);
-        userToAdd.Email = normalizedEmail;
         userToAdd.Password = HashPassword(request.Password);
         userToAdd.Role = Role.Seller;
-        userToAdd.CreatedAt = DateTime.UtcNow;
         _context.Users.Add(userToAdd);
-        await _context.SaveChangesAsync();
-
-        // Map and create SellerProfile
-        var sellerProfile = _mapper.Map<SellerProfile>(request);
-        sellerProfile.UserId = userToAdd.Id;
-        sellerProfile.Passport = request.Passport;
-        _context.SellerProfiles.Add(sellerProfile);
-        await _context.SaveChangesAsync();
-
-        // Map and create StoreInfo
-        var storeInfo = _mapper.Map<StoreInfo>(request);
-        storeInfo.SellerProfileId = sellerProfile.Id;
-        _context.StoreInfos.Add(storeInfo);
-        await _context.SaveChangesAsync();
-
-        // Map and create SellerTaxInfo
+        await _context.SaveChangesAsync(); // Save to generate UserId
+        
         var taxInfo = _mapper.Map<SellerTaxInfo>(request);
-        taxInfo.SellerProfileId = sellerProfile.Id;
-        _context.SellerTaxInfos.Add(taxInfo);
-        await _context.SaveChangesAsync();
+        
+        
+        
+        
 
-        // Link everything together
-        sellerProfile.StoreInfoId = storeInfo.Id;
-        sellerProfile.SellerTaxInfoId = taxInfo.Id;
-        userToAdd.SellerProfileId = sellerProfile.Id;
-        _context.Users.Update(userToAdd);
-        _context.SellerProfiles.Update(sellerProfile);
-        await _context.SaveChangesAsync();
 
         return Result.Success("Seller registered successfully");
     }

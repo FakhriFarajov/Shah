@@ -17,12 +17,12 @@ namespace ShahSellerAuthApi.Infrastructure.Configurations
             builder.HasOne(ci => ci.BuyerProfile)
                    .WithMany(bp => bp.CartItems)
                    .HasForeignKey(ci => ci.BuyerProfileId)
-                   .OnDelete(DeleteBehavior.Cascade);
+                   .OnDelete(DeleteBehavior.NoAction);
 
-            builder.HasOne(ci => ci.Product)
+            builder.HasOne(ci => ci.ProductVariant)
                    .WithMany(p => p.CartItems)
-                   .HasForeignKey(ci => ci.ProductId)
-                   .OnDelete(DeleteBehavior.Cascade);
+                   .HasForeignKey(ci => ci.ProductVariantId)
+                   .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

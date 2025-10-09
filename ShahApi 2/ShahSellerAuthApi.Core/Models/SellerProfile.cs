@@ -12,11 +12,11 @@ namespace ShahSellerAuthApi.Data.Models
         public string Passport { get; set; }
 
         public bool IsVerified { get; set; } = false;
+        
+        public string? StoreInfoId { get; set; }
+        public StoreInfo? StoreInfo { get; set; }
 
-        public string StoreInfoId { get; set; }
-        public StoreInfo StoreInfo { get; set; }
-
-        public string SellerTaxInfoId { get; set; }
-        public SellerTaxInfo SellerTaxInfo { get; set; }
+        public string? SellerTaxInfoId { get; set; }
+        public SellerTaxInfo? SellerTaxInfo { get; set; }
     }
 }

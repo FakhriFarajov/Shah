@@ -8,7 +8,7 @@ using ShahAdminAuthApi.Core.Models;
 
 namespace ShahAdminAuthApi.Application.Services.Classes;
 
-public class AdminService : IBuyerService
+public class AdminService : IAdminService
 {
     private readonly ShahDbContext _context;
     private readonly IMapper _mapper;
@@ -25,7 +25,7 @@ public class AdminService : IBuyerService
 
         if (res == null)
         {
-            throw new Exception("Buyer not found");
+            throw new Exception("Admin not found");
         }
         return res.Id;
     }

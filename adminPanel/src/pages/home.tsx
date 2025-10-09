@@ -1,17 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import Navbar from "../components/custom/Navbar/navbar";
-import {
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    ResponsiveContainer,
-    Tooltip,
-    Legend,
-} from "recharts";
+import { PieChart, Pie, Cell } from "recharts";
 
 import { AppSidebar } from "@/components/custom/sidebar";
 
@@ -29,12 +20,7 @@ const chartData = [
     { month: "Nov", sales: 2800 },
     { month: "Dec", sales: 3000 },
 ];
-const chartConfig = {
-    sales: {
-        label: "Sales",
-        color: "#353ec1ff",
-    },
-};
+
 
 type Product = {
     id: number;
@@ -71,12 +57,23 @@ export default function Home() {
             destination: "Jamik Tashpulatov"
         },
     ]);
-    const [counts] = useState({
+    const [counts, setCounts] = useState({
         buyers: 12,
         sellers: 8,
         warehouses: 2,
         orders: 34,
     });
+
+    // Utility to generate random color
+    function getRandomColor() {
+        return `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, "0")}`;
+    }
+
+    // Assign random colors to earningsData
+    const earningsData = [
+        { name: "Buyers", value: 8000 },
+        { name: "Sellers", value: 4560 },
+    ].map(e => ({ ...e, color: getRandomColor() }));
 
     return (
         <>
@@ -104,8 +101,37 @@ export default function Home() {
                         </Card>
                         <Card>
                             <CardHeader>
-                                <CardTitle>Warehouses</CardTitle>
+                                <CardTitle>Users Statistics</CardTitle>
                             </CardHeader>
+                            <div className="flex flex-col items-center">
+                                <PieChart width={180} height={180}>
+                                    <Pie
+                                        data={earningsData}
+                                        dataKey="value"
+                                        nameKey="name"
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={50}
+                                        outerRadius={80}
+                                        fill="#8884d8"
+                                        label
+                                    >
+                                        {earningsData.map((entry, idx) => (
+                                            <Cell key={`cell-${idx}`} fill={entry.color} />
+                                        ))}
+                                    </Pie>
+                                </PieChart>
+                                <div className="text-2xl font-bold mt-2">{(counts.buyers + counts.sellers).toLocaleString()} <span className="text-gray-400 text-base">Total</span></div>
+                                <div className="flex flex-col gap-1 mt-2">
+                                    {earningsData.map(e => (
+                                        <div key={e.name} className="flex items-center gap-2 text-sm">
+                                            <span className="inline-block w-3 h-3 rounded-full" style={{ background: e.color }}></span>
+                                            <span>{e.name}</span>
+                                            <span className="font-semibold">{e.value.toLocaleString()}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                             <CardContent>
                                 <span className="text-3xl font-bold">{counts.warehouses}</span>
                             </CardContent>

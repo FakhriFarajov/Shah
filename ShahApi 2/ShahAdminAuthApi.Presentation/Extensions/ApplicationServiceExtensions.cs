@@ -1,16 +1,15 @@
 using System.Reflection;
 using System.Text;
-using ShahBuyerAuthApi.Application.Services.Classes;
-using ShahBuyerAuthApi.Application.Services.Interfaces;
-using ShahBuyerAuthApi.Infrastructure.Contexts;
-using ShahBuyerAuthApi.Infrastructure.Middlewares;
+using ShahAdminAuthApi.Application.Services.Classes;
+using ShahAdminAuthApi.Application.Services.Interfaces;
+using ShahAdminAuthApi.Infrastructure.Contexts;
+using ShahAdminAuthApi.Infrastructure.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using ShahBuyerAuthApi.Application.Utils;
-using ShahBuyerAuthApi.Infrastructure.MappingConfigurations;
+using ShahAdminAuthApi.Application.Utils;
 
-namespace ShahBuyerAuthApi.Presentation.Extensions;
+namespace ShahAdminAuthApi.Presentation.Extensions;
 
 public static class ApplicationServiceExtensions
 {
@@ -25,13 +24,8 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IAccountService, AccountService>();
         services.AddScoped<TokenManager>();
         services.AddScoped<IAuthService, AuthService>();
-        services.AddScoped<IBuyerService, AdminService>();
-        services.AddSingleton<EmailSender>();
+        services.AddScoped<IAdminService, AdminService>();
         services.AddSingleton<GlobalExceptionMiddleware>();
-
-        
-        
-        services.AddAutoMapper(ops => ops.AddProfile(typeof(MappingProfile)));
         services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
 
@@ -94,7 +88,7 @@ public static class ApplicationServiceExtensions
 
         services.AddAuthorization(ops =>
         {
-            ops.AddPolicy("BuyerPolicy", builder => builder.RequireRole("Buyer"));
+            ops.AddPolicy("AdminPolicy", builder => builder.RequireRole("Admin"));
         });
 
         return services;

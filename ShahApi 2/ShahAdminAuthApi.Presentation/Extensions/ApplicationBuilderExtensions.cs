@@ -1,7 +1,7 @@
-using ShahBuyerAuthApi.Infrastructure.Middlewares;
+using ShahAdminAuthApi.Infrastructure.Middlewares;
 using Scalar.AspNetCore;
 
-namespace ShahBuyerAuthApi.Presentation.Extensions;
+namespace ShahAdminAuthApi.Presentation.Extensions;
 
 public static class ApplicationBuilderExtensions
 {

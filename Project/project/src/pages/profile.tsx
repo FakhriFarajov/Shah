@@ -5,10 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Navbar from "@/components/custom/Navbar/navbar";
 import Footer from "@/components/custom/footer";
-import { FaUser, FaCamera, FaHistory, FaRegBell } from "react-icons/fa";
+import { FaUser, FaHistory, FaRegBell } from "react-icons/fa";
 import ImageCropper from "@/components/ui/image-crop"; // Import the ImageCropper component
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { MdAccountCircle } from "react-icons/md";
+import { FaStar } from "react-icons/fa";
 
 // Mock user data
 const initialUser = {
@@ -28,6 +29,68 @@ const initialUser = {
       country: "Azerbaijan",
     },
   ],
+  createdAt: "2025-01-01",
+  reviews: [
+    {
+      id: "r1",
+      product: {
+        id: "p1",
+        name: "Laptop",
+        image: "https://via.placeholder.com/150",
+      },
+      seller: {
+        id: "s1",
+        name: "TechStore",
+      },
+      rating: 5,
+      comment: "Great product, highly recommend!",
+      Date: "2025-08-15",
+    },
+        {
+      id: "r1",
+      product: {
+        id: "p1",
+        name: "Laptop",
+        image: "https://via.placeholder.com/150",
+      },
+      seller: {
+        id: "s1",
+        name: "TechStore",
+      },
+      rating: 5,
+      comment: "Great product, highly recommend!",
+      Date: "2025-08-15",
+    },    {
+      id: "r1",
+      product: {
+        id: "p1",
+        name: "Laptop",
+        image: "https://via.placeholder.com/150",
+      },
+      seller: {
+        id: "s1",
+        name: "TechStore",
+      },
+      rating: 5,
+      comment: "Great product, highly recommend!",
+      Date: "2025-08-15",
+    },    {
+      id: "r1",
+      product: {
+        id: "p1",
+        name: "Laptop",
+        image: "https://via.placeholder.com/150",
+      },
+      seller: {
+        id: "s1",
+        name: "TechStore",
+      },
+      rating: 5,
+      comment: "Great product, highly recommend!",
+      Date: "2025-08-15",
+    }
+  ] 
+  
 };
 
 export default function AccountPage() {
@@ -122,7 +185,7 @@ export default function AccountPage() {
       ],
     },
   ];
-  const [activePage, setActivePage] = useState<"profileAddresses" | "history" | "notifications">("profileAddresses");
+  const [activePage, setActivePage] = useState<"profileAddresses" | "history" | "notifications" | "reviews">("profileAddresses");
   // Change password modal state
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
@@ -212,6 +275,13 @@ export default function AccountPage() {
               onClick={() => setActivePage("notifications")}
             >
               <FaRegBell className="mr-2" /> Notifications
+            </Button>
+            <Button
+              variant={activePage === "reviews" ? "default" : "outline"}
+              className="w-full justify-start"
+              onClick={() => setActivePage("reviews")}
+            >
+              <FaStar className="mr-2" /> Reviews
             </Button>
           </nav>
         </aside>
@@ -465,6 +535,31 @@ export default function AccountPage() {
                     <li key={notif.id} className="py-2 flex justify-between items-center">
                       <span>{notif.action}</span>
                       <span className="text-xs text-gray-500">{notif.date}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+          {activePage === "reviews" && (
+            <Card className="max-w-4xl mx-auto">
+              <CardHeader>
+                <CardTitle>{initialUser.name}'s Reviews</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-4">
+                  {initialUser.reviews.map(r => (
+                    <li key={r.id} className="border-b pb-4 flex gap-4 items-center">
+                      <img src={r.product.image} alt={r.product.name} className="w-20 h-20 object-cover rounded border" />
+                      <div className="flex-1">
+                        <div className="font-semibold">
+                          Product: <a href={`/products/${r.product.id}`} className="text-blue-600 underline">{r.product.name}</a>
+                          {" "}| Seller: <a href={`/sellers/${r.seller.id}`} className="text-blue-600 underline">{r.seller.name}</a>
+                        </div>
+                        <div className="text-yellow-500">Rating: {"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</div>
+                        <div className="mt-1 text-gray-700">{r.comment}</div>
+                      </div>
+                      <div className="text-sm text-gray-400">{r.Date}</div>
                     </li>
                   ))}
                 </ul>

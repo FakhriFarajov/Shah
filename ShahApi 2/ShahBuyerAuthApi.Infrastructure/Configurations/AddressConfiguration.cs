@@ -41,7 +41,7 @@ namespace ShahBuyerAuthApi.Infrastructure.Configurations
                      builder.HasOne(a => a.BuyerProfile)
                             .WithOne(bp => bp.Address)
                             .HasForeignKey<Address>(a => a.BuyerProfileId)
-                            .OnDelete(DeleteBehavior.SetNull);
+                            .OnDelete(DeleteBehavior.Cascade);
 
                      // Fix: Warehouse relationship should be one-to-one
                      builder.HasOne(a => a.Warehouse)

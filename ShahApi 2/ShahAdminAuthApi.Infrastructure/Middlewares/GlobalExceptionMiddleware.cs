@@ -3,9 +3,9 @@ using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
-using ShahBuyerAuthApi.Contracts.DTOs.Response;
+using ShahAdminAuthApi.Contracts.DTOs.Response;
 
-namespace ShahBuyerAuthApi.Infrastructure.Middlewares;
+namespace ShahAdminAuthApi.Infrastructure.Middlewares;
 
 
 public class GlobalExceptionMiddleware : IMiddleware

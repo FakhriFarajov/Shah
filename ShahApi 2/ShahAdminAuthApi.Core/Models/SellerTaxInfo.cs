@@ -1,6 +1,6 @@
-using ShahBuyerAuthApi.Core.Enums;
+using ShahAdminAuthApi.Core.Enums;
 
-namespace ShahBuyerAuthApi.Core.Models;
+namespace ShahAdminAuthApi.Core.Models;
 
 public class SellerTaxInfo
 {

@@ -10,8 +10,10 @@
         "dependencies": {
           "Microsoft.AspNetCore.Authentication.JwtBearer": "9.0.8",
           "Microsoft.AspNetCore.OpenApi": "9.0.2",
+          "Minio.AspNetCore": "6.0.1",
           "Scalar.AspNetCore": "2.7.2",
-          "ShahBuyerAuthApi.Application": "1.0.0"
+          "ShahBuyerAuthApi.Application": "1.0.0",
+          "SixLabors.ImageSharp": "3.1.11"
         },
         "runtime": {
           "ShahBuyerAuthApi.Presentation.dll": {}
@@ -80,6 +82,14 @@
           "lib/net6.0/BCrypt.Net-Next.dll": {
             "assemblyVersion": "4.0.3.0",
             "fileVersion": "4.0.3.0"
+          }
+        }
+      },
+      "CommunityToolkit.HighPerformance/8.2.2": {
+        "runtime": {
+          "lib/net7.0/CommunityToolkit.HighPerformance.dll": {
+            "assemblyVersion": "8.2.0.0",
+            "fileVersion": "8.2.2.1"
           }
         }
       },
@@ -661,6 +671,11 @@
           }
         }
       },
+      "Microsoft.Extensions.Configuration.Binder/8.0.0": {
+        "dependencies": {
+          "Microsoft.Extensions.Configuration.Abstractions": "9.0.8"
+        }
+      },
       "Microsoft.Extensions.Configuration.EnvironmentVariables/8.0.0": {
         "dependencies": {
           "Microsoft.Extensions.Configuration": "8.0.0",
@@ -773,6 +788,15 @@
             "assemblyVersion": "9.0.0.0",
             "fileVersion": "9.0.825.36511"
           }
+        }
+      },
+      "Microsoft.Extensions.Options.ConfigurationExtensions/8.0.0": {
+        "dependencies": {
+          "Microsoft.Extensions.Configuration.Abstractions": "9.0.8",
+          "Microsoft.Extensions.Configuration.Binder": "8.0.0",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "9.0.8",
+          "Microsoft.Extensions.Options": "9.0.8",
+          "Microsoft.Extensions.Primitives": "9.0.8"
         }
       },
       "Microsoft.Extensions.Primitives/9.0.8": {
@@ -909,6 +933,34 @@
           }
         }
       },
+      "Minio/6.0.1": {
+        "dependencies": {
+          "CommunityToolkit.HighPerformance": "8.2.2",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "9.0.8",
+          "Microsoft.Extensions.Logging": "9.0.8",
+          "System.IO.Hashing": "7.0.0",
+          "System.Reactive": "6.0.0"
+        },
+        "runtime": {
+          "lib/net7.0/Minio.dll": {
+            "assemblyVersion": "6.0.1.0",
+            "fileVersion": "6.0.1.0"
+          }
+        }
+      },
+      "Minio.AspNetCore/6.0.1": {
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "9.0.8",
+          "Microsoft.Extensions.Options.ConfigurationExtensions": "8.0.0",
+          "Minio": "6.0.1"
+        },
+        "runtime": {
+          "lib/net7.0/Minio.AspNetCore.dll": {
+            "assemblyVersion": "6.0.1.0",
+            "fileVersion": "6.0.1.0"
+          }
+        }
+      },
       "Mono.TextTemplating/3.0.0": {
         "dependencies": {
           "System.CodeDom": "6.0.0"
@@ -933,6 +985,14 @@
           "lib/net9.0/Scalar.AspNetCore.dll": {
             "assemblyVersion": "2.7.2.0",
             "fileVersion": "2.7.2.0"
+          }
+        }
+      },
+      "SixLabors.ImageSharp/3.1.11": {
+        "runtime": {
+          "lib/net6.0/SixLabors.ImageSharp.dll": {
+            "assemblyVersion": "3.0.0.0",
+            "fileVersion": "3.1.11.0"
           }
         }
       },
@@ -1069,6 +1129,14 @@
           }
         }
       },
+      "System.IO.Hashing/7.0.0": {
+        "runtime": {
+          "lib/net7.0/System.IO.Hashing.dll": {
+            "assemblyVersion": "7.0.0.0",
+            "fileVersion": "7.0.22.51805"
+          }
+        }
+      },
       "System.IO.Pipelines/7.0.0": {},
       "System.Memory/4.5.4": {},
       "System.Memory.Data/1.0.2": {
@@ -1084,6 +1152,14 @@
         }
       },
       "System.Numerics.Vectors/4.5.0": {},
+      "System.Reactive/6.0.0": {
+        "runtime": {
+          "lib/net6.0/System.Reactive.dll": {
+            "assemblyVersion": "6.0.0.0",
+            "fileVersion": "6.0.0.1"
+          }
+        }
+      },
       "System.Reflection.Metadata/8.0.1": {},
       "System.Runtime.Caching/6.0.0": {
         "dependencies": {
@@ -1175,8 +1251,10 @@
           "Microsoft.AspNetCore.Hosting": "2.3.0",
           "Microsoft.AspNetCore.Hosting.Abstractions": "2.3.0",
           "Microsoft.AspNetCore.Http": "2.3.0",
+          "Minio.AspNetCore": "6.0.1",
           "ShahBuyerAuthApi.Core": "1.0.0",
-          "ShahBuyerAuthApi.Infrastructure": "1.0.0"
+          "ShahBuyerAuthApi.Infrastructure": "1.0.0",
+          "SixLabors.ImageSharp": "3.1.11"
         },
         "runtime": {
           "ShahBuyerAuthApi.Application.dll": {
@@ -1187,7 +1265,9 @@
       },
       "ShahBuyerAuthApi.Core/1.0.0": {
         "dependencies": {
-          "Microsoft.EntityFrameworkCore": "9.0.8"
+          "Microsoft.EntityFrameworkCore": "9.0.8",
+          "Minio.AspNetCore": "6.0.1",
+          "SixLabors.ImageSharp": "3.1.11"
         },
         "runtime": {
           "ShahBuyerAuthApi.Core.dll": {
@@ -1206,8 +1286,10 @@
           "Microsoft.EntityFrameworkCore.Design": "9.0.8",
           "Microsoft.EntityFrameworkCore.SqlServer": "9.0.8",
           "Microsoft.EntityFrameworkCore.Tools": "9.0.8",
+          "Minio.AspNetCore": "6.0.1",
           "Newtonsoft.Json": "13.0.3",
-          "ShahBuyerAuthApi.Core": "1.0.0"
+          "ShahBuyerAuthApi.Core": "1.0.0",
+          "SixLabors.ImageSharp": "3.1.11"
         },
         "runtime": {
           "ShahBuyerAuthApi.Infrastructure.dll": {
@@ -1258,6 +1340,13 @@
       "sha512": "sha512-W+U9WvmZQgi5cX6FS5GDtDoPzUCV4LkBLkywq/kRZhuDwcbavOzcDAr3LXJFqHUi952Yj3LEYoWW0jbEUQChsA==",
       "path": "bcrypt.net-next/4.0.3",
       "hashPath": "bcrypt.net-next.4.0.3.nupkg.sha512"
+    },
+    "CommunityToolkit.HighPerformance/8.2.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-+zIp8d3sbtYaRbM6hqDs4Ui/z34j7DcUmleruZlYLE4CVxXq+MO8XJyIs42vzeTYFX+k0Iq1dEbBUnQ4z/Gnrw==",
+      "path": "communitytoolkit.highperformance/8.2.2",
+      "hashPath": "communitytoolkit.highperformance.8.2.2.nupkg.sha512"
     },
     "Humanizer.Core/2.14.1": {
       "type": "package",
@@ -1497,6 +1586,13 @@
       "path": "microsoft.extensions.configuration.abstractions/9.0.8",
       "hashPath": "microsoft.extensions.configuration.abstractions.9.0.8.nupkg.sha512"
     },
+    "Microsoft.Extensions.Configuration.Binder/8.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-mBMoXLsr5s1y2zOHWmKsE9veDcx8h1x/c3rz4baEdQKTeDcmQAPNbB54Pi/lhFO3K431eEq6PFbMgLaa6PHFfA==",
+      "path": "microsoft.extensions.configuration.binder/8.0.0",
+      "hashPath": "microsoft.extensions.configuration.binder.8.0.0.nupkg.sha512"
+    },
     "Microsoft.Extensions.Configuration.EnvironmentVariables/8.0.0": {
       "type": "package",
       "serviceable": true,
@@ -1602,6 +1698,13 @@
       "path": "microsoft.extensions.options/9.0.8",
       "hashPath": "microsoft.extensions.options.9.0.8.nupkg.sha512"
     },
+    "Microsoft.Extensions.Options.ConfigurationExtensions/8.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-0f4DMRqEd50zQh+UyJc+/HiBsZ3vhAQALgdkcQEalSH1L2isdC7Yj54M3cyo5e+BeO5fcBQ7Dxly8XiBBcvRgw==",
+      "path": "microsoft.extensions.options.configurationextensions/8.0.0",
+      "hashPath": "microsoft.extensions.options.configurationextensions.8.0.0.nupkg.sha512"
+    },
     "Microsoft.Extensions.Primitives/9.0.8": {
       "type": "package",
       "serviceable": true,
@@ -1693,6 +1796,20 @@
       "path": "microsoft.win32.systemevents/6.0.0",
       "hashPath": "microsoft.win32.systemevents.6.0.0.nupkg.sha512"
     },
+    "Minio/6.0.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-uavo/zTpUzHLqnB0nyAk6E/2THLRPvZ59Md7IkLKXkAFiX//K2knVK2+dSHDNN2uAUqCvLqO+cM+s9VGBWbIKQ==",
+      "path": "minio/6.0.1",
+      "hashPath": "minio.6.0.1.nupkg.sha512"
+    },
+    "Minio.AspNetCore/6.0.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-bE1kkIsV6lWs6H7CkjIooz1Bah5emhTWSCRSCpCyLEjU7dRkFeTusOunlIA/jtcwS3w6ZguF4JKDf3JX/uOJ7A==",
+      "path": "minio.aspnetcore/6.0.1",
+      "hashPath": "minio.aspnetcore.6.0.1.nupkg.sha512"
+    },
     "Mono.TextTemplating/3.0.0": {
       "type": "package",
       "serviceable": true,
@@ -1713,6 +1830,13 @@
       "sha512": "sha512-MtxRKvCqmzoH7LQe2GLfo2rAjYix+2G2GwTaKjLThySOPwU99vf0VefSWt5tOAEz/wS7qD87lm1Bu92oZyjr8w==",
       "path": "scalar.aspnetcore/2.7.2",
       "hashPath": "scalar.aspnetcore.2.7.2.nupkg.sha512"
+    },
+    "SixLabors.ImageSharp/3.1.11": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-JfPLyigLthuE50yi6tMt7Amrenr/fA31t2CvJyhy/kQmfulIBAqo5T/YFUSRHtuYPXRSaUHygFeh6Qd933EoSw==",
+      "path": "sixlabors.imagesharp/3.1.11",
+      "hashPath": "sixlabors.imagesharp.3.1.11.nupkg.sha512"
     },
     "System.Buffers/4.6.0": {
       "type": "package",
@@ -1819,6 +1943,13 @@
       "path": "system.identitymodel.tokens.jwt/8.0.1",
       "hashPath": "system.identitymodel.tokens.jwt.8.0.1.nupkg.sha512"
     },
+    "System.IO.Hashing/7.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-sDnWM0N3AMCa86LrKTWeF3BZLD2sgWyYUc7HL6z4+xyDZNQRwzmxbo4qP2rX2MqC+Sy1/gOSRDah5ltxY5jPxw==",
+      "path": "system.io.hashing/7.0.0",
+      "hashPath": "system.io.hashing.7.0.0.nupkg.sha512"
+    },
     "System.IO.Pipelines/7.0.0": {
       "type": "package",
       "serviceable": true,
@@ -1846,6 +1977,13 @@
       "sha512": "sha512-QQTlPTl06J/iiDbJCiepZ4H//BVraReU4O4EoRw1U02H5TLUIT7xn3GnDp9AXPSlJUDyFs4uWjWafNX6WrAojQ==",
       "path": "system.numerics.vectors/4.5.0",
       "hashPath": "system.numerics.vectors.4.5.0.nupkg.sha512"
+    },
+    "System.Reactive/6.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-31kfaW4ZupZzPsI5PVe77VhnvFF55qgma7KZr/E0iFTs6fmdhhG8j0mgEx620iLTey1EynOkEfnyTjtNEpJzGw==",
+      "path": "system.reactive/6.0.0",
+      "hashPath": "system.reactive.6.0.0.nupkg.sha512"
     },
     "System.Reflection.Metadata/8.0.1": {
       "type": "package",

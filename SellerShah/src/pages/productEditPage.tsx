@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import EditProductVariants from "../components/custom/EditProductVariants";
+import EditProductVariants from "../components/custom/editProductVariants";
 import type { ProductForm, ProductVariant, CategoryProperty } from "./products";
 
 interface ProductModalProps {

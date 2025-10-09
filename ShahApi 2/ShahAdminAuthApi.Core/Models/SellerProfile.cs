@@ -1,7 +1,4 @@
-using System;
-using ShahBuyerAuthApi.Core.Enums;
-
-namespace ShahBuyerAuthApi.Core.Models
+namespace ShahAdminAuthApi.Core.Models
 {
     public class SellerProfile
     {

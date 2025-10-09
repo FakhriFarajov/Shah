@@ -39,15 +39,11 @@ namespace ShahSellerAuthApi.Infrastructure.Configurations
                    .HasForeignKey(r => r.ProductId)
                    .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasMany(p => p.CartItems)
-                   .WithOne(ci => ci.Product)
-                   .HasForeignKey(ci => ci.ProductId)
-                   .OnDelete(DeleteBehavior.Cascade);
-
             builder.HasMany(p => p.ProductVariants)
                    .WithOne(v => v.Product)
                    .HasForeignKey(v => v.ProductId)
                    .OnDelete(DeleteBehavior.Cascade);
+            
         }
     }
 }

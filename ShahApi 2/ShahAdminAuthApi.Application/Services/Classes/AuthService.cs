@@ -21,7 +21,7 @@ public class AuthService : IAuthService
         _tokenService = tokenService;
     }
 
-    public async Task<TypedResult<object>> LoginAsync(BuyerLoginRequestDTO request)
+    public async Task<TypedResult<object>> LoginAsync(AdminLoginRequestDTO request)
     {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
 

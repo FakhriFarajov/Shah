@@ -14,10 +14,11 @@ public static class ApplicationBuilderExtensions
         }
 
         app.UseHttpsRedirection();
-        app.MapControllers();
         app.UseMiddleware<GlobalExceptionMiddleware>();
         app.UseAuthentication();
         app.UseAuthorization();
+        app.MapControllers();
+        
 
         app.MapScalarApiReference();
 

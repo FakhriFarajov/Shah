@@ -15,6 +15,9 @@ import {
 } from "chart.js";
 import { categories } from "./products";
 
+
+
+
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 // Demo product data

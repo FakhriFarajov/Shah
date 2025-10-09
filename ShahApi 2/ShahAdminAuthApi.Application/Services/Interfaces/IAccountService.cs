@@ -7,8 +7,6 @@ namespace ShahAdminAuthApi.Application.Services.Interfaces;
 
 public interface IAccountService
 {
-    public Task<Result> RegisterBuyerAsync(BuyerRegisterRequestDTO requestDto);
-    public Task ConfirmEmailAsync(ClaimsPrincipal user, string token, HttpContext context);
-    public Task<Result> VerifyEmailAsync(string id);
+    public Task<Result> RegisterAdminAsync(AdminRegisterRequestDTO requestDto);
     Task<Result> ForgotPasswordAsync(string email, string newPassword, string OldPassword);
 }

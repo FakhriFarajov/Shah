@@ -22,6 +22,7 @@ namespace ShahSellerAuthApi.Infrastructure.MappingConfigurations
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
                 .ForMember(dest => dest.Surname, opt => opt.MapFrom(src => src.Surname))
                 .ForMember(dest => dest.Phone, opt => opt.MapFrom(src => src.Phone))
+                .ForMember(dest => dest.CountryCode, opt => opt.MapFrom(src => src.CountryCitizenship))
                 .ForMember(dest => dest.Password, opt => opt.MapFrom(src => ValidatePassword(src.Password, src.ConfirmPassword)))
                 .ForMember(dest => dest.SellerProfile, opt => opt.Ignore())
                 .ForMember(dest => dest.RefreshToken, opt => opt.Ignore())
@@ -34,6 +35,7 @@ namespace ShahSellerAuthApi.Infrastructure.MappingConfigurations
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.UserId, opt => opt.Ignore())
                 .ForMember(dest => dest.User, opt => opt.Ignore())
+                .ForMember(dest => dest.Passport, opt => opt.MapFrom(src => src.Passport))
                 .ForMember(dest => dest.IsVerified, opt => opt.MapFrom(src => false))
                 .ForMember(dest => dest.StoreInfoId, opt => opt.Ignore())
                 .ForMember(dest => dest.StoreInfo, opt => opt.Ignore())
@@ -45,9 +47,9 @@ namespace ShahSellerAuthApi.Infrastructure.MappingConfigurations
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.StoreName, opt => opt.MapFrom(src => src.StoreName))
                 .ForMember(dest => dest.StoreDescription, opt => opt.MapFrom(src => src.StoreDescription))
-                .ForMember(dest => dest.StoreEmail, opt => opt.MapFrom(src => src.StoreEmail))
+                .ForMember(dest => dest.StoreEmail, opt => opt.MapFrom(src => ValidateEmail(src.StoreEmail)))
                 .ForMember(dest => dest.StorePhone, opt => opt.MapFrom(src => src.StorePhone))
-                .ForMember(dest => dest.StoreLogoUrl, opt => opt.MapFrom(src => src.ImageUrl))
+                .ForMember(dest => dest.StoreLogoUrl, opt => opt.Ignore())
                 .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.CategoryId))
                 .ForMember(dest => dest.Address, opt => opt.Ignore())
                 .ForMember(dest => dest.AddressId, opt => opt.Ignore())
@@ -59,11 +61,20 @@ namespace ShahSellerAuthApi.Infrastructure.MappingConfigurations
             CreateMap<SellerRegisterRequestDTO, SellerTaxInfo>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.TaxIdType, opt => opt.MapFrom(src => src.TaxIdType))
-                .ForMember(dest => dest.TaxId, opt => opt.MapFrom(src => src.TaxId))
+                .ForMember(dest => dest.TaxId, opt => opt.Ignore())
                 .ForMember(dest => dest.SellerProfile, opt => opt.Ignore())
                 .ForMember(dest => dest.SellerProfileId, opt => opt.Ignore());
 
             // Optionally, add mappings for other entities if needed
+
+            CreateMap<SellerRegisterRequestDTO, Address>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.Street, opt => opt.MapFrom(src => src.Street))
+                .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.City))
+                .ForMember(dest => dest.State, opt => opt.MapFrom(src => src.State))
+                .ForMember(dest => dest.PostalCode, opt => opt.MapFrom(src => src.ZipCode))
+                .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.StoreCountryCode));
+
         }
 
         // -------------------------

@@ -1,4 +1,4 @@
-namespace .Core.Models
+namespace ShahAdminAuthApi.Core.Models
 {
     public class OrderItem
     {

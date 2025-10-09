@@ -32,6 +32,11 @@ namespace ShahBuyerAuthApi.Infrastructure.Configurations
                    .WithOne(oi => oi.ProductVariant)
                    .HasForeignKey(oi => oi.ProductVariantId)
                    .OnDelete(DeleteBehavior.Restrict);
+            
+            builder.HasMany(pv => pv.CartItems)
+                   .WithOne(ci => ci.ProductVariant)
+                   .HasForeignKey(ci => ci.ProductVariantId)
+                   .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

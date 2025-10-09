@@ -18,21 +18,20 @@ public static class ApplicationServiceExtensions
     {
         services.AddOpenApi();
         services.AddControllers();
-
+        
         services.AddDbContext<ShahDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("Mac")));
 
         services.AddScoped<IAccountService, AccountService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ISellerService, SellerService>();
+        services.AddScoped<IImageService, ImageService>();
         services.AddScoped<TokenManager>();
         services.AddSingleton<EmailSender>();
+        services.AddSingleton<GlobalExceptionMiddleware>();
         
         
         services.AddAutoMapper(ops => ops.AddProfile(typeof(MappingProfile)));
-        
-        services.AddSingleton<GlobalExceptionMiddleware>();
-
         services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
         services.AddAuthentication(options =>
@@ -55,38 +54,46 @@ public static class ApplicationServiceExtensions
                 };
 
                 // Custom OnAuthenticationFailed event for refresh token logic
-                options.Events.OnAuthenticationFailed = async context =>
+                options.Events = new JwtBearerEvents
                 {
-                    var req = context.Request;
-                    var res = context.Response;
-
-                    // If refresh token is present in header
-                    if (req.Headers.TryGetValue("refreshToken", out var hdr) && !string.IsNullOrWhiteSpace(hdr))
+                    OnAuthenticationFailed = async context =>
                     {
-                        var tokenManager = context.HttpContext.RequestServices.GetRequiredService<TokenManager>();
-                        var refreshToken = hdr.ToString();
-                        var refreshed = await tokenManager.RefreshTokenAsync(refreshToken);
+                        var req = context.Request;
+                        var res = context.Response;
 
-                        if (refreshed is not null)
+                        if (req.Headers.TryGetValue("refreshToken", out var hdr) && !string.IsNullOrWhiteSpace(hdr))
                         {
-                            // Return new tokens in headers
-                            res.Headers["accessToken"] = refreshed.AccessToken;
-                            res.Headers["refreshToken"] = refreshed.RefreshToken;
+                            var tokenManager = context.HttpContext.RequestServices.GetRequiredService<TokenManager>();
+                            var refreshToken = hdr.ToString();
+                            var refreshed = await tokenManager.RefreshTokenAsync(refreshToken);
 
-                            // 200 OK so frontend can retry with new access token
-                            res.StatusCode = StatusCodes.Status200OK;
-                            return;
+                            if (refreshed != null && refreshed.IsSuccess && refreshed.Data != null)
+                            {
+                                var data = refreshed.Data;
+                                var accessTokenProp = data.GetType().GetProperty("AccessToken");
+                                var refreshTokenProp = data.GetType().GetProperty("RefreshToken");
+
+                                var accessToken = accessTokenProp?.GetValue(data)?.ToString();
+                                var refreshTokenNew = refreshTokenProp?.GetValue(data)?.ToString();
+
+                                if (!string.IsNullOrEmpty(accessToken) && !string.IsNullOrEmpty(refreshTokenNew))
+                                {
+                                    res.Headers["accessToken"] = accessToken;
+                                    res.Headers["refreshToken"] = refreshTokenNew;
+                                    res.StatusCode = StatusCodes.Status200OK;
+                                    return;
+                                }
+                            }
                         }
-                    }
 
-                    // If refresh not provided/invalid, return 401
-                    res.StatusCode = StatusCodes.Status401Unauthorized;
+                        res.StatusCode = StatusCodes.Status401Unauthorized;
+                    }
                 };
             });
 
         services.AddAuthorization(ops =>
         {
-            ops.AddPolicy("BuyerPolicy", builder => builder.RequireRole("Buyer"));
+            ops.AddPolicy("SellerPolicy", builder => builder.RequireRole("Seller"));
         });
 
         return services;

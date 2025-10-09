@@ -1,8 +1,8 @@
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
-using ShahBuyerAuthApi.Core.Models;
+using ShahAdminAuthApi.Core.Models;
 
-namespace ShahBuyerAuthApi.Infrastructure.Contexts;
+namespace ShahAdminAuthApi.Infrastructure.Contexts;
 
 public class ShahDbContext : DbContext
 {

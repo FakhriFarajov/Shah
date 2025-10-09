@@ -1,94 +1,85 @@
 using System.Net.Mime;
-using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Minio;
 using Minio.DataModel.Args;
+using ShahSellerAuthApi.Application.Services.Interfaces;
+using ShahSellerAuthApi.Contracts.DTOs.Response;
 using SixLabors.ImageSharp;
-using IMinioClientFactory = Minio.AspNetCore.IMinioClientFactory;
+using SixLabors.ImageSharp.Formats.Webp;
 
 
 namespace ShahSellerAuthApi.Application.Services.Classes
 {
-    public class ImageService
+    public class ImageService : IImageService
     {
         private readonly IMinioClient _minioClient;
         private readonly string _bucketName;
         
-        public ImageService(IConfiguration configuration, IMinioClientFactory minioClientFactory)
+        public ImageService(IConfiguration configuration)
         {
-            var minioSection = configuration.GetSection("Minio");
-            var endpoint = minioSection["Host"];
-            var accessKey = minioSection["AccessKey"] ?? "admin";
-            var secretKey = minioSection["SecretKey"] ?? "admin12345";
-            _bucketName = configuration["MinioBucketName"] ?? throw new ApplicationException("MinioBucketName is required.");
-            _minioClient = minioClientFactory.CreateClient()
-                .WithEndpoint(endpoint)
-                .WithCredentials(accessKey, secretKey)
-                .Build();
+            _minioClient = new MinioClient()
+                .WithEndpoint(configuration["Minio:Host"])
+                .WithCredentials(configuration["Minio:AccessKey"], configuration["Minio:SecretKey"]).Build();
+            _bucketName = configuration["Minio:BucketName"] ?? throw new ArgumentNullException("BucketName is not configured");
         }
 
-        // Compress an image and return as byte array
-        public async Task<Image> CompressImageAsync(IFormFile file, string outputPath, long quality = 75L)
-        {
-            using var imageStream = file.OpenReadStream();
-            using var image = Image.Load(imageStream);
-            
-            
-    
-            return Image;
-        }
-        {
-            using var image = MediaTypeNames.Image.FromStream(imageStream);
-            using var ms = new MemoryStream();
-            var encoder = GetEncoder(ImageFormat.Jpeg);
-            var encoderParams = new EncoderParameters(1);
-            encoderParams.Param[0] = new EncoderParameter(Encoder.Quality, quality);
-            image.Save(ms, encoder, encoderParams);
-            return ms.ToArray();
-        }
+      public async Task<TypedResult<object>> UploadImageAsync(IFormFile file)
+      {
+          var beArgs = new BucketExistsArgs().WithBucket(_bucketName);
+          bool found = await _minioClient.BucketExistsAsync(beArgs);
+          if (!found)
+          {
+              var mbArgs = new MakeBucketArgs().WithBucket(_bucketName);
+              await _minioClient.MakeBucketAsync(mbArgs);
+          }
 
-        // Upload image to Minio
-        public async Task<string> UploadImageAsync(string fileName, Stream imageStream)
-        {
-            // Ensure bucket exists
-            bool found = await _minioClient.BucketExistsAsync(new BucketExistsArgs().WithBucket(_bucketName));
-            if (!found)
-                await _minioClient.MakeBucketAsync(new MakeBucketArgs().WithBucket(_bucketName));
+          using var imageStream = file.OpenReadStream();
+          using var image = await Image.LoadAsync(imageStream);
+          var encoder = new WebpEncoder
+          {
+              Quality = 75,
+          };
 
-            await _minioClient.PutObjectAsync(new PutObjectArgs()
-                .WithBucket(_bucketName)
-                .WithObject(fileName)
-                .WithStreamData(imageStream)
-                .WithObjectSize(imageStream.Length)
-                .WithContentType("image/jpeg"));
 
-            return $"{_bucketName}/{fileName}";
-        }
+          var objectName = $"{Guid.NewGuid()}.webp";
+          using var outputStream = new MemoryStream();
+          await image.SaveAsync(outputStream, encoder);
+          outputStream.Position = 0;
 
-        // Download image from Minio
-        public async Task<Stream> DownloadImageAsync(string fileName)
+
+          var putObjectArgs = new PutObjectArgs()
+              .WithBucket(_bucketName)
+              .WithObject(objectName)
+              .WithStreamData(outputStream)
+              .WithObjectSize(outputStream.Length)
+              .WithContentType(MediaTypeNames.Image.Webp);
+          
+          var url = await _minioClient.PresignedPutObjectAsync(
+              new PresignedPutObjectArgs()
+                  .WithBucket(_bucketName)
+                  .WithObject(objectName)
+                  .WithExpiry(60 * 60)
+          );
+
+          await _minioClient.PutObjectAsync(putObjectArgs);
+          return TypedResult<object>.Success(url, "Image uploaded successfully");
+      }
+      
+      
+      public async Task<Stream> DownloadImageAsync(string fileName)
         {
             var ms = new MemoryStream();
-            await _minioClient.GetObjectAsync(new GetObjectArgs()
+            var getObjectArgs = new GetObjectArgs()
                 .WithBucket(_bucketName)
                 .WithObject(fileName)
-                .WithCallbackStream(stream => stream.CopyTo(ms)));
+                .WithCallbackStream(stream =>
+                {
+                    stream.CopyTo(ms);
+                });
+            await _minioClient.GetObjectAsync(getObjectArgs);
             ms.Position = 0;
             return ms;
         }
-
-        // Helper to get JPEG encoder
-        private static ImageCodecInfo GetEncoder(ImageFormat format)
-        {
-            var codecs = ImageCodecInfo.GetImageDecoders();
-            foreach (var codec in codecs)
-            {
-                if (codec.FormatID == format.Guid)
-                    return codec;
-            }
-            return null;
-        }
     }
 }
-

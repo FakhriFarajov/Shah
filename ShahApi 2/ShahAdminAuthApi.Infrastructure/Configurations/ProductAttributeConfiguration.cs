@@ -1,8 +1,8 @@
-
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using ShahBuyerAuthApi.Core.Models;
-namespace ShahBuyerAuthApi.Infrastructure.Configurations
+using ShahAdminAuthApi.Core.Models;
+
+namespace ShahAdminAuthApi.Infrastructure.Configurations
 {
     public class ProductAttributeConfiguration : IEntityTypeConfiguration<ProductAttribute>
     {

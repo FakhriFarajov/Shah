@@ -1,9 +1,8 @@
-
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using ShahBuyerAuthApi.Core.Models;
+using ShahAdminAuthApi.Core.Models;
 
-namespace ShahBuyerAuthApi.Infrastructure.Configurations
+namespace ShahAdminAuthApi.Infrastructure.Configurations
 {
     public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
     {

@@ -9,5 +9,5 @@ public class SellerTaxInfo
     public SellerProfile SellerProfile { get; set; } = null!;
 
     public TaxIdType TaxIdType { get; set; } // or enum
-    public string TaxId { get; set; } = null!;
+    public string TaxId { get; set; } = Guid.NewGuid().ToString();
 }

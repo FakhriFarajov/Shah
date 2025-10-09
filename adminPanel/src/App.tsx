@@ -9,7 +9,6 @@ import ProfileBuyer from './pages/Buyer/profileBuyer';
 import ProfileSeller from './pages/profileSeller';
 import OrdersPage from './pages/ordersPageUniversal';
 import ReviewsBuyerPage from './pages/Buyer/reviewsBuyer';
-import OrdersBuyer from './pages/Buyer/ordersBuyer';
 // import OrderDetailsPage from './pages/orderDetails';
 // import WarehousePage from './pages/warehouse';
 // import WarehouseDetailPage from './pages/warehouseDetail';
@@ -28,7 +27,6 @@ function App() {
           <Route path='/seller-details' element={<ProfileSeller />} /> // Will pass userId as prop later
           <Route path='/orders' element={<OrdersPage />} />
           <Route path='/reviews-buyer' element={<ReviewsBuyerPage />} />
-          <Route path='/' element={<OrdersBuyer />} />
           {/* <Route path='/order-details/' element={<OrderDetailsPage />} /> */}
           {/* <Route path='/warehouse' element={<WarehousePage />} /> */}
           {/* <Route path='/warehouse-datails/' element={<WarehouseDetailPage />} /> */}

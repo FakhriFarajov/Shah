@@ -8,7 +8,7 @@ using ShahBuyerFeaturesApi.Infrastructure.Contexts;
 
 #nullable disable
 
-namespace ShahBuyerAuthApi.Infrastructure.Migrations
+namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
 {
     [DbContext(typeof(ShahDbContext))]
     partial class ShahDbContextModelSnapshot : ModelSnapshot
