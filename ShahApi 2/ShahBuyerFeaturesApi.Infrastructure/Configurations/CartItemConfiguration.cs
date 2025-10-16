@@ -1,7 +1,7 @@
-
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ShahBuyerFeaturesApi.Core.Models;
+
 namespace ShahBuyerFeaturesApi.Infrastructure.Configurations
 {
     public class CartItemConfiguration : IEntityTypeConfiguration<CartItem>
@@ -16,12 +16,12 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Configurations
             builder.HasOne(ci => ci.BuyerProfile)
                    .WithMany(bp => bp.CartItems)
                    .HasForeignKey(ci => ci.BuyerProfileId)
-                   .OnDelete(DeleteBehavior.Cascade);
+                   .OnDelete(DeleteBehavior.NoAction);
 
-            builder.HasOne(ci => ci.Product)
+            builder.HasOne(ci => ci.ProductVariant)
                    .WithMany(p => p.CartItems)
-                   .HasForeignKey(ci => ci.ProductId)
-                   .OnDelete(DeleteBehavior.Cascade);
+                   .HasForeignKey(ci => ci.ProductVariantId)
+                   .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

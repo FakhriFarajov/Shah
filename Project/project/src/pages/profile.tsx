@@ -1,5 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getBuyerProfile } from "@/features/profile/ProfileServices/profile.service";
+import { getBuyerAddress, addAddress, editAddress } from "@/features/profile/addressService/address.service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FaCircleQuestion } from "react-icons/fa6";
+import { extractApiErrors } from "@/shared/utils/errorExtract";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,101 +14,226 @@ import ImageCropper from "@/components/ui/image-crop"; // Import the ImageCroppe
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { MdAccountCircle } from "react-icons/md";
 import { FaStar } from "react-icons/fa";
+import { tokenStorage } from "@/shared";
+import { jwtDecode } from "jwt-decode";
+import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+import { editBuyerProfile } from "@/features/profile/ProfileServices/profile.service";
+import { uploadProfileImage } from "@/shared/utils/imagePost";
+import { forgotPassword } from "@/features/account/services/register.service";
+import { faqs } from "@/static_data/faq"; //Import FAQ data
+import { getCountries } from "@/features/profile/Country/country.service";
+import { useNavigate } from "react-router-dom";
+import Spinner from "@/components/custom/loader";
 
-// Mock user data
-const initialUser = {
-  name: "Fakhri",
-  surname: "Farajov",
-  email: "fakhri@example.com",
-  phone: "+994501234567",
-  profilePicture: null as string | null,
-  country: "Azerbaijan",
-  addresses: [
-    {
-      id: "a1",
-      street: "Nizami Street",
-      city: "Baku",
-      state: "Absheron",
-      postalCode: "AZ1000",
-      country: "Azerbaijan",
-    },
-  ],
-  createdAt: "2025-01-01",
-  reviews: [
-    {
-      id: "r1",
-      product: {
-        id: "p1",
-        name: "Laptop",
-        image: "https://via.placeholder.com/150",
-      },
-      seller: {
-        id: "s1",
-        name: "TechStore",
-      },
-      rating: 5,
-      comment: "Great product, highly recommend!",
-      Date: "2025-08-15",
-    },
-        {
-      id: "r1",
-      product: {
-        id: "p1",
-        name: "Laptop",
-        image: "https://via.placeholder.com/150",
-      },
-      seller: {
-        id: "s1",
-        name: "TechStore",
-      },
-      rating: 5,
-      comment: "Great product, highly recommend!",
-      Date: "2025-08-15",
-    },    {
-      id: "r1",
-      product: {
-        id: "p1",
-        name: "Laptop",
-        image: "https://via.placeholder.com/150",
-      },
-      seller: {
-        id: "s1",
-        name: "TechStore",
-      },
-      rating: 5,
-      comment: "Great product, highly recommend!",
-      Date: "2025-08-15",
-    },    {
-      id: "r1",
-      product: {
-        id: "p1",
-        name: "Laptop",
-        image: "https://via.placeholder.com/150",
-      },
-      seller: {
-        id: "s1",
-        name: "TechStore",
-      },
-      rating: 5,
-      comment: "Great product, highly recommend!",
-      Date: "2025-08-15",
-    }
-  ] 
-  
-};
+
+
+
+
+const reviews = [
+  { id: "1", comment: "Great product!", rating: 5, seller: { id: "s1", name: "Seller 1" } },
+  { id: "2", comment: "Not bad", rating: 3, seller: { id: "s2", name: "Seller 2" } },
+  { id: "3", comment: "Terrible experience", rating: 1, seller: { id: "s3", name: "Seller 3" } },
+];
 
 export default function AccountPage() {
-  // Unified edit mode for all fields
-  const [editMode, setEditMode] = useState(false);
-  const [user, setUser] = useState(initialUser);
-  const [draftUser, setDraftUser] = useState(initialUser);
+  const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
+  const [editedReview, setEditedReview] = useState<{ comment: string; rating: number }>({ comment: '', rating: 5 });
+  const [countryCode, setCountryCode] = useState<number | "">("");
+  const [addressCountryCode, setAddressCountryCode] = useState<number | "">("");
+  const { t } = useTranslation();
+  const [editProfileMode, setEditProfileMode] = useState(false);
+  const [editAddressMode, setEditAddressMode] = useState(false);
   const [cropperOpen, setCropperOpen] = useState(false); // State to control cropper dialog
-  const [croppedPreview, setCroppedPreview] = useState<string | null>(null); // State to store cropped image preview
+  const [buyer, setBuyer] = useState<any>(null);
+  const [address, setAddress] = useState<any>({
+    buyerId: '',
+    addressId: '',
+    street: '',
+    city: '',
+    state: '',
+    postalCode: '',
+    countryCitizenshipId: 1
+  });
+  const [newAddress, setNewAddress] = useState({
+    buyerId: '',
+    addressId: '',
+    street: '',
+    city: '',
+    state: '',
+    postalCode: '',
+    countryId: 1
+  });
+  const [adding, setAdding] = useState(false);
+  const [errorMessages] = useState<string[]>([]);
+  const [activePage, setActivePage] = useState<"profileAddresses" | "history" | "notifications" | "reviews" | "faq">("profileAddresses");
+  // Change password modal state
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [addressAddingMode, setAddressAddingMode] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [countries, setCountries] = useState<{ id: number; name: string; code: string }[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  var navigator = useNavigate();
+
+  async function fetchCountries() {
+    setLoading(true);
+    try {
+      const countries = await getCountries();
+      setCountries(countries.data);
+      console.log("Fetched countries:", countries.data);
+    } catch (error) {
+      console.error("Failed to fetch countries:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchCountries();
+    const token = tokenStorage.get();
+    console.log("Token:", token); // Debug log to check the token value
+    if (!token) return;
+    let buyerId = "";
+    try {
+      const decoded: any = jwtDecode(token);
+      buyerId = decoded.id;
+      console.log("Decoded token:", decoded); // Debug log to check the decoded token
+      console.log("Decoded buyerId:", buyerId); // Debug log to check the decoded buyerId
+    } catch {
+      toast.error("Invalid token");
+      return;
+    }
+    if (!buyerId) {
+      toast.error("Buyer ID not found in token");
+      return;
+    };
+
+    async function fetchBuyerAndAddress() {
+      setLoading(true);
+      try {
+        const result = await getBuyerProfile(buyerId);
+        const buyerData = result.data ? result.data : result;
+        setBuyer(buyerData);
+      } catch (error) {
+        extractApiErrors(error).forEach(msg => toast.error(msg));
+      }
+      try {
+        const addressResult = await getBuyerAddress(buyerId);
+        const addressData = addressResult.data ? addressResult.data : addressResult;
+        setAddress(addressData);
+        setAddressCountryCode(addressData.countryId || "");
+      } catch (error) {
+        extractApiErrors(error).forEach(msg => toast.error(msg));
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchBuyerAndAddress();
+  }, []);
+
+  const handleAddAddress = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setAdding(true);
+    try {
+      const token = tokenStorage.get();
+      let buyerId = "";
+      if (token) {
+        const decoded: any = jwtDecode(token);
+        buyerId = decoded.sub || decoded.userId || decoded.id;
+      }
+      const payload = { ...newAddress, buyerId };
+      console.log("Add Address payload:", payload);
+      const result = await addAddress(payload);
+      if (result && result.isSuccess) {
+        setAddress(payload);
+        setAdding(false);
+      } else {
+        setAdding(false);
+      }
+    } catch (error) {
+      setAdding(false);
+    }
+    finally { setLoading(false); }
+  };
+
+  const handleSaveAddress = async () => {
+    setLoading(true);
+    if (!address) return;
+    // Compare current address with original (before edit)
+    const original = address.original || {};
+    const hasChanges =
+      address.street !== original.street ||
+      address.city !== original.city ||
+      address.state !== original.state ||
+      address.postalCode !== original.postalCode ||
+      address.countryId !== original.countryId;
+    if (!hasChanges) {
+      toast.info("No changes to save.");
+      setEditAddressMode(false);
+      return;
+    }
+    const payload: any = {
+      addressId: address.id,
+      buyerId: buyer.id,
+      street: address.street,
+      city: address.city,
+      state: address.state,
+      postalCode: address.postalCode,
+      countryId: addressCountryCode || address.countryId,
+    };
+    console.log("Edit Address payload:", payload);
+    await editAddress(payload)
+      .then(() => {
+        toast.success("Address updated successfully");
+        setEditAddressMode(false);
+      })
+      .catch((error) => {
+        extractApiErrors(error).forEach((msg) => toast.error(msg));
+        setEditAddressMode(true);
+        toast.error("Failed to update address");
+      });
+    setLoading(false);
+  };
 
 
+  const handleChangePassword = async () => {
+    setLoading(true);
+    if (newPassword !== confirmPassword)
+      return toast.error("New password and confirmation do not match");
+    try {
+      var requestData = { userId: buyer.userId, oldPassword: currentPassword, newPassword: newPassword };
+      console.log(requestData);
+      var result = await forgotPassword(requestData);
+      console.log("Password change request sent", result);
+    }
+    catch (error) {
+      extractApiErrors(error).forEach(msg => toast.error(msg));
+      toast.error("Failed to change password");
+    }
+    setShowPasswordModal(false);
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+    toast.success("Password changed successfully");
+    setLoading(false);
+  }
+
+  if(tokenStorage.get() === null) {
+    toast.error("You must be logged in to view this page.");
+    navigator('/main');
+  }
   // Order status enum
   type OrderStatus = "Pending" | "Shipped" | "Delivered" | "Cancelled";
   // Mock order history data
+
+
   const orderHistory = [
     {
       id: "o1",
@@ -185,13 +314,6 @@ export default function AccountPage() {
       ],
     },
   ];
-  const [activePage, setActivePage] = useState<"profileAddresses" | "history" | "notifications" | "reviews">("profileAddresses");
-  // Change password modal state
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-
 
   // History mock data
   const history = [
@@ -202,53 +324,73 @@ export default function AccountPage() {
   // Order status filter for history page
   const [orderStatusFilter, setOrderStatusFilter] = useState("");
   // Save handler for profile and addresses
-  const handleSaveProfile = () => {
-    setUser(draftUser);
-    setEditMode(false);
-    alert("Profile saved!");
-  };
-  // Save handler for password
-  const handleSavePassword = () => {
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      alert("Please fill all fields.");
-      return;
+  const handleSaveProfile = async () => {
+    setLoading(true);
+    if (!buyer) return;
+    const payload: any = {
+      name: buyer.editedName ?? buyer.name,
+      surname: buyer.editedSurname ?? buyer.surname,
+      email: buyer.editedEmail ?? buyer.email,
+      phone: buyer.editedPhone ?? buyer.phone,
+      countryCitizenshipId: countryCode || buyer.countryCitizenshipId,
+    };
+    try {
+      // Only upload if a new image is set
+      let objectName = null;
+      let imageUrl = null;
+      if (buyer.ImageFile) {
+        try {
+          objectName = await uploadProfileImage(buyer.ImageFile);
+        } catch (e) {
+          toast.error("Image upload failed: " + (e?.message || e));
+          return;
+        }
+        // Save objectName to DB
+        payload.imageProfile = objectName;
+        // For display, get the URL
+        try {
+          const { getProfileImageUrl } = await import("@/shared/utils/imagePost");
+          imageUrl = await getProfileImageUrl(objectName);
+        } catch (e) {
+          toast.error("Fetching image URL failed: " + (e?.message || e));
+        }
+        localStorage.setItem("profileImage", imageUrl || objectName);
+      } else if (typeof buyer.ImageUrl === "string" && buyer.ImageUrl.length > 0) {
+        payload.imageProfile = buyer.ImageUrl;
+        localStorage.setItem("profileImage", buyer.ImageUrl);
+      }
+      const result = await editBuyerProfile(buyer.id, payload);
+      if (result && result.isSuccess) {
+        toast.success("Profile updated successfully");
+        setEditProfileMode(false);
+        // For display, set imageProfile to the URL if available, else objectName
+        setBuyer({ ...buyer, ...payload, imageProfile: imageUrl || objectName });
+      } else {
+        extractApiErrors(result).forEach(msg => toast.error(msg));
+      }
+    } catch (error) {
+      extractApiErrors(error).forEach(msg => toast.error(msg));
     }
-    if (newPassword !== confirmPassword) {
-      alert("New passwords do not match.");
-      return;
-    }
-    setShowPasswordModal(false);
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
-    alert("Password changed!");
-  };
-  // Handle change for profile fields (edit draft)
-  const handleChange = (field: string, value: string) => {
-    setDraftUser({ ...draftUser, [field]: value });
+    setLoading(false);
   };
 
-  // Handle change for address fields (edit draft)
-  const handleAddressChange = (
-    index: number,
-    field: keyof typeof initialUser.addresses[0],
-    value: string
-  ) => {
-    const addresses = [...draftUser.addresses];
-    addresses[index] = { ...addresses[index], [field]: value };
-    setDraftUser({ ...draftUser, addresses });
-  };
-
-
-  const handleCrop = (croppedImage: string) => {
-    setCroppedPreview(croppedImage);
-    setDraftUser((prev) => ({ ...prev, avatar: croppedImage }));
+  const handleCrop = async (croppedImageUrl: string) => {
+    const response = await fetch(croppedImageUrl);
+    const blob = await response.blob();
+    const file = new File([blob], "profile.png", { type: blob.type });
+    setBuyer(prev => ({ ...prev, ImageFile: file, ImageUrl: croppedImageUrl }));
     setCropperOpen(false);
-  }
+    toast.success("Cropped image ready to save. Click Save to upload.");
+  };
 
 
   return (
     <>
+      {loading && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(255,255,255,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Spinner />
+        </div>
+      )}
       <Navbar />
       <div className="flex min-h-screen bg-gray-50">
         {/* Sidebar */}
@@ -283,6 +425,13 @@ export default function AccountPage() {
             >
               <FaStar className="mr-2" /> Reviews
             </Button>
+            <Button
+              variant={activePage === "faq" ? "default" : "outline"}
+              className="w-full justify-start"
+              onClick={() => setActivePage("faq")}
+            >
+              <FaCircleQuestion className="mr-2" /> FAQ
+            </Button>
           </nav>
         </aside>
         {/* Main Content */}
@@ -294,166 +443,404 @@ export default function AccountPage() {
               </CardHeader>
               <CardContent>
                 {/* Profile Section */}
-                <div className="flex flex-col items-center mb-6">
-                  {editMode && draftUser.avatar ? (
-                    <img
-                      src={draftUser.avatar}
-                      alt="Avatar"
-                      className="w-24 h-24 rounded-full border mb-2"
-                      onClick={() => setCropperOpen(true)}
-                      style={{ cursor: 'pointer' }}
-                    />
-                  ) : (
-                    <span
-                      className="w-24 h-24 rounded-full border mb-2 flex items-center justify-center bg-gray-100 text-gray-400"
-                      style={{ fontSize: '96px', cursor: editMode ? 'pointer' : 'default' }}
-                      onClick={editMode ? () => setCropperOpen(true) : undefined}
-                    >
-                      <MdAccountCircle />
-                    </span>
-                  )}
-                  {editMode && (
-                    <div className="text-sm text-gray-500 mb-2">
-                      <Label>Click {draftUser.avatar ? 'image' : 'icon'} to change</Label>
-                      <Dialog open={cropperOpen} onOpenChange={setCropperOpen}>
-                        <DialogContent className="min-w-2xl w-full">
-                          <ImageCropper onCrop={handleCrop} />
-                        </DialogContent>
-                      </Dialog>
+                {/* Null check for buyer */}
+                {!buyer ? (
+                  <div className="text-center py-8 text-gray-500">Loading profile...</div>
+                ) : (
+                  <>
+                    <div className="flex flex-col items-center mb-6">
+                      {editProfileMode ? (
+                        buyer.ImageUrl ? (
+                          <img
+                            src={buyer.ImageUrl}
+                            alt="Avatar"
+                            className="w-24 h-24 rounded-full border mb-2"
+                            onClick={() => setCropperOpen(true)}
+                            style={{ cursor: 'pointer' }}
+                          />
+                        ) :
+                          buyer.imageProfile ? (
+                            <img
+                              src={buyer.imageProfile}
+                              alt="Avatar"
+                              className="w-24 h-24 rounded-full border mb-2"
+                              onClick={() => setCropperOpen(true)}
+                              style={{ cursor: 'pointer' }}
+                            />
+                          ) : (
+                            <span
+                              className="w-24 h-24 rounded-full border mb-2 flex items-center justify-center bg-gray-100 text-gray-400"
+                              style={{ fontSize: '96px', cursor: 'pointer' }}
+                              onClick={() => setCropperOpen(true)}
+                            >
+                              <MdAccountCircle />
+                            </span>
+                          )
+                      ) : (
+                        buyer.imageProfile ? (
+                          <img
+                            src={buyer.imageProfile}
+                            alt="Avatar"
+                            className="w-24 h-24 rounded-full border mb-2"
+                          />
+                        ) : (
+                          <span
+                            className="w-24 h-24 rounded-full border mb-2 flex items-center justify-center bg-gray-100 text-gray-400"
+                            style={{ fontSize: '96px' }}
+                          >
+                            <MdAccountCircle />
+                          </span>
+                        )
+                      )}
+                      {editProfileMode && (
+                        <div className="text-sm text-gray-500 mb-2">
+                          <Label>Click {buyer.ImageUrl ? 'image' : 'icon'} to change</Label>
+                          <Dialog open={cropperOpen} onOpenChange={setCropperOpen}>
+                            <DialogContent className="min-w-2xl w-full">
+                              <ImageCropper onCrop={handleCrop} />
+                            </DialogContent>
+                          </Dialog>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div>
-                    <Label>Name</Label>
-                    <Input
-                      value={editMode ? draftUser.name : user.name}
-                      onChange={(e) => handleChange("name", e.target.value)}
-                      disabled={!editMode}
-                    />
-                  </div>
-                  <div>
-                    <Label>Surname</Label>
-                    <Input
-                      value={editMode ? draftUser.surname : user.surname}
-                      onChange={(e) => handleChange("surname", e.target.value)}
-                      disabled={!editMode}
-                    />
-                  </div>
-                  <div>
-                    <Label>Email</Label>
-                    <Input
-                      type="email"
-                      value={editMode ? draftUser.email : user.email}
-                      onChange={(e) => handleChange("email", e.target.value)}
-                      disabled={!editMode}
-                    />
-                  </div>
-                  <div>
-                    <Label>Phone</Label>
-                    <Input
-                      value={editMode ? draftUser.phone : user.phone}
-                      onChange={(e) => handleChange("phone", e.target.value)}
-                      disabled={!editMode}
-                    />
-                  </div>
-                  <div className="col-span-2">
-                    <Label>Country</Label>
-                    <select
-                      className="w-full border rounded px-2 py-1"
-                      value={editMode ? draftUser.country : user.country}
-                      onChange={(e) => handleChange("country", e.target.value)}
-                      disabled={!editMode}
-                    >
-                      <option value="Azerbaijan">Azerbaijan</option>
-                      <option value="Turkey">Turkey</option>
-                      <option value="Georgia">Georgia</option>
-                      <option value="Russia">Russia</option>
-                      <option value="USA">USA</option>
-                      <option value="UK">UK</option>
-                      <option value="Germany">Germany</option>
-                      <option value="France">France</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="text-sm text-gray-500 mb-6">Created: 2025-01-01</div>
-                {/* Addresses Section */}
-                <div className="mb-2">
-                  <h3 className="text-lg font-semibold">Addresses</h3>
-                </div>
-                <div className="space-y-4">
-                  {(editMode ? draftUser.addresses : user.addresses).map((addr, idx) => (
-                    <div key={addr.id} className="grid grid-cols-1 sm:grid-cols-2 gap-4 ">
+                    <div className="grid grid-cols-2 gap-4 mb-6">
                       <div>
-                        <Label>Street</Label>
-                        <Input
-                          value={addr.street}
-                          onChange={(e) => handleAddressChange(idx, "street", e.target.value)}
-                          disabled={!editMode}
-                        />
+                        <Label>Name</Label>
+                        {!editProfileMode ? (
+                          <Input value={buyer.name} disabled />
+                        ) : (
+                          <div>
+                            <Input value={buyer.editedName ?? buyer.name}
+                              onChange={e => setBuyer({ ...buyer, editedName: e.target.value })}
+                            />
+                          </div>
+                        )}
                       </div>
                       <div>
-                        <Label>City</Label>
-                        <Input
-                          value={addr.city}
-                          onChange={(e) => handleAddressChange(idx, "city", e.target.value)}
-                          disabled={!editMode}
-                        />
+                        <Label>Surname</Label>
+                        {!editProfileMode ? (
+                          <Input value={buyer.surname} disabled />
+                        ) : (
+                          <div>
+                            <Input
+                              value={buyer.editedSurname ?? buyer.surname ?? (buyer.decodedSurname || "")}
+                              onChange={e => setBuyer({ ...buyer, editedSurname: e.target.value })}
+                            />
+                          </div>
+                        )}
                       </div>
                       <div>
-                        <Label>State</Label>
-                        <Input
-                          value={addr.state}
-                          onChange={(e) => handleAddressChange(idx, "state", e.target.value)}
-                          disabled={!editMode}
-                        />
+                        <Label>Email</Label>
+                        {!editProfileMode ? (
+                          <Input type="email" value={buyer.email} disabled />
+                        ) : (
+                          <div>
+                            <Input type="email" value={buyer.editedEmail ?? buyer.email}
+                              onChange={e => setBuyer({ ...buyer, editedEmail: e.target.value })}
+                            />
+                          </div>
+                        )}
                       </div>
                       <div>
-                        <Label>Postal Code</Label>
-                        <Input
-                          value={addr.postalCode}
-                          onChange={(e) => handleAddressChange(idx, "postalCode", e.target.value)}
-                          disabled={!editMode}
-                        />
+                        <Label>Phone</Label>
+                        {!editProfileMode ? (
+                          <Input value={buyer.phone} disabled />
+                        ) : (
+                          <div>
+                            <Input value={buyer.editedPhone ?? buyer.phone}
+                              onChange={e => setBuyer({ ...buyer, editedPhone: e.target.value })}
+                            />
+                          </div>
+                        )}
                       </div>
                       <div className="col-span-2">
                         <Label>Country</Label>
-                        <select
-                          className="w-full border rounded px-2 py-1"
-                          value={addr.country}
-                          onChange={(e) => handleAddressChange(idx, "country", e.target.value)}
-                          disabled={!editMode}
-                        >
-                          <option value="Azerbaijan">Azerbaijan</option>
-                          <option value="Turkey">Turkey</option>
-                          <option value="Georgia">Georgia</option>
-                          <option value="Russia">Russia</option>
-                          <option value="USA">USA</option>
-                          <option value="UK">UK</option>
-                          <option value="Germany">Germany</option>
-                          <option value="France">France</option>
-                          <option value="Other">Other</option>
-                        </select>
+                        {!editProfileMode ? (
+                          <Label className="text-lg">
+                            <div className="flex flex-cols items-center gap-2">
+                              {(() => {
+                                const country = countries.find(c => c.id === buyer.countryCitizenshipId);
+                                const flagUrl = country?.code
+                                  ? `https://flagsapi.com/${country.code}/flat/24.png`
+                                  : "https://flagsapi.com/UN/flat/24.png";
+                                return country ? (
+                                  <>
+                                    <img src={flagUrl} alt={`${country.name} flag`} />
+                                    {country.name}
+                                  </>
+                                ) : null;
+                              })()}
+                            </div>
+                          </Label>
+                        ) : (
+                          <div>
+                            <select
+                                value={countryCode}
+                                onChange={e => {
+                                  const val = Number(e.target.value);
+                                  setCountryCode(val);
+                                }}
+                              required
+                              className="border rounded px-2 py-1"
+                            >
+                              <option value="">{t("Select country")}</option>
+                              {countries.map((country) => (
+                                <option key={country.id} value={country.id}>
+                                  {country.code && (
+                                    <img
+                                      src={`https://flagsapi.com/${country.code}/flat/24.png`}
+                                      alt={`${country.name} flag`}
+                                      style={{ width: '24px', height: '24px', verticalAlign: 'middle', marginRight: '4px' }}
+                                    />
+                                  )}
+                                  {country.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  ))}
-                </div>
-                <div className="flex justify-end gap-2 mt-8">
-                  {editMode ? (
+                  </>
+                )}
+                <div className="flex justify-end gap-2 mt-4">
+                  {editProfileMode ? (
                     <>
-                      <Button variant="outline" onClick={() => setEditMode(false)}>
-                        Cancel
-                      </Button>
                       <Button variant="outline" onClick={() => setShowPasswordModal(true)}>
                         Change Password
+                      </Button>
+                      <Button variant="outline" onClick={() => setEditProfileMode(false)}>
+                        Cancel
                       </Button>
                       <Button onClick={handleSaveProfile}>Save</Button>
                     </>
                   ) : (
-                    <Button variant="outline" onClick={() => { setDraftUser(user); setEditMode(true); }}>
-                      Edit
-                    </Button>
+                    <>
+                      <Button variant="outline" onClick={() => setEditProfileMode(true)}>
+                        Edit Profile
+                      </Button>
+                    </>
+                  )}
+                </div>
+                <div className="text-sm text-gray-500 mb-6">
+                  Created: {buyer && buyer.createdAt ? new Date(buyer.createdAt).toLocaleDateString() : "-"}
+                </div>
+                {/* Addresses Section */}
+                <div className="mb-2">
+                  <h3 className="text-lg font-semibold">Address</h3>
+                </div>
+                <div className="space-y-4">
+                  {!address || !address.street ? (
+                    addressAddingMode ? (
+                      <form onSubmit={handleAddAddress} className="space-y-4">
+                        <div>
+                          <Label>Street</Label>
+                          <Input
+                            type="text"
+                            placeholder="Enter street"
+                            value={newAddress.street}
+                            onChange={e => setNewAddress({ ...newAddress, street: e.target.value })}
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label>City</Label>
+                          <Input
+                            type="text"
+                            placeholder="Enter city"
+                            value={newAddress.city}
+                            onChange={e => setNewAddress({ ...newAddress, city: e.target.value })}
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label>State</Label>
+                          <Input
+                            type="text"
+                            placeholder="Enter state"
+                            value={newAddress.state}
+                            onChange={e => setNewAddress({ ...newAddress, state: e.target.value })}
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label>Postal Code</Label>
+                          <Input
+                            type="text"
+                            placeholder="Enter postal code"
+                            value={newAddress.postalCode}
+                            onChange={e => setNewAddress({ ...newAddress, postalCode: e.target.value })}
+                            required
+                          />
+                        </div>
+                        <div>
+                      <div className="col-span-2">
+                        <Label>Country</Label>
+                          <Label className="text-lg">
+                            <div className="flex flex-cols items-center gap-2">
+                              {(() => {
+                                const country = countries.find(c => c.id === addressCountryCode);
+                                const flagUrl = country?.code
+                                  ? `https://flagsapi.com/${country.code}/flat/24.png`
+                                  : "https://flagsapi.com/UN/flat/24.png";
+                                return country ? (
+                                  <>
+                                    <img src={flagUrl} alt={`${country.name} flag`} />
+                                    {country.name}
+                                  </>
+                                ) : null;
+                              })()}
+                            </div>
+                          </Label>
+                          <div>
+                            <select
+                              value={addressCountryCode}
+                              onChange={e => {
+                                const val = Number(e.target.value);
+                                setAddressCountryCode(val);
+                                setNewAddress({ ...newAddress, countryId: val });
+                              }}
+                              required
+                              className="border rounded px-2 py-1"
+                            >
+                              <option value="">{t("Select country")}</option>
+                              {countries.map((country) => (
+                                <option key={country.id} value={country.id}>
+                                  {country.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                      </div>
+                        </div>
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => setNewAddress({ buyerId: '', addressId: '', street: '', city: '', state: '', postalCode: '', countryId: 1 })}
+                          >
+                            Clear
+                          </Button>
+                          <Button type="submit" disabled={adding}>
+                            {adding ? "Adding..." : "Add Address"}
+                          </Button>
+                        </div>
+                        {errorMessages.length > 0 && (
+                          <div className="text-red-600 mt-2">
+                            {errorMessages.map((msg, idx) => <div key={idx}>{msg}</div>)}
+                          </div>
+                        )}
+                      </form>
+                    ) : (
+                      <Button variant="outline" onClick={() => setAddressAddingMode(true)}>
+                        Add Address
+                      </Button>
+                    )
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <Label>Street</Label>
+                        {!editAddressMode ? (
+                          <Input value={address.street} disabled />
+                        ) : (
+                          <Input value={address.street}
+                            onChange={e => setAddress({ ...address, street: e.target.value })}
+                          />
+                        )}
+                      </div>
+                      <div>
+                        <Label>City</Label>
+                        {!editAddressMode ? (
+                          <Input value={address.city} disabled />
+                        ) : (
+                          <Input value={address.city}
+                            onChange={e => setAddress({ ...address, city: e.target.value })}
+                          />
+                        )}
+                      </div>
+                      <div>
+                        <Label>State</Label>
+                        {!editAddressMode ? (
+                          <Input value={address.state} disabled />
+                        ) : (
+                          <Input value={address.state}
+                            onChange={e => setAddress({ ...address, state: e.target.value })}
+                          />
+                        )}
+                      </div>
+                      <div>
+                        <Label>Postal Code</Label>
+                        {!editAddressMode ? (
+                          <Input value={address.postalCode} disabled />
+                        ) : (
+                          <Input value={address.postalCode}
+                            onChange={e => setAddress({ ...address, postalCode: e.target.value })}
+                          />
+                        )}
+                      </div>
+                      <div className="col-span-2">
+                        <Label>Country</Label>
+                        {!editAddressMode ? (
+                          <div>
+                            <Label className="text-lg">
+                              {(() => {
+                                // Use address.country if present, else address.countryId
+                                const countryId = address.country ?? address.countryId;
+                                const country = countries.find(c => c.id === countryId);
+                                const flagUrl = country?.code
+                                  ? `https://flagsapi.com/${country.code}/flat/24.png`
+                                  : "https://flagsapi.com/UN/flat/24.png";
+                                return country ? (
+                                  <div className="flex flex-cols items-center gap-2">
+                                    <img src={flagUrl} alt={`${country.name} flag`} />
+                                    {country.name}
+                                  </div>
+                                ) : null;
+                              })()}
+                            </Label>
+                          </div>
+                        ) : (
+                          <div>
+                            <select
+                              value={addressCountryCode || address.countryId}
+                              onChange={e => {
+                                const val = Number(e.target.value);
+                                setAddressCountryCode(val);
+                                setAddress({ ...address, countryId: val });
+                              }}
+                              required
+                              className="w-full border rounded px-2 py-1"
+                            >
+                              <option value="">{t("Select country")}</option>
+                              {countries.map((country) => (
+                                <option key={country.id} value={country.id}>
+                                  {country.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex justify-end gap-2 col-span-2">
+                        {address && address.street && editAddressMode ? (
+                          <>
+                            <Button variant="outline" onClick={() => setEditAddressMode(false)}>
+                              Cancel
+                            </Button>
+                            <Button
+                              onClick={handleSaveAddress}
+                            >
+                              Save
+                            </Button>
+                          </>
+                        ) : (
+                          address && address.street && (
+                            <Button variant="outline" onClick={() => setEditAddressMode(true)}>
+                              Edit Address
+                            </Button>
+                          )
+                        )}
+                      </div>
+                    </div>
                   )}
                 </div>
               </CardContent>
@@ -544,11 +931,11 @@ export default function AccountPage() {
           {activePage === "reviews" && (
             <Card className="max-w-4xl mx-auto">
               <CardHeader>
-                <CardTitle>{initialUser.name}'s Reviews</CardTitle>
+                <CardTitle>Name's Reviews</CardTitle>// Replace Name with actual buyer's name if available
               </CardHeader>
               <CardContent>
                 <ul className="space-y-4">
-                  {initialUser.reviews.map(r => (
+                  {reviews.map((r: any) => (
                     <li key={r.id} className="border-b pb-4 flex gap-4 items-center">
                       <img src={r.product.image} alt={r.product.name} className="w-20 h-20 object-cover rounded border" />
                       <div className="flex-1">
@@ -556,8 +943,39 @@ export default function AccountPage() {
                           Product: <a href={`/products/${r.product.id}`} className="text-blue-600 underline">{r.product.name}</a>
                           {" "}| Seller: <a href={`/sellers/${r.seller.id}`} className="text-blue-600 underline">{r.seller.name}</a>
                         </div>
-                        <div className="text-yellow-500">Rating: {"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</div>
-                        <div className="mt-1 text-gray-700">{r.comment}</div>
+                        {editingReviewId === r.id ? (
+                          <div className="mt-2">
+                            <Label>Edit Comment</Label>
+                            <Input
+                              value={editedReview.comment}
+                              onChange={e => setEditedReview({ ...editedReview, comment: e.target.value })}
+                              className="mb-2"
+                            />
+                            <Label>Edit Rating</Label>
+                            <select
+                              value={editedReview.rating}
+                              onChange={e => setEditedReview({ ...editedReview, rating: Number(e.target.value) })}
+                              className="mb-2 border rounded px-2 py-1"
+                            >
+                              {[1, 2, 3, 4, 5].map(n => (
+                                <option key={n} value={n}>{"★".repeat(n)}{"☆".repeat(5 - n)}</option>
+                              ))}
+                            </select>
+                            <div className="flex gap-2">
+                              <Button size="sm" onClick={() => saveReview(r.id)}>Save</Button>
+                              <Button size="sm" variant="outline" onClick={() => setEditingReviewId(null)}>Cancel</Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="text-yellow-500">Rating: {"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</div>
+                            <div className="mt-1 text-gray-700">{r.comment}</div>
+                            <Button size="sm" variant="outline" className="mt-2" onClick={() => {
+                              setEditingReviewId(r.id);
+                              setEditedReview({ comment: r.comment, rating: r.rating });
+                            }}>Edit</Button>
+                          </>
+                        )}
                       </div>
                       <div className="text-sm text-gray-400">{r.Date}</div>
                     </li>
@@ -566,6 +984,25 @@ export default function AccountPage() {
               </CardContent>
             </Card>
           )}
+          {activePage === "faq" && (
+            <Card className="max-w-4xl mx-auto">
+              <CardHeader>
+                <CardTitle>Frequently Asked Questions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {faqs.map((faq, idx) => (
+                    <div key={idx} className="border-b pb-2">
+                      <div className="font-semibold">{faq.question}</div>
+                      <div className="mt-1 text-gray-700">{faq.answer}</div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Modals */}
           {/* Change Password Modal */}
           {showPasswordModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
@@ -573,19 +1010,69 @@ export default function AccountPage() {
                 <h2 className="text-lg font-bold mb-4">Change Password</h2>
                 <div className="mb-3">
                   <Label>Current Password</Label>
-                  <Input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} />
+                  <div className="relative">
+                    <Input
+                      type={currentPassword ? "text" : "password"}
+                      value={currentPassword}
+                      onChange={e => setCurrentPassword(e.target.value)}
+                      placeholder="*********"
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-2 top-2 text-gray-500"
+                      onClick={() => setShowCurrentPassword((v) => !v)}
+                      aria-label={showCurrentPassword ? t("Hide password") : t("Show password")}
+                    >
+                      {showCurrentPassword ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z" /><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" /></svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z" /><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" /><line x1="4" y1="4" x2="20" y2="20" stroke="currentColor" strokeWidth="2" /></svg>
+                      )}
+                    </button>
+                  </div>
                 </div>
                 <div className="mb-3">
                   <Label>New Password</Label>
-                  <Input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} />
+                  <div className="relative">
+                    <Input type={showNewPassword ? "text" : "password"} value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="*********" />
+                    <button
+                      type="button"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
+                      onClick={() => setShowNewPassword((v) => !v)}
+                      tabIndex={-1}
+                      aria-label={showNewPassword ? t("Hide password") : t("Show password")}
+                    >
+                      {showNewPassword ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z" /><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" /></svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z" /><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" /><line x1="4" y1="4" x2="20" y2="20" stroke="currentColor" strokeWidth="2" /></svg>
+                      )}
+                    </button>
+                  </div>
                 </div>
                 <div className="mb-3">
                   <Label>Confirm New Password</Label>
-                  <Input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} />
+                  <div className="relative">
+                    <Input type={showConfirmPassword ? "text" : "password"} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="*********" />
+                    <button
+                      type="button"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
+                      onClick={() => setShowConfirmPassword((v) => !v)}
+                      tabIndex={-1}
+                      aria-label={showConfirmPassword ? t("Hide password") : t("Show password")}
+                    >
+                      {showConfirmPassword ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z" /><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" /></svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z" /><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" /><line x1="4" y1="4" x2="20" y2="20" stroke="currentColor" strokeWidth="2" /></svg>
+                      )}
+                    </button>
+                  </div>
+
                 </div>
                 <div className="flex justify-end gap-2 mt-4">
                   <Button variant="outline" onClick={() => setShowPasswordModal(false)}>Cancel</Button>
-                  <Button onClick={handleSavePassword}>Save</Button>
+                  <Button onClick={handleChangePassword}>Save</Button>
                 </div>
               </div>
             </div>

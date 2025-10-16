@@ -1,7 +1,4 @@
-using System;
-using ShahSellerAuthApi.Data.Models;
-
-namespace ShahSellerAuthApi.Data.Models
+namespace ShahSellerAuthApi.Core.Models
 {
     public class Receipt
     {

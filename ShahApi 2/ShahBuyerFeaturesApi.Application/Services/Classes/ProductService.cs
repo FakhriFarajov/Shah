@@ -3,7 +3,7 @@ using ShahBuyerFeaturesApi.Application.Services.Interfaces;
 using ShahBuyerFeaturesApi.Contracts.DTOs.Response;
 using ShahBuyerFeaturesApi.Core.Models;
 using ShahBuyerFeaturesApi.Infrastructure.Contexts;
-using ShahBuyerFeaturesApi.Application.Utils;
+using ShahBuyerFeaturesApi.Application.Utils.GetChain;
 namespace ShahBuyerFeaturesApi.Application.Services.Classes;
 
 public class ProductService : IProductService

@@ -9,6 +9,8 @@ using ShahSellerAuthApi.Application.Services.Interfaces;
 using ShahSellerAuthApi.Application.Utils;
 using ShahSellerAuthApi.Infrastructure.Contexts;
 using ShahSellerAuthApi.Infrastructure.Middlewares;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 
 namespace ShahSellerAuthApi.Presentation.Extensions;
 
@@ -25,10 +27,15 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IAccountService, AccountService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ISellerService, SellerService>();
-        services.AddScoped<IImageService, ImageService>();
+        services.AddScoped<ImageService>();
         services.AddScoped<TokenManager>();
         services.AddSingleton<EmailSender>();
+        
         services.AddSingleton<GlobalExceptionMiddleware>();
+        
+        services
+            .AddFluentValidationAutoValidation()
+            .AddFluentValidationClientsideAdapters();
         
         
         services.AddAutoMapper(ops => ops.AddProfile(typeof(MappingProfile)));
@@ -95,6 +102,20 @@ public static class ApplicationServiceExtensions
         {
             ops.AddPolicy("SellerPolicy", builder => builder.RequireRole("Seller"));
         });
+
+        services.AddCors(options =>
+        {
+            options.AddPolicy("DefaultCors", builder =>
+            {
+                builder.WithOrigins("http://localhost:5175")
+                       .AllowAnyHeader()
+                       .AllowAnyMethod()
+                       .AllowCredentials();
+            });
+        });
+
+        services.AddFluentValidationAutoValidation();
+        services.AddValidatorsFromAssemblyContaining<ShahSellerAuthApi.Infrastructure.Validators.SellerRegisterRequestDTOValidator>();
 
         return services;
     }

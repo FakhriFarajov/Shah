@@ -1,59 +1,35 @@
-
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using ShahSellerAuthApi.Data.Models;
 
-namespace ShahSellerAuthApi.Infrastructure.Configurations
+namespace ShahSellerAuthApi.Infrastraction.Configurations
 {
-       public class AddressConfiguration : IEntityTypeConfiguration<Address>
-       {
-              public void Configure(EntityTypeBuilder<Address> builder)
-              {
-                     // Primary key
-                     builder.HasKey(a => a.Id);
-                     builder.Property(a => a.Id)
-                            .IsRequired()
-                            .HasMaxLength(36);
-
-                     // Common address fields
-                     builder.Property(a => a.Street)
-                            .IsRequired()
-                            .HasMaxLength(250);
-
-                     builder.Property(a => a.City)
-                            .IsRequired()
-                            .HasMaxLength(100);
-
-                     // State can be optional depending on country
-                     builder.Property(a => a.State)
-                            .IsRequired(false)
-                            .HasMaxLength(100);
-
-                     builder.Property(a => a.PostalCode)
-                            .IsRequired()
-                            .HasMaxLength(20);
-
-                     builder.Property(a => a.Country)
-                            .IsRequired()
-                            .HasMaxLength(100);
-
-                     // Relationships
-                     builder.HasOne(a => a.BuyerProfile)
-                            .WithOne(bp => bp.Address)
-                            .HasForeignKey<Address>(a => a.BuyerProfileId)
-                            .OnDelete(DeleteBehavior.SetNull);
-
-                     // Fix: Warehouse relationship should be one-to-one
-                     builder.HasOne(a => a.Warehouse)
-                            .WithOne(w => w.Address)
-                            .HasForeignKey<Warehouse>(w => w.AddressId)
-                            .OnDelete(DeleteBehavior.SetNull);
-
-                     builder.HasOne(a => a.StoreInfo)
-                            .WithOne(a => a.Address)
-                            .HasForeignKey<StoreInfo>(a => a.AddressId)
-                            .OnDelete(DeleteBehavior.SetNull);
-                            
-              }
-       }
+    public class AddressConfiguration : IEntityTypeConfiguration<Address>
+    {
+        public void Configure(EntityTypeBuilder<Address> builder)
+        {
+            builder.HasKey(x => x.Id);
+            builder.Property(x => x.Id).IsRequired().HasMaxLength(36);
+            builder.Property(x => x.Street).IsRequired().HasMaxLength(250);
+            builder.Property(x => x.City).IsRequired().HasMaxLength(100);
+            builder.Property(x => x.State).HasMaxLength(100);
+            builder.Property(x => x.PostalCode).IsRequired().HasMaxLength(20);
+            builder.Property(x => x.CountryId).IsRequired();
+            builder.HasOne(x => x.Country)
+                    .WithMany(x => x.Addresses)
+                   .HasForeignKey(x => x.CountryId)
+                   .OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne(x => x.BuyerProfile)
+                   .WithOne(x => x.Address)
+                        .HasForeignKey<Address>(x => x.BuyerProfileId)
+                   .OnDelete(DeleteBehavior.SetNull);
+            builder.HasOne(x => x.StoreInfo)
+                   .WithOne(x => x.Address)
+                     .HasForeignKey<Address>(x => x.StoreInfoId)
+                   .OnDelete(DeleteBehavior.SetNull);
+            builder.HasOne(x => x.Warehouse)
+                   .WithOne(x => x.Address)
+                        .HasForeignKey<Address>(x => x.WarehouseId)
+                   .OnDelete(DeleteBehavior.SetNull);
+        }
+    }
 }

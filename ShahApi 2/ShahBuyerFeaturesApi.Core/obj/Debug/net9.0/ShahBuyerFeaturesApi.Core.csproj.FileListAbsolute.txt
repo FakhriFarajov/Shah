@@ -1,0 +1,13 @@
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Core/bin/Debug/net9.0/ShahBuyerFeaturesApi.Core.deps.json
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Core/bin/Debug/net9.0/ShahBuyerFeaturesApi.Core.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Core/bin/Debug/net9.0/ShahBuyerFeaturesApi.Core.pdb
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Core/obj/Debug/net9.0/ShahBuyerFeaturesApi.Core.csproj.AssemblyReference.cache
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Core/obj/Debug/net9.0/ShahBuyerFeaturesApi.Core.GeneratedMSBuildEditorConfig.editorconfig
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Core/obj/Debug/net9.0/ShahBuyerFeaturesApi.Core.AssemblyInfoInputs.cache
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Core/obj/Debug/net9.0/ShahBuyerFeaturesApi.Core.AssemblyInfo.cs
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Core/obj/Debug/net9.0/ShahBuyerFeaturesApi.Core.csproj.CoreCompileInputs.cache
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Core/obj/Debug/net9.0/ShahBuyerFeaturesApi.Core.sourcelink.json
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Core/obj/Debug/net9.0/ShahBuyerFeaturesApi.Core.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Core/obj/Debug/net9.0/refint/ShahBuyerFeaturesApi.Core.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Core/obj/Debug/net9.0/ShahBuyerFeaturesApi.Core.pdb
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Core/obj/Debug/net9.0/ref/ShahBuyerFeaturesApi.Core.dll

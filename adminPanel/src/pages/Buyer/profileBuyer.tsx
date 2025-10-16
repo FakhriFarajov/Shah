@@ -76,7 +76,7 @@ export default function profileBuyer() {
     setBuyer({ ...buyer, addresses });
   };
 
-  
+
 
   return (
     <>
@@ -89,9 +89,9 @@ export default function profileBuyer() {
               ← Back
             </Button>
             <CardHeader>
-              <CardTitle>Edit Buyer Details</CardTitle>
+              <CardTitle>Edit and Check Buyer Details</CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-col gap-4 p-2 max-w-4xl mx-auto w-full">
+            <CardContent className="flex flex-col gap-4 p-2 max-w-5xl mx-auto w-full">
               <div className="gap-4 mb-6">
                 <div className="flex flex-col items-center m-4">
                   <img
@@ -250,7 +250,7 @@ export default function profileBuyer() {
               </div>
             </CardContent>
           </Card>
-                    {/* Change Password Modal */}
+          {/* Change Password Modal */}
           {showPasswordModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
               <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
@@ -259,7 +259,7 @@ export default function profileBuyer() {
                   <Label>Current Password</Label>
                   <Input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} />
                 </div>
-                
+
                 <div className="mb-3">
                   <Label>New Password</Label>
                   <Input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} />

@@ -8,4 +8,3 @@ public class ProductVariantImage
     public ProductVariant ProductVariant { get; set; } = null!;
 
 }
-

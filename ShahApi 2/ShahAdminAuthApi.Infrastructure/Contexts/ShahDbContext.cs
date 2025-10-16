@@ -7,6 +7,7 @@ namespace ShahAdminAuthApi.Infrastructure.Contexts;
 public class ShahDbContext : DbContext
 {
     public DbSet<Address> Addresses { get; set; }
+    public DbSet<AdminProfile> AdminProfiles { get; set; }
     public DbSet<ProductAttribute> ProductAttributes { get; set; }
     public DbSet<ProductAttributeValue> ProductAttributeValues { get; set; }
     public DbSet<BuyerProfile> BuyerProfiles { get; set; }

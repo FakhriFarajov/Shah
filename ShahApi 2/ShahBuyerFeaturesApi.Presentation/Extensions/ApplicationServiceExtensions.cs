@@ -3,11 +3,17 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using ShahBuyerAuthApi.Application.Utils;
 using ShahBuyerFeaturesApi.Application.Services.Classes;
 using ShahBuyerFeaturesApi.Application.Services.Interfaces;
+using ShahBuyerFeaturesApi.Application.Utils.GetChain;
 using ShahBuyerFeaturesApi.Infrastructure.MappingConfigurations;
 using ShahBuyerFeaturesApi.Infrastructure.Contexts;
 using ShahBuyerFeaturesApi.Infrastructure.Middlewares;
+using ShahBuyerFeaturesApi.Presentation.Controllers;
+
 
 namespace ShahBuyerFeaturesApi.Presentation.Extensions;
 
@@ -25,12 +31,27 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IBuyerService, BuyerService>();
         services.AddScoped<ICartService, CartService>();
         services.AddScoped<IFavoriteService, FavoriteService>();
+        services.AddScoped<IImageService, ImageService>();
+        services.AddScoped<CountryCodeService>();
+
         
         services.AddAutoMapper(ops => ops.AddProfile(typeof(MappingProfile)));
         
         services.AddSingleton<GlobalExceptionMiddleware>();
 
         services.AddAutoMapper(Assembly.GetExecutingAssembly());
+        
+        
+        services
+            .AddFluentValidationAutoValidation()
+            .AddFluentValidationClientsideAdapters();
+        // Register validators from Infrastructure assembly
+        services.AddValidatorsFromAssemblyContaining<ShahBuyerFeaturesApi.Infrastructure.Validators.BuyerEditRequestValidator>();
+
+
+        
+        
+        
 
         services.AddAuthentication(options =>
             {
@@ -50,7 +71,55 @@ public static class ApplicationServiceExtensions
                     IssuerSigningKey = new SymmetricSecurityKey(
                         Encoding.UTF8.GetBytes(configuration["JWT:SecretKey"]))
                 };
+                options.Events = new JwtBearerEvents
+                {
+                    OnAuthenticationFailed = async context =>
+                    {
+                        var req = context.Request;
+                        var res = context.Response;
+
+                        if (req.Headers.TryGetValue("refreshToken", out var hdr) && !string.IsNullOrWhiteSpace(hdr))
+                        {
+                            var tokenManager = context.HttpContext.RequestServices.GetRequiredService<TokenManager>();
+                            var refreshToken = hdr.ToString();
+                            var refreshed = await tokenManager.RefreshTokenAsync(refreshToken);
+
+                            if (refreshed != null && refreshed.IsSuccess && refreshed.Data != null)
+                            {
+                                var data = refreshed.Data;
+                                var accessTokenProp = data.GetType().GetProperty("AccessToken");
+                                var refreshTokenProp = data.GetType().GetProperty("RefreshToken");
+
+                                var accessToken = accessTokenProp?.GetValue(data)?.ToString();
+                                var refreshTokenNew = refreshTokenProp?.GetValue(data)?.ToString();
+
+                                if (!string.IsNullOrEmpty(accessToken) && !string.IsNullOrEmpty(refreshTokenNew))
+                                {
+                                    res.Headers["accessToken"] = accessToken;
+                                    res.Headers["refreshToken"] = refreshTokenNew;
+                                    res.StatusCode = StatusCodes.Status200OK;
+                                    return;
+                                }
+                            }
+                        }
+
+                        res.StatusCode = StatusCodes.Status401Unauthorized;
+                    }
+                };
             });
+        
+        
+        
+        services.AddCors(options =>
+        {
+            options.AddPolicy("DefaultCors", builder =>
+            {
+                builder.WithOrigins("http://localhost:5174")
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowCredentials();
+            });
+        });
 
         services.AddAuthorization(ops =>
         {

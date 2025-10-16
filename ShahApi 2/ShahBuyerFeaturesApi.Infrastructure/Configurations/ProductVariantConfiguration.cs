@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ShahBuyerFeaturesApi.Core.Models;
+
 namespace ShahBuyerFeaturesApi.Infrastructure.Configurations
 {
     public class ProductVariantConfiguration : IEntityTypeConfiguration<ProductVariant>
@@ -32,6 +33,11 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Configurations
                    .WithOne(oi => oi.ProductVariant)
                    .HasForeignKey(oi => oi.ProductVariantId)
                    .OnDelete(DeleteBehavior.Restrict);
+            
+            builder.HasMany(pv => pv.CartItems)
+                   .WithOne(ci => ci.ProductVariant)
+                   .HasForeignKey(ci => ci.ProductVariantId)
+                   .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

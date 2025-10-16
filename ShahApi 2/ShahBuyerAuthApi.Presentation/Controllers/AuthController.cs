@@ -22,6 +22,13 @@ public class AuthController : ControllerBase
     {
         return Ok(await _authService.LoginAsync(request));
     }
+    
+    
+    [HttpPost("RefreshToken")]
+    public async Task<IActionResult> RefreshTokenAsync(string token)
+    {
+        return Ok(await _authService.RefreshTokenAsync(token));
+    }
 
     [Authorize]
     [HttpPost("Logout")]

@@ -21,10 +21,12 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Configurations
             builder.Property(u => u.Password).HasMaxLength(255).IsRequired();
             builder.Property(u => u.Phone).HasMaxLength(20).IsRequired();
             builder.Property(u => u.EmailConfirmed);
-            
                 
             
-            
+            builder.HasOne(x => x.CountryCitizenship)
+                .WithMany(x => x.Users)
+                .HasForeignKey(x => x.CountryCitizenshipId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(u => u.BuyerProfile)
                    .WithOne(bp => bp.User)
@@ -36,6 +38,11 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Configurations
                    .WithOne(sp => sp.User)
                    .HasForeignKey<SellerProfile>(sp => sp.UserId)
                    .OnDelete(DeleteBehavior.Cascade);
+            
+            builder.HasOne(u => u.AdminProfile)
+                .WithOne(sp => sp.User)
+                .HasForeignKey<AdminProfile>(sp => sp.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

@@ -1,6 +1,6 @@
 using ShahSellerAuthApi.Data.Enums;
 
-namespace ShahSellerAuthApi.Data.Models
+namespace ShahSellerAuthApi.Core.Models
 {
 
     public class OrderPayment

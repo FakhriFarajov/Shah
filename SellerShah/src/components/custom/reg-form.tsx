@@ -6,12 +6,20 @@ import { useState, type ChangeEvent } from "react"
 import ImageCropper from "@/components/ui/image-crop"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
-import { Eye, EyeOff } from "lucide-react"
+import { Eye, EyeOff, Store } from "lucide-react"
 import { Dialog, DialogContent } from "../ui/dialog"
 import { MdAccountCircle } from "react-icons/md"
+import type { RegisterRequest } from "@/features/account/DTOs/account.interfaces"
+import { register } from "@/features/account/services/register.service"
+import { useNavigate } from "react-router-dom"
+import { login } from "@/features/auth/services/auth.service"
+import { uploadProfileImage } from "@/shared/utils/imagePost"; // Use your actual image upload function
+
+
 
 // Category and Tax ID Type lists (same as profile)
 const categories = [
+  { id: null, name: "Select category" },
   { id: "electronics-1", name: "Electronics" },
   { id: "fashion-2", name: "Fashion" },
   { id: "home-3", name: "Home & Garden" },
@@ -23,26 +31,21 @@ const categories = [
   { id: "other-9", name: "Other" },
 ];
 const taxIdTypes = [
-  { id: "VAT", name: "VAT" },
-  { id: "TIN", name: "TIN" },
-  { id: "EIN", name: "EIN" },
-  { id: "SSN", name: "SSN" },
-  { id: "GST", name: "GST" },
-  { id: "CIF", name: "CIF" },
-  { id: "PAN", name: "PAN" },
-  { id: "Other", name: "Other" },
+  { id: 1, name: "VAT" },
+  { id: 2, name: "TIN" },
+  { id: 3, name: "EIN" },
+  { id: 4, name: "SSN" },
+  { id: 5, name: "GST" },
+  { id: 6, name: "CIF" },
+  { id: 7, name: "PAN" },
+  { id: 8, name: "Other" },
 ];
+
 const countries = [
-  { code: "US", name: "United States" },
-  { code: "GB", name: "United Kingdom" },
-  { code: "DE", name: "Germany" },
-  { code: "FR", name: "France" },
-  { code: "AZ", name: "Azerbaijan" },
-  { code: "TR", name: "Turkey" },
-  { code: "IN", name: "India" },
-  { code: "CN", name: "China" },
-  { code: "RU", name: "Russia" },
-  { code: "JP", name: "Japan" },
+    { id: 1, code: "AZ", name: "Azerbaijan" },
+    { id: 2, code: "TR", name: "Turkey" },
+    { id: 3, code: "GE", name: "Georgia" },
+    { id: 4, code: "RU", name: "Russia" },
 ];
 
 export default function RegForm({
@@ -52,40 +55,114 @@ export default function RegForm({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { t } = useTranslation()
+  const navigator = useNavigate();
   // Step 1 fields
-  const [categoryId, setCategoryId] = useState(categories[0].id);
-  const [taxIdType, setTaxIdType] = useState(taxIdTypes[0].id);
-  const [surname, setSurname] = useState("");
+
   const [name, setName] = useState("");
-  const [idPassport, setIdPassport] = useState("");
+  const [surname, setSurname] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [countryCitizenship, setCountryCitizenship] = useState(0);
+  const [passport, setPassport] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [country, setCountry] = useState("");
-
-  // Step 2 fields (SellerProfile & Address)
-  const [phone, setPhone] = useState("");
-  const [contactPhone, setContactPhone] = useState("");
-  const [storeEmail, setStoreEmail] = useState("");
-
+  // Step 2 fields
   const [storeName, setStoreName] = useState("");
-  const [storeDescription, setStoreDescription] = useState(""); ``
-  const [storeLogoUrl, setStoreLogoUrl] = useState("");
+  const [storeDescription, setStoreDescription] = useState("");
+  const [storeContactPhone, setStoreContactPhone] = useState("");
+  const [storeContactEmail, setStoreContactEmail] = useState("");
+  const [taxIdType, setTaxIdType] = useState(0);
+  const [taxIdNumber, setTaxIdNumber] = useState("");
+  const [street, setStreet] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [storeCountryCode, setStoreCountryCode] = useState(0);
+  const [categoryId, setCategoryId] = useState<null | string>(null);
   const [storeLogoPreview, setStoreLogoPreview] = useState<string>("");
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [croppedImage, setCroppedImage] = useState<string | null>(null);
   const [cropperOpen, setCropperOpen] = useState(false);
-  const [editValues, setEditValues] = useState({
-    avatar: "",
-    storeLogoUrl: ""
-  });
   const [avatar, setAvatar] = useState<string>("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
+  const [pendingVariantIdx, setPendingVariantIdx] = useState<number | null>(null);
   // Ref for avatar file input
   const avatarInputRef = useState<HTMLInputElement | null>(null);
 
-  // Handle avatar icon click to open file input
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const user: RegisterRequest = {
+      Name: name,
+      Surname: surname,
+      Email: email,
+      Phone: phone,
+      Passport: passport,
+      CountryCitizenship: Number(countryCitizenship), // or correct enum value
+      Password: password,
+      ConfirmPassword: confirmPassword,
+      StoreName: storeName,
+      StoreDescription: storeDescription,
+      StoreContactEmail: storeContactEmail,
+      StoreContactPhone: storeContactPhone,
+      TaxIdType: Number(taxIdType), // or correct enum value
+      TaxIdNumber: taxIdNumber,
+      Street: street,
+      City: city,
+      State: state,
+      PostalCode: postalCode,
+      StoreCountryCode: Number(storeCountryCode), // or correct enum value
+      CategoryId: categoryId === "null" ? null : categoryId
+    };
+    console.log("Registering user:", user);
+
+
+    try {
+      const imageUrl = await uploadProfileImage(avatarFile);
+      user.StoreLogoUrl = imageUrl;
+      console.log("Registering user with image URL:", user);
+      const result = await register(user);
+      if (!result || !result.isSuccess) {
+        toast.error(result.message || result.message || t('Registration failed. Please check your details.'));
+        console.error("Registration error:", result);
+        return;
+      }
+      toast.success(t('Registration successful!'));
+      await login({ email, password });
+      navigator('/main');
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        const data = error.response.data;
+        if (data.errors && typeof data.errors === 'object') {
+          Object.values(data.errors).forEach((msgs: any) => {
+            if (Array.isArray(msgs)) msgs.forEach((msg: string) => toast.error(msg));
+          });
+        }
+        if (data.message || data.Message) {
+          toast.error(data.message || data.Message);
+        }
+        // Fallback for string error
+        if (typeof data === "string") {
+          toast.error(data);
+        }
+        console.error("Registration error:", data);
+      } else {
+        toast.error(t('Registration failed. Please try again.'));
+        console.error("Registration error:", error);
+      }
+    }
+  };
+
+
+  const handleCrop = async (croppedImageUrl: string) => {
+    const response = await fetch(croppedImageUrl);
+    const blob = await response.blob();
+    const file = new File([blob], "profile.png", { type: blob.type });
+    setAvatarFile(file);
+    setCropperOpen(false);
+    toast.success("Cropped image ready to save. Click Save to upload.");
+  };
+
+
   const handleAvatarClick = () => {
     const input = document.getElementById("avatar-upload") as HTMLInputElement | null;
     if (input) {
@@ -102,38 +179,14 @@ export default function RegForm({
     }
   };
 
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      setCroppedImage(null);
-      setCropperOpen(true);
-    }
-  };
 
-  const handleCropDone = (croppedUrl: string) => {
-    setCroppedImage(croppedUrl);
-    setStoreLogoPreview(croppedUrl);
-    setStoreLogoUrl(croppedUrl);
-    setCropperOpen(false);
-  };
-  const handleReset = () => {
-    setSelectedFile(null);
-    setCroppedImage(null);
-  };
-  const [sellerTaxInfoId, setSellerTaxInfoId] = useState("");
-  // Address fields
-  const [street, setStreet] = useState("");
-  const [city, setCity] = useState("");
-  const [state, setState] = useState("");
-  const [postalCode, setPostalCode] = useState("");
-  const [addressCountry, setAddressCountry] = useState("");
+
 
   const [step, setStep] = useState(1);
 
   const handleNext = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!surname || !name || !idPassport || !email || !password || !confirmPassword) {
+    if (!surname || !name || !passport || !email || !password || !confirmPassword) {
       toast.error(t('Please fill in all fields.'));
       return;
     }
@@ -144,48 +197,20 @@ export default function RegForm({
     setStep(2);
   };
 
-  const handleAvatarCrop = (croppedUrl: string) => {
-    setAvatar(croppedUrl);
-    setCropperOpen(false);
-    setAvatarFile(null);
+  const handleAvatarCrop = async (croppedUrl: string) => {
+    try {
+      const response = await fetch(croppedUrl);
+      const blob = await response.blob();
+      const file = new File([blob], "avatar.png", { type: blob.type });
+      setAvatarFile(file);
+      setAvatar(croppedUrl); // For preview
+      setCropperOpen(false);
+      toast.success("Avatar cropped and ready!");
+    } catch (err) {
+      toast.error("Failed to process cropped image.");
+    }
   };
 
-  const handleRegister = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!phone || !storeName || !storeDescription || !contactPhone || !sellerTaxInfoId || !street || !city || !state || !postalCode || !addressCountry || !categoryId || !taxIdType) {
-      toast.error(t('Please fill in all fields.'));
-      return;
-    }
-    // Save user to localStorage as an object with all fields
-    const user = {
-      surname,
-      name,
-      idPassport,
-      email,
-      password,
-      phone,
-      sellerProfile: {
-        storeName,
-        storeDescription,
-        storeLogoUrl,
-        contactEmail: email,
-        contactPhone,
-        sellerTaxInfoId,
-        categoryId,
-        taxIdType,
-        address: {
-          street,
-          city,
-          state,
-          postalCode,
-          country: addressCountry
-        }
-      }
-    };
-    localStorage.setItem("user", JSON.stringify(user));
-    toast.success(t('Registration successful!'));
-    window.location.href = "/profile"; // Redirect to profile or main page
-  };
 
   return (
     <div className={cn("flex flex-col gap-6 w-full max-w-4xl mx-auto", className)} {...props}>
@@ -272,14 +297,14 @@ export default function RegForm({
                 <Label className="mb-4">{t("Country Citizen")}</Label>
                 <select
                   id="country"
-                  value={country}
-                  onChange={(e) => setCountry(e.target.value)}
+                  value={countryCitizenship}
+                  onChange={(e) => setCountryCitizenship(Number(e.target.value))}
                   required
                   className="border rounded px-2 py-1 w-full"
                 >
                   <option value="" disabled>{t("Select country")}</option>
                   {countries.map((c) => (
-                    <option key={c.code} value={c.code}>{c.name}</option>
+                    <option key={c.code} value={c.id}>{c.name}</option>
                   ))}
                 </select>
               </div>
@@ -288,8 +313,8 @@ export default function RegForm({
                 <Input
                   id="idPassport"
                   type="text"
-                  value={idPassport}
-                  onChange={(e) => setIdPassport(e.target.value)}
+                  value={passport}
+                  onChange={(e) => setPassport(e.target.value)}
                   required
                   placeholder={t("AB1234567")}
                 />
@@ -403,10 +428,10 @@ export default function RegForm({
                   <div className="grid gap-3">
                     <Label htmlFor="contactPhone">{t("Store Contact Phone")}</Label>
                     <Input
-                      id="contactPhone"
+                      id="storePhone"
                       type="tel"
-                      value={contactPhone}
-                      onChange={(e) => setContactPhone(e.target.value)}
+                      value={storeContactPhone}
+                      onChange={(e) => setStoreContactPhone(e.target.value)}
                       required
                       placeholder={t("e.g. +994501234567")}
                     />
@@ -416,8 +441,8 @@ export default function RegForm({
                     <Input
                       id="storeEmail"
                       type="email"
-                      value={storeEmail}
-                      onChange={(e) => setStoreEmail(e.target.value)}
+                      value={storeContactEmail}
+                      onChange={(e) => setStoreContactEmail(e.target.value)}
                       required
                       placeholder={t("e.g. info@shah.com")}
                     />
@@ -433,12 +458,12 @@ export default function RegForm({
                     <select
                       id="taxIdType"
                       value={taxIdType}
-                      onChange={e => setTaxIdType(e.target.value)}
+                      onChange={e => setTaxIdType(Number(e.target.value))}
                       required
                       className="border rounded px-2 py-1 w-full"
                     >
                       <option value="" disabled>{t("Select tax ID type")}</option>
-                      {taxIdTypes.map(type => (
+                      {taxIdTypes.map((type) => (
                         <option key={type.id} value={type.id}>{type.name}</option>
                       ))}
                     </select>
@@ -448,8 +473,8 @@ export default function RegForm({
                     <Input
                       id="sellerTaxInfoId"
                       type="text"
-                      value={sellerTaxInfoId}
-                      onChange={(e) => setSellerTaxInfoId(e.target.value)}
+                      value={taxIdNumber}
+                      onChange={(e) => setTaxIdNumber(e.target.value)}
                       required
                       placeholder={t("123456789")}
                     />
@@ -505,14 +530,14 @@ export default function RegForm({
                     <Label htmlFor="addressCountry">{t("Country")}</Label>
                     <select
                       id="addressCountry"
-                      value={addressCountry}
-                      onChange={e => setAddressCountry(e.target.value)}
+                      value={storeCountryCode}
+                      onChange={e => setStoreCountryCode(Number(e.target.value))}
                       required
                       className="border rounded px-2 py-1 w-full"
                     >
                       <option value="" disabled>{t("Select country")}</option>
                       {countries.map((c) => (
-                        <option key={c.code} value={c.code}>{c.name}</option>
+                        <option key={c.code} value={c.id}>{c.name}</option>
                       ))}
                     </select>
                   </div>
@@ -520,13 +545,14 @@ export default function RegForm({
                     <Label htmlFor="categoryId">{t("Category")}</Label>
                     <select
                       id="categoryId"
-                      value={categoryId}
-                      onChange={e => setCategoryId(e.target.value)}
+                      value={categoryId ?? "null"}
+                      onChange={e => setCategoryId(e.target.value === "null" ? null : e.target.value)}
                       required
                       className="border rounded px-2 py-1 w-full"
                     >
-                      {categories.map((cat) => (
-                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                      <option value="null">{t("Select category")}</option>
+                      {categories.filter(cat => cat.id !== null).map((cat) => (
+                        <option key={cat.id} value={cat.id!}>{cat.name}</option>
                       ))}
                     </select>
                   </div>

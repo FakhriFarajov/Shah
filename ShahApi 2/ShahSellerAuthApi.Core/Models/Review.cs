@@ -1,6 +1,4 @@
-using System.Data;
-
-namespace ShahSellerAuthApi.Data.Models
+namespace ShahSellerAuthApi.Core.Models
 {
     public class Review
     {

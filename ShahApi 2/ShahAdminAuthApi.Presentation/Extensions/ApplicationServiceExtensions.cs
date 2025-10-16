@@ -1,5 +1,9 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Reflection;
 using System.Text;
+using AutoMapper;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using ShahAdminAuthApi.Application.Services.Classes;
 using ShahAdminAuthApi.Application.Services.Interfaces;
 using ShahAdminAuthApi.Infrastructure.Contexts;
@@ -8,6 +12,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using ShahAdminAuthApi.Application.Utils;
+using ShahAdminAuthApi.Infrastructure.MappingConfigurations;
 
 namespace ShahAdminAuthApi.Presentation.Extensions;
 
@@ -26,9 +31,14 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IAdminService, AdminService>();
         services.AddSingleton<GlobalExceptionMiddleware>();
-        services.AddAutoMapper(Assembly.GetExecutingAssembly());
+        services.AddAutoMapper(typeof(ShahAdminAuthApi.Infrastructure.MappingConfigurations.Mapping).Assembly);
+        services
+            .AddFluentValidationAutoValidation()
+            .AddFluentValidationClientsideAdapters();
+        // Register validators from Infrastructure assembly
+        services.AddValidatorsFromAssemblyContaining<ShahAdminAuthApi.Infrastructure.Validators.AdminRegisterRequestDTOValidator>();
 
-
+        
         services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -82,14 +92,43 @@ public static class ApplicationServiceExtensions
                         }
 
                         res.StatusCode = StatusCodes.Status401Unauthorized;
+                    },
+
+                    OnTokenValidated = async context =>
+                    {
+                        var token = context.SecurityToken as JwtSecurityToken;
+                        if (token == null) return;
+
+                        var dbContext = context.HttpContext.RequestServices.GetRequiredService<ShahDbContext>();
+                        var blacklisted = await dbContext.BlacklistedTokens
+                            .AnyAsync(t => t.Token == token.RawData);
+
+                        if (blacklisted)
+                        {
+                            context.Fail("This token has been revoked");
+                        }
                     }
                 };
             });
+                
+
 
         services.AddAuthorization(ops =>
         {
             ops.AddPolicy("AdminPolicy", builder => builder.RequireRole("Admin"));
         });
+        
+        services.AddCors(options =>
+        {
+            options.AddPolicy("DefaultCors", builder =>
+            {
+                builder.WithOrigins("http://localhost:5174")
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowCredentials();
+            });
+        });
+
 
         return services;
     }

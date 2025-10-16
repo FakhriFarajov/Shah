@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ShahBuyerFeaturesApi.Core.Models;
+
 namespace ShahBuyerFeaturesApi.Infrastructure.Configurations
 {
+    
     public class SellerTaxInfoConfiguration : IEntityTypeConfiguration<SellerTaxInfo>
     {
         public void Configure(EntityTypeBuilder<SellerTaxInfo> builder)
@@ -12,7 +14,7 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Configurations
 
             builder.HasOne(st => st.SellerProfile)
                    .WithOne(sp => sp.SellerTaxInfo)
-                   .HasForeignKey<SellerTaxInfo>(st => st.Id)
+                   .HasForeignKey<SellerTaxInfo>(st => st.SellerProfileId)
                    .OnDelete(DeleteBehavior.Cascade);
         }
     }

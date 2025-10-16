@@ -22,7 +22,7 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.Address", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.Address", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(36)
@@ -36,8 +36,7 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<int>("Country")
-                        .HasMaxLength(100)
+                    b.Property<int>("CountryId")
                         .HasColumnType("int");
 
                     b.Property<string>("PostalCode")
@@ -62,10 +61,51 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CountryId");
+
                     b.ToTable("Addresses");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.BuyerProfile", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.AdminProfile", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<string>("UserId")
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasFilter("[UserId] IS NOT NULL");
+
+                    b.ToTable("AdminProfiles");
+                });
+
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.BlacklistedToken", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ExpiryTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("BlacklistedTokens");
+                });
+
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.BuyerProfile", b =>
                 {
                     b.Property<string>("UserId")
                         .HasMaxLength(36)
@@ -76,6 +116,9 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                         .HasColumnType("nvarchar(36)");
 
                     b.Property<string>("Id")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImageProfile")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("OrderPaymentId")
@@ -90,7 +133,7 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                     b.ToTable("BuyerProfiles");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.CartItem", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.CartItem", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(36)
@@ -106,6 +149,10 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                         .HasMaxLength(36)
                         .HasColumnType("nvarchar(36)");
 
+                    b.Property<string>("ProductVariantId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(36)");
+
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
@@ -115,10 +162,12 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
+                    b.HasIndex("ProductVariantId");
+
                     b.ToTable("CartItems");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.Category", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.Category", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(36)
@@ -139,7 +188,29 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.Favorite", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.CountryCode", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("CountryCodes");
+                });
+
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.Favorite", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(36)
@@ -164,7 +235,7 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                     b.ToTable("Favorites");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.Order", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.Order", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(36)
@@ -183,7 +254,7 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
 
                     b.Property<string>("ReceiptId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -201,13 +272,10 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
 
                     b.HasIndex("BuyerProfileId");
 
-                    b.HasIndex("ReceiptId")
-                        .IsUnique();
-
                     b.ToTable("Orders");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.OrderItem", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.OrderItem", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(36)
@@ -235,7 +303,7 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                     b.ToTable("OrderItems");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.OrderPayment", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.OrderPayment", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(36)
@@ -288,7 +356,7 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                     b.ToTable("OrderPayments");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.Product", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.Product", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(36)
@@ -305,6 +373,7 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                         .HasColumnType("nvarchar(36)");
 
                     b.Property<string>("StoreInfoId")
+                        .IsRequired()
                         .HasMaxLength(36)
                         .HasColumnType("nvarchar(36)");
 
@@ -320,7 +389,7 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                     b.ToTable("Products");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.ProductAttribute", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.ProductAttribute", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(36)
@@ -342,7 +411,7 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                     b.ToTable("ProductAttributes");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.ProductAttributeValue", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.ProductAttributeValue", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(36)
@@ -364,7 +433,7 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                     b.ToTable("ProductAttributeValues");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.ProductDetails", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.ProductDetails", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(36)
@@ -402,7 +471,7 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                     b.ToTable("ProductDetails");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.ProductVariant", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.ProductVariant", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(36)
@@ -426,7 +495,7 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                     b.ToTable("ProductVariants");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.ProductVariantAttributeValue", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.ProductVariantAttributeValue", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(36)
@@ -451,7 +520,7 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                     b.ToTable("ProductVariantAttributeValues");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.ProductVariantImage", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.ProductVariantImage", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(36)
@@ -473,7 +542,7 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                     b.ToTable("ProductVariantImages");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.Receipt", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.Receipt", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
@@ -490,14 +559,17 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
 
                     b.Property<string>("OrderId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(36)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("OrderId")
+                        .IsUnique();
 
                     b.ToTable("Receipts");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.Review", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.Review", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(36)
@@ -514,6 +586,10 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.PrimitiveCollection<string>("Images")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ProductId")
                         .IsRequired()
@@ -532,56 +608,69 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                     b.ToTable("Reviews");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.SellerProfile", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.SellerProfile", b =>
                 {
-                    b.Property<string>("UserId")
+                    b.Property<string>("Id")
                         .HasMaxLength(36)
                         .HasColumnType("nvarchar(36)");
 
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<bool>("IsVerified")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Passport")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
 
                     b.Property<string>("SellerTaxInfoId")
-                        .IsRequired()
                         .HasMaxLength(36)
                         .HasColumnType("nvarchar(36)");
 
                     b.Property<string>("StoreInfoId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
                         .IsRequired()
-                        .HasMaxLength(36)
                         .HasColumnType("nvarchar(36)");
 
-                    b.HasKey("UserId");
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.ToTable("SellerProfiles");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.SellerTaxInfo", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.SellerTaxInfo", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(36)
                         .HasColumnType("nvarchar(36)");
 
                     b.Property<string>("SellerProfileId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(36)");
 
-                    b.Property<string>("TaxId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("TaxIdType")
+                    b.Property<int>("TaxId")
                         .HasColumnType("int");
 
+                    b.Property<string>("TaxNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("SellerProfileId")
+                        .IsUnique()
+                        .HasFilter("[SellerProfileId] IS NOT NULL");
+
+                    b.HasIndex("TaxId");
 
                     b.ToTable("SellerTaxInfos");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.StoreInfo", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.StoreInfo", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(36)
@@ -592,32 +681,37 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                         .HasColumnType("nvarchar(36)");
 
                     b.Property<string>("CategoryId")
-                        .IsRequired()
                         .HasMaxLength(36)
                         .HasColumnType("nvarchar(36)");
 
                     b.Property<string>("SellerProfileId")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
 
                     b.Property<string>("StoreDescription")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("StoreEmail")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("StoreLogoUrl")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
 
                     b.Property<string>("StoreName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("StorePhone")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
 
                     b.HasKey("Id");
 
@@ -627,19 +721,43 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
 
                     b.HasIndex("CategoryId");
 
+                    b.HasIndex("SellerProfileId")
+                        .IsUnique();
+
                     b.ToTable("StoreInfos");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.User", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.Tax", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Taxes");
+                });
+
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.User", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(36)
                         .HasColumnType("nvarchar(36)");
 
+                    b.Property<string>("AdminProfileId")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("BuyerProfileId")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("CountryCode")
+                    b.Property<int>("CountryCitizenshipId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
@@ -687,13 +805,15 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CountryCitizenshipId");
+
                     b.HasIndex("Email")
                         .IsUnique();
 
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.Warehouse", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.Warehouse", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(36)
@@ -712,7 +832,7 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                     b.ToTable("Warehouses");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.WarehouseOrder", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.WarehouseOrder", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(36)
@@ -744,16 +864,37 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                     b.ToTable("WarehouseOrders");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.BuyerProfile", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.Address", b =>
                 {
-                    b.HasOne("ShahBuyerAuthApi.Core.Models.Address", "Address")
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.CountryCode", "Country")
+                        .WithMany("Addresses")
+                        .HasForeignKey("CountryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Country");
+                });
+
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.AdminProfile", b =>
+                {
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.User", "User")
+                        .WithOne("AdminProfile")
+                        .HasForeignKey("ShahBuyerFeaturesApi.Core.Models.AdminProfile", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.BuyerProfile", b =>
+                {
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.Address", "Address")
                         .WithOne("BuyerProfile")
-                        .HasForeignKey("ShahBuyerAuthApi.Core.Models.BuyerProfile", "AddressId")
+                        .HasForeignKey("ShahBuyerFeaturesApi.Core.Models.BuyerProfile", "AddressId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("ShahBuyerAuthApi.Core.Models.User", "User")
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.User", "User")
                         .WithOne("BuyerProfile")
-                        .HasForeignKey("ShahBuyerAuthApi.Core.Models.BuyerProfile", "UserId")
+                        .HasForeignKey("ShahBuyerFeaturesApi.Core.Models.BuyerProfile", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -762,28 +903,36 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.CartItem", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.CartItem", b =>
                 {
-                    b.HasOne("ShahBuyerAuthApi.Core.Models.BuyerProfile", "BuyerProfile")
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.BuyerProfile", "BuyerProfile")
                         .WithMany("CartItems")
                         .HasForeignKey("BuyerProfileId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ShahBuyerAuthApi.Core.Models.Product", "Product")
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.ProductVariant", "ProductVariant")
                         .WithMany("CartItems")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("ProductVariantId")
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("BuyerProfile");
 
                     b.Navigation("Product");
+
+                    b.Navigation("ProductVariant");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.Category", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.Category", b =>
                 {
-                    b.HasOne("ShahBuyerAuthApi.Core.Models.Category", "ParentCategory")
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.Category", "ParentCategory")
                         .WithMany("SubCategories")
                         .HasForeignKey("ParentCategoryId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -791,15 +940,15 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                     b.Navigation("ParentCategory");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.Favorite", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.Favorite", b =>
                 {
-                    b.HasOne("ShahBuyerAuthApi.Core.Models.BuyerProfile", "BuyerProfile")
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.BuyerProfile", "BuyerProfile")
                         .WithMany("Favorites")
                         .HasForeignKey("BuyerProfileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ShahBuyerAuthApi.Core.Models.Product", "Product")
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.Product", "Product")
                         .WithMany("Favorites")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -810,34 +959,26 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.Order", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.Order", b =>
                 {
-                    b.HasOne("ShahBuyerAuthApi.Core.Models.BuyerProfile", "BuyerProfile")
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.BuyerProfile", "BuyerProfile")
                         .WithMany("Orders")
                         .HasForeignKey("BuyerProfileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ShahBuyerAuthApi.Core.Models.Receipt", "Receipt")
-                        .WithOne("Order")
-                        .HasForeignKey("ShahBuyerAuthApi.Core.Models.Order", "ReceiptId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("BuyerProfile");
-
-                    b.Navigation("Receipt");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.OrderItem", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.OrderItem", b =>
                 {
-                    b.HasOne("ShahBuyerAuthApi.Core.Models.Order", "Order")
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.Order", "Order")
                         .WithMany("OrderItems")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ShahBuyerAuthApi.Core.Models.ProductVariant", "ProductVariant")
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.ProductVariant", "ProductVariant")
                         .WithMany("OrderItems")
                         .HasForeignKey("ProductVariantId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -848,17 +989,17 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                     b.Navigation("ProductVariant");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.OrderPayment", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.OrderPayment", b =>
                 {
-                    b.HasOne("ShahBuyerAuthApi.Core.Models.BuyerProfile", "BuyerProfile")
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.BuyerProfile", "BuyerProfile")
                         .WithOne("OrderPayment")
-                        .HasForeignKey("ShahBuyerAuthApi.Core.Models.OrderPayment", "BuyerProfileId")
+                        .HasForeignKey("ShahBuyerFeaturesApi.Core.Models.OrderPayment", "BuyerProfileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ShahBuyerAuthApi.Core.Models.Order", "Order")
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.Order", "Order")
                         .WithOne("OrderPayment")
-                        .HasForeignKey("ShahBuyerAuthApi.Core.Models.OrderPayment", "OrderId")
+                        .HasForeignKey("ShahBuyerFeaturesApi.Core.Models.OrderPayment", "OrderId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -867,24 +1008,25 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                     b.Navigation("Order");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.Product", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.Product", b =>
                 {
-                    b.HasOne("ShahBuyerAuthApi.Core.Models.Category", "Category")
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.Category", "Category")
                         .WithMany("Products")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ShahBuyerAuthApi.Core.Models.ProductDetails", "ProductDetails")
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.ProductDetails", "ProductDetails")
                         .WithOne("Product")
-                        .HasForeignKey("ShahBuyerAuthApi.Core.Models.Product", "ProductDetailsId")
+                        .HasForeignKey("ShahBuyerFeaturesApi.Core.Models.Product", "ProductDetailsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ShahBuyerAuthApi.Core.Models.StoreInfo", "StoreInfo")
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.StoreInfo", "StoreInfo")
                         .WithMany("Products")
                         .HasForeignKey("StoreInfoId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Category");
 
@@ -893,9 +1035,9 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                     b.Navigation("StoreInfo");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.ProductAttribute", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.ProductAttribute", b =>
                 {
-                    b.HasOne("ShahBuyerAuthApi.Core.Models.Category", "Category")
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.Category", "Category")
                         .WithMany("ProductAttributes")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -904,9 +1046,9 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                     b.Navigation("Category");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.ProductAttributeValue", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.ProductAttributeValue", b =>
                 {
-                    b.HasOne("ShahBuyerAuthApi.Core.Models.ProductAttribute", "ProductAttribute")
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.ProductAttribute", "ProductAttribute")
                         .WithMany("AttributeValues")
                         .HasForeignKey("ProductAttributeId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -915,9 +1057,9 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                     b.Navigation("ProductAttribute");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.ProductVariant", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.ProductVariant", b =>
                 {
-                    b.HasOne("ShahBuyerAuthApi.Core.Models.Product", "Product")
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.Product", "Product")
                         .WithMany("ProductVariants")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -926,15 +1068,15 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.ProductVariantAttributeValue", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.ProductVariantAttributeValue", b =>
                 {
-                    b.HasOne("ShahBuyerAuthApi.Core.Models.ProductAttributeValue", "ProductAttributeValue")
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.ProductAttributeValue", "ProductAttributeValue")
                         .WithMany("ProductVariantValues")
                         .HasForeignKey("ProductAttributeValueId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("ShahBuyerAuthApi.Core.Models.ProductVariant", "ProductVariant")
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.ProductVariant", "ProductVariant")
                         .WithMany("ProductVariantAttributeValue")
                         .HasForeignKey("ProductVariantId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -945,9 +1087,9 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                     b.Navigation("ProductVariant");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.ProductVariantImage", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.ProductVariantImage", b =>
                 {
-                    b.HasOne("ShahBuyerAuthApi.Core.Models.ProductVariant", "ProductVariant")
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.ProductVariant", "ProductVariant")
                         .WithMany("Images")
                         .HasForeignKey("ProductVariantId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -956,15 +1098,26 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                     b.Navigation("ProductVariant");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.Review", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.Receipt", b =>
                 {
-                    b.HasOne("ShahBuyerAuthApi.Core.Models.BuyerProfile", "BuyerProfile")
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.Order", "Order")
+                        .WithOne("Receipt")
+                        .HasForeignKey("ShahBuyerFeaturesApi.Core.Models.Receipt", "OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.Review", b =>
+                {
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.BuyerProfile", "BuyerProfile")
                         .WithMany("Reviews")
                         .HasForeignKey("BuyerProfileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ShahBuyerAuthApi.Core.Models.Product", "Product")
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.Product", "Product")
                         .WithMany("Reviews")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -975,44 +1128,50 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.SellerProfile", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.SellerProfile", b =>
                 {
-                    b.HasOne("ShahBuyerAuthApi.Core.Models.User", "User")
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.User", "User")
                         .WithOne("SellerProfile")
-                        .HasForeignKey("ShahBuyerAuthApi.Core.Models.SellerProfile", "UserId")
+                        .HasForeignKey("ShahBuyerFeaturesApi.Core.Models.SellerProfile", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.SellerTaxInfo", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.SellerTaxInfo", b =>
                 {
-                    b.HasOne("ShahBuyerAuthApi.Core.Models.SellerProfile", "SellerProfile")
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.SellerProfile", "SellerProfile")
                         .WithOne("SellerTaxInfo")
-                        .HasForeignKey("ShahBuyerAuthApi.Core.Models.SellerTaxInfo", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("ShahBuyerFeaturesApi.Core.Models.SellerTaxInfo", "SellerProfileId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.Tax", "Tax")
+                        .WithMany("SellerTaxInfos")
+                        .HasForeignKey("TaxId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("SellerProfile");
+
+                    b.Navigation("Tax");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.StoreInfo", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.StoreInfo", b =>
                 {
-                    b.HasOne("ShahBuyerAuthApi.Core.Models.Address", "Address")
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.Address", "Address")
                         .WithOne("StoreInfo")
-                        .HasForeignKey("ShahBuyerAuthApi.Core.Models.StoreInfo", "AddressId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("ShahBuyerFeaturesApi.Core.Models.StoreInfo", "AddressId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("ShahBuyerAuthApi.Core.Models.Category", "Category")
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.Category", "Category")
                         .WithMany("StoreInfos")
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("ShahBuyerAuthApi.Core.Models.SellerProfile", "SellerProfile")
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.SellerProfile", "SellerProfile")
                         .WithOne("StoreInfo")
-                        .HasForeignKey("ShahBuyerAuthApi.Core.Models.StoreInfo", "Id")
+                        .HasForeignKey("ShahBuyerFeaturesApi.Core.Models.StoreInfo", "SellerProfileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1023,25 +1182,36 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                     b.Navigation("SellerProfile");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.Warehouse", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.User", b =>
                 {
-                    b.HasOne("ShahBuyerAuthApi.Core.Models.Address", "Address")
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.CountryCode", "CountryCitizenship")
+                        .WithMany("Users")
+                        .HasForeignKey("CountryCitizenshipId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CountryCitizenship");
+                });
+
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.Warehouse", b =>
+                {
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.Address", "Address")
                         .WithOne("Warehouse")
-                        .HasForeignKey("ShahBuyerAuthApi.Core.Models.Warehouse", "AddressId")
+                        .HasForeignKey("ShahBuyerFeaturesApi.Core.Models.Warehouse", "AddressId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Address");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.WarehouseOrder", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.WarehouseOrder", b =>
                 {
-                    b.HasOne("ShahBuyerAuthApi.Core.Models.Order", "Order")
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.Order", "Order")
                         .WithOne("WarehouseOrder")
-                        .HasForeignKey("ShahBuyerAuthApi.Core.Models.WarehouseOrder", "OrderId")
+                        .HasForeignKey("ShahBuyerFeaturesApi.Core.Models.WarehouseOrder", "OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ShahBuyerAuthApi.Core.Models.Warehouse", "Warehouse")
+                    b.HasOne("ShahBuyerFeaturesApi.Core.Models.Warehouse", "Warehouse")
                         .WithMany("WarehouseOrder")
                         .HasForeignKey("WarehouseId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1052,7 +1222,7 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                     b.Navigation("Warehouse");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.Address", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.Address", b =>
                 {
                     b.Navigation("BuyerProfile");
 
@@ -1061,7 +1231,7 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                     b.Navigation("Warehouse");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.BuyerProfile", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.BuyerProfile", b =>
                 {
                     b.Navigation("CartItems");
 
@@ -1074,7 +1244,7 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                     b.Navigation("Reviews");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.Category", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.Category", b =>
                 {
                     b.Navigation("ProductAttributes");
 
@@ -1085,19 +1255,27 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                     b.Navigation("SubCategories");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.Order", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.CountryCode", b =>
+                {
+                    b.Navigation("Addresses");
+
+                    b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.Order", b =>
                 {
                     b.Navigation("OrderItems");
 
                     b.Navigation("OrderPayment");
 
+                    b.Navigation("Receipt")
+                        .IsRequired();
+
                     b.Navigation("WarehouseOrder");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.Product", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.Product", b =>
                 {
-                    b.Navigation("CartItems");
-
                     b.Navigation("Favorites");
 
                     b.Navigation("ProductVariants");
@@ -1105,24 +1283,26 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                     b.Navigation("Reviews");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.ProductAttribute", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.ProductAttribute", b =>
                 {
                     b.Navigation("AttributeValues");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.ProductAttributeValue", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.ProductAttributeValue", b =>
                 {
                     b.Navigation("ProductVariantValues");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.ProductDetails", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.ProductDetails", b =>
                 {
                     b.Navigation("Product")
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.ProductVariant", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.ProductVariant", b =>
                 {
+                    b.Navigation("CartItems");
+
                     b.Navigation("Images");
 
                     b.Navigation("OrderItems");
@@ -1130,34 +1310,33 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Migrations
                     b.Navigation("ProductVariantAttributeValue");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.Receipt", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.SellerProfile", b =>
                 {
-                    b.Navigation("Order")
-                        .IsRequired();
+                    b.Navigation("SellerTaxInfo");
+
+                    b.Navigation("StoreInfo");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.SellerProfile", b =>
-                {
-                    b.Navigation("SellerTaxInfo")
-                        .IsRequired();
-
-                    b.Navigation("StoreInfo")
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.StoreInfo", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.StoreInfo", b =>
                 {
                     b.Navigation("Products");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.User", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.Tax", b =>
                 {
+                    b.Navigation("SellerTaxInfos");
+                });
+
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.User", b =>
+                {
+                    b.Navigation("AdminProfile");
+
                     b.Navigation("BuyerProfile");
 
                     b.Navigation("SellerProfile");
                 });
 
-            modelBuilder.Entity("ShahBuyerAuthApi.Core.Models.Warehouse", b =>
+            modelBuilder.Entity("ShahBuyerFeaturesApi.Core.Models.Warehouse", b =>
                 {
                     b.Navigation("WarehouseOrder");
                 });

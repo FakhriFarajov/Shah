@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using System.Text;
 using AutoMapper;
+using FluentValidation;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -20,40 +21,40 @@ public class AccountService : IAccountService
     private readonly ShahDbContext _context;
     private readonly IMapper _mapper;
     private readonly IWebHostEnvironment _env;
+    private readonly IValidator<AdminRegisterRequestDTO> _validator;
 
-    public AccountService(ShahDbContext context, IMapper mapper, IWebHostEnvironment env)
+    public AccountService(ShahDbContext context, IMapper mapper, IWebHostEnvironment env, IValidator<AdminRegisterRequestDTO> validator)
     {
         _context = context;
         _mapper = mapper;
         _env = env;
+        _validator = validator;
     }
     
     public async Task<Result> RegisterAdminAsync(AdminRegisterRequestDTO request)
     {
+        var validationResult = await _validator.ValidateAsync(request);
+        if (!validationResult.IsValid)
+        {
+            var errors = string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage));
+            return Result.Error($"Validation failed: {errors}", 400);
+        }
         // Normalize email to lowercase
-        var normalizedEmail = request.Email.Trim().ToLowerInvariant();
-        var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
+        var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
         if (existingUser != null)
         {
             return Result.Error("Email is already registered.", 409);
         }
-
+        
         var userToAdd = _mapper.Map<User>(request);
-        userToAdd.Email = normalizedEmail;
         userToAdd.Password = HashPassword(request.Password);
-        userToAdd.Role = Role.Buyer; // Set role directly
-
-        var buyerProfile = _mapper.Map<BuyerProfile>(request);
-        buyerProfile.UserId = userToAdd.Id;
-
-        userToAdd.BuyerProfileId = buyerProfile.Id;
-
+        var adminProfile = _mapper.Map<AdminProfile>(request);
+        adminProfile.UserId = userToAdd.Id;
+        userToAdd.AdminProfileId = adminProfile.Id;
+        _context.AdminProfiles.Add(adminProfile);
         _context.Users.Add(userToAdd);
-        _context.BuyerProfiles.Add(buyerProfile);
-
         await _context.SaveChangesAsync();
-
-        return Result.Success("Buyer registered successfully");
+        return Result.Success("Admin registered successfully");
     }
     
     public async Task<Result> ForgotPasswordAsync(string email, string newPassword, string OldPassword)

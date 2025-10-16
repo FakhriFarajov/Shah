@@ -1,4 +1,4 @@
-namespace ShahSellerAuthApi.Data.Models
+namespace ShahSellerAuthApi.Core.Models
 {
     public class ProductAttributeValue
     {

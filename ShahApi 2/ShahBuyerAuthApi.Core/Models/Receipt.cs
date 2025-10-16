@@ -1,6 +1,3 @@
-using System;
-using ShahBuyerAuthApi.Core.Models;
-
 namespace ShahBuyerAuthApi.Core.Models
 {
     public class Receipt

@@ -9,6 +9,9 @@ public class ShahDbContext : DbContext
     public DbSet<Address> Addresses { get; set; }
     public DbSet<ProductAttribute> ProductAttributes { get; set; }
     public DbSet<ProductAttributeValue> ProductAttributeValues { get; set; }
+    public DbSet<AdminProfile> AdminProfiles { get; set; }
+    public DbSet<BlacklistedToken> BlacklistedTokens { get; set; }
+
     public DbSet<BuyerProfile> BuyerProfiles { get; set; }
     public DbSet<CartItem> CartItems { get; set; }
     public DbSet<Category> Categories { get; set; }
@@ -29,6 +32,9 @@ public class ShahDbContext : DbContext
     public DbSet<Warehouse> Warehouses { get; set; }
     public DbSet<WarehouseOrder> WarehouseOrders { get; set; }
     public DbSet<Receipt> Receipts { get; set; }
+    public DbSet<CountryCode> CountryCodes { get; set; }
+    public DbSet<Tax> Taxes { get; set; }
+
     public ShahDbContext(DbContextOptions<ShahDbContext> options) : base(options)
     {
     }

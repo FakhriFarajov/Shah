@@ -1,3 +1,5 @@
+using ShahBuyerAuthApi.Core.Enums;
+
 namespace ShahBuyerAuthApi.Contracts.DTOs.Request;
 
 
@@ -8,5 +10,5 @@ public record BuyerRegisterRequestDTO(
     string Password,
     string ConfirmPassword,
     string Phone,
-    int CountryCode
+    int CountryCitizenshipId
 );

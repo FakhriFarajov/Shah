@@ -12,16 +12,13 @@ namespace ShahAdminAuthApi.Presentation.Controllers;
 public class AccountController : ControllerBase
 {
     private readonly IAccountService _accountService;
-    private readonly TokenManager _tokenService;
-    private readonly IAdminService _adminService;
 
-    public AccountController(IAccountService accountService, TokenManager tokenService, IAdminService adminService)
+    public AccountController(IAccountService accountService)
     {
         _accountService = accountService;
-        _tokenService = tokenService;
-        _adminService = adminService;
     }
 
+    [Authorize]
     [HttpPost("Register")]
     public async Task<IActionResult> RegisterAsync([FromBody] AdminRegisterRequestDTO requestDto)
     {

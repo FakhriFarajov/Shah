@@ -12,6 +12,9 @@ public static class ApplicationBuilderExtensions
         {
             app.MapOpenApi();
         }
+        
+        app.UseCors("DefaultCors");
+
 
         app.UseHttpsRedirection();
         app.MapControllers();

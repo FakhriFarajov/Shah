@@ -14,7 +14,7 @@ type ProductVariant = {
     weight: number | null;
     attributeValues: ProductVariantAttributeValue[];
     images?: string[];
-};
+};``
 // Add mainImageIdx to ProductVariant type via intersection
 type VariantWithMain = ProductVariant & { mainImageIdx?: number };
 
@@ -88,6 +88,11 @@ export default function EditProductVariants({ variants, onChange, categoryId, su
         setCropDialogOpen(true);
     }
     // No file input needed, handled by ImageCropper
+
+    
+
+
+
     function handleCropDone(croppedImg: string) {
         if (pendingVariantIdx === null) return;
         const maxImages = 5;

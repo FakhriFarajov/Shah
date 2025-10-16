@@ -8,16 +8,17 @@ namespace ShahAdminAuthApi.Infrastructure.Configurations
     {
         public void Configure(EntityTypeBuilder<SellerProfile> builder)
         {
-            builder.HasKey(sp => sp.UserId);
-            builder.Property(sp => sp.UserId).IsRequired().HasMaxLength(36);
-            builder.Property(sp => sp.StoreInfoId).IsRequired().HasMaxLength(36);
-            builder.Property(sp => sp.SellerTaxInfoId).IsRequired().HasMaxLength(36);
+            builder.HasKey(sp => sp.Id);
+            builder.Property(sp => sp.UserId).IsRequired();
+            builder.Property(sp => sp.StoreInfoId);
             builder.Property(sp => sp.Passport).IsRequired().HasMaxLength(36);
+            builder.Property(sp => sp.SellerTaxInfoId).HasMaxLength(36);
             builder.Property(sp => sp.IsVerified).IsRequired().HasDefaultValue(false);
-            
+            builder.Property(sp => sp.Id).IsRequired().HasMaxLength(36).HasColumnType("nvarchar(36)");
+
             builder.HasOne(sp => sp.User)
                    .WithOne(u => u.SellerProfile)
-                   .HasForeignKey<SellerProfile>(sp => sp.UserId)
+                   .HasForeignKey<SellerProfile>(sp => sp.Id)
                    .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasOne(sp => sp.StoreInfo)

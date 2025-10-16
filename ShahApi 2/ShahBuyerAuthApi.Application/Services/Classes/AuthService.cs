@@ -1,9 +1,11 @@
 using System.Security.Authentication;
+using Microsoft.AspNetCore.Mvc;
 using ShahBuyerAuthApi.Application.Utils;
 using Microsoft.EntityFrameworkCore;
 using ShahBuyerAuthApi.Application.Services.Interfaces;
 using ShahBuyerAuthApi.Contracts.DTOs.Request;
 using ShahBuyerAuthApi.Contracts.DTOs.Response;
+using ShahBuyerAuthApi.Core.Models;
 using ShahBuyerAuthApi.Infrastructure.Contexts;
 using static BCrypt.Net.BCrypt;
 
@@ -33,7 +35,8 @@ public class AuthService : IAuthService
         var accessToken = await _tokenService.CreateTokenAsync(user);
         string refreshToken;
         var now = DateTime.UtcNow;
-        if (!string.IsNullOrEmpty(user.RefreshToken) && user.RefreshTokenExpiryTime.HasValue && user.RefreshTokenExpiryTime > now)
+        if (!string.IsNullOrEmpty(user.RefreshToken) && user.RefreshTokenExpiryTime.HasValue &&
+            user.RefreshTokenExpiryTime > now)
         {
             // Reuse existing valid refresh token
             refreshToken = user.RefreshToken;
@@ -42,20 +45,55 @@ public class AuthService : IAuthService
         {
             refreshToken = await _tokenService.CreateRefreshTokenAsync(user);
         }
+
         return TypedResult<object>.Success(new
         {
             AccessToken = accessToken,
-            RefreshToken = refreshToken
+            RefreshToken = refreshToken,
+
         }, "Successfully logged in");
 
     }
-    
-    
+
     public async Task<TypedResult<object>> LogoutAsync(string token)
     {
-        // In a real-world application, you might want to implement token blacklisting or expiration.
-        // For this example, we'll just return a success message.
+        await BlacklistTokenAsync(token, DateTime.UtcNow.AddHours(1)); // Set expiry as needed
+        return TypedResult<object>.Success(null, "Successfully logged out");
+    }
+    
+    public async Task BlacklistTokenAsync(string token, DateTime expiry)
+    {
+        var blacklisted = new BlacklistedToken
+        {
+            Token = token,
+            ExpiryTime = expiry
+        };
+        
+        await _context.BlacklistedTokens.AddAsync(blacklisted);
+        await _context.SaveChangesAsync();
+    }
 
-        return await Task.FromResult(TypedResult<object>.Success(null, "Successfully logged out"));
+
+
+    public async Task<TypedResult<object>> RefreshTokenAsync([FromBody] string refreshToken)
+    {
+        if (string.IsNullOrEmpty(refreshToken))
+            return TypedResult<object>.Error("Refresh token is required", 400);
+
+        var result = await _tokenService.RefreshTokenAsync(refreshToken);
+
+        if (!result.IsSuccess)
+            return TypedResult<object>.Error(result.Message, 400);
+
+        return TypedResult<object>.Success(new
+        {
+            isSuccess = true,
+            message = result.Message,
+            data = new
+            {
+                accessToken = result.Data.AccessToken,
+                refreshToken = result.Data.RefreshToken
+            }
+        }, "Token refreshed successfully");
     }
 }

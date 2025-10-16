@@ -1,3 +1,5 @@
+using ShahAdminAuthApi.Core.Enums;
+
 namespace ShahAdminAuthApi.Contracts.DTOs.Request;
 
 
@@ -8,5 +10,5 @@ public record AdminRegisterRequestDTO(
     string Password,
     string ConfirmPassword,
     string Phone,
-    int CountryCode
+    Country CountryCitizenship
 );

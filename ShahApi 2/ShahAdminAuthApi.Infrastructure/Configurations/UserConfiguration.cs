@@ -35,6 +35,11 @@ namespace ShahAdminAuthApi.Infrastructure.Configurations
                    .WithOne(sp => sp.User)
                    .HasForeignKey<SellerProfile>(sp => sp.UserId)
                    .OnDelete(DeleteBehavior.Cascade);
+            
+            builder.HasOne(u => u.AdminProfile)
+                .WithOne(sp => sp.User)
+                .HasForeignKey<AdminProfile>(sp => sp.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

@@ -1,7 +1,7 @@
-
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ShahBuyerFeaturesApi.Core.Models;
+
 namespace ShahBuyerFeaturesApi.Infrastructure.Configurations
 {
     public class FavoriteConfiguration : IEntityTypeConfiguration<Favorite>

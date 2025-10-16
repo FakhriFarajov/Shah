@@ -1,6 +1,4 @@
-
 using ShahAdminAuthApi.Core.Enums;
-using ShahAdminAuthApi.Core.Models;
 
 namespace ShahAdminAuthApi.Core.Models
 {

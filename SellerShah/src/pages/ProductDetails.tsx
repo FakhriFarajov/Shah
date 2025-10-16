@@ -2,7 +2,6 @@ import Navbar from "../components/custom/Navbar/navbar";
 import Footer from "../components/custom/footer";
 import { AppSidebar } from "@/components/custom/sidebar";
 import { Bar } from "react-chartjs-2";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Chart as ChartJS,
@@ -100,8 +99,6 @@ const chartOptions = {
 };
 
 export default function ProductDetailsPage() {// We must accept the id of the product via route params and fetch real data based on that id
-
-  const [zoomImg, setZoomImg] = useState<string | null>(null);
 
   return (
     <>

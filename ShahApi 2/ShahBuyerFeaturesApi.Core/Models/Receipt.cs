@@ -1,6 +1,3 @@
-using System;
-using ShahBuyerFeaturesApi.Core.Models;
-
 namespace ShahBuyerFeaturesApi.Core.Models
 {
     public class Receipt

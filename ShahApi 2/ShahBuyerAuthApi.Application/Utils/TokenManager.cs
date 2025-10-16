@@ -25,11 +25,17 @@ public class TokenManager
 
     public async Task<string> CreateTokenAsync(User user)
     {
+        var favCount = await _context.Favorites.CountAsync(f => f.BuyerProfileId == user.BuyerProfileId);
+        var cartCount = await _context.CartItems.CountAsync(c => c.BuyerProfileId == user.BuyerProfileId);
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.Name, user.Name),
-            new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Role, user.Role.ToString())
+            new Claim("id", user.BuyerProfileId),
+            new Claim("name", user.Name),
+            new Claim("surname", user.Surname),
+            new Claim("email", user.Email),
+            new Claim("favorite_count", favCount.ToString()),
+            new Claim("cart_count", cartCount.ToString()),
+            new Claim("profile_image", user.BuyerProfile?.ImageProfile ?? string.Empty)
         };
 
         var securityKey =
@@ -39,7 +45,7 @@ public class TokenManager
 
         var securityToken = new JwtSecurityToken(
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(15),
+            expires: DateTime.UtcNow.AddMinutes(150),
             issuer: _configuration.GetSection("JWT:Issuer").Value,
             audience: _configuration.GetSection("JWT:Audience").Value,
             signingCredentials: signingCred);

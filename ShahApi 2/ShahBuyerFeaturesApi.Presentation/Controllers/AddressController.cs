@@ -1,25 +1,18 @@
 using Microsoft.AspNetCore.Mvc;
-using ShahBuyerAuthApi.Infrastructure.Contexts;
-using System.Threading.Tasks;
-using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using ShahBuyerFeaturesApi.Application.Services.Interfaces;
-using ShahBuyerFeaturesApi.Contracts.DTOs.Request;
+using ShahBuyerFeaturesApi.Core.DTOs.Request;
 
-namespace ShahBuyerAuthApi.Presentation.Controllers
+namespace ShahBuyerFeaturesApi.Presentation.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     public class AddressController : ControllerBase
     {
-        private readonly ShahDbContext _context;
-        private readonly IMapper _mapper;
         private readonly IAddressService _addressService;
 
-        public AddressController(ShahDbContext context, IMapper mapper, IAddressService addressService)
+        public AddressController(IAddressService addressService)
         {
-            _context = context;
-            _mapper = mapper;
             _addressService = addressService;
         }
         
@@ -34,9 +27,14 @@ namespace ShahBuyerAuthApi.Presentation.Controllers
             => Ok(await _addressService.GetBuyerAddressAsync(buyerId));
 
         [Authorize]
-        [HttpPost("Upsert")]
-        public async Task<IActionResult> UpsertAddressAsync(UpsertAddressRequestDTO request)
-            => Ok(await _addressService.UpsertAddressAsync(request));
+        [HttpPost("Add")]
+        public async Task<IActionResult> AddAddressAsync(AddAddressRequestDTO request)
+            => Ok(await _addressService.AddAddressAsync(request));
+        
+        [Authorize]
+        [HttpPut("Edit")]
+        public async Task<IActionResult> EditAddressAsync(EditAddressRequestDTO request)
+            => Ok(await _addressService.EditAddressAsync(request));
         
         [Authorize]
         [HttpDelete("Remove/{id}")]
@@ -44,4 +42,3 @@ namespace ShahBuyerAuthApi.Presentation.Controllers
             => Ok(await _addressService.DeleteAddressAsync(id));
     }
 }
-

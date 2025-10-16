@@ -14,18 +14,44 @@ import { useTranslation } from "react-i18next";
 import { getTranslatedCategories } from './getTranslatedCategories';
 import { toast } from 'sonner';
 import { CiLogout } from "react-icons/ci";
+import { tokenStorage } from '@/shared';
+import { useEffect } from 'react';
+import { jwtDecode } from "jwt-decode";
+import { logout } from '@/features/auth/services/auth.service';
 
 export default function Navbar() {
     const { t, i18n } = useTranslation();
     const categories = getTranslatedCategories(t);
-    const cartItems = useSelector((state: any) => state.cart);
-    const favourites = useSelector((state: any) => state.favourites);
     const [flag, setFlag] = useState<string>(() => localStorage.getItem('flag') || 'https://flagsapi.com/GB/flat/64.png');// Default to UK flag
     const [searchTerm, setSearchTerm] = useState("");
     const [searchResults, setSearchResults] = useState<any[]>([]); // Explicitly type as any[] or Product[] if available
     const products = useSelector((state: any) => state.product);
+    const [userLogo, setUserLogo] = useState<string>("");
+    const [userName, setUserName] = useState<string>("");
+    const [cartCount, setCartCount] = useState<number>(0);
+    const [favouritesCount, setFavouritesCount] = useState<number>(0);
 
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const token = tokenStorage.get();
+        if (token) {
+            try {
+                const decoded: any = jwtDecode(token);
+                setUserLogo(decoded.profilePicPreview || "");
+                setUserName(decoded.name || "");
+                setCartCount(Number(decoded.cart_count) || 0); // Assuming the token contains cart item count
+                setFavouritesCount(Number(decoded.favourite_count) || 0); // Assuming the token contains favourites item count
+            } catch (err) {
+                // If token is invalid, clear storage
+                tokenStorage.clear();
+                setUserLogo("");
+                setUserName("");
+                setCartCount(0);
+                setFavouritesCount(0);
+            }
+        }
+    }, []);
 
     const navigateToCart = () => {
         navigate('/cart');
@@ -97,10 +123,11 @@ export default function Navbar() {
     };
 
 
-    const isLoggedIn = !!localStorage.getItem("userToken");
-    const handleLogout = () => {
-        localStorage.removeItem("userToken");
-        navigate('/login');
+    const isLoggedIn = !!tokenStorage.get();
+    const handleLogout = async () => {
+        await logout();
+        toast.success(t('Logged out successfully'));
+        navigate('/');
     };
     return (
         <div className="flex flex-col bg-gray-800 w-full p-2 sm:p-4 text-white">
@@ -148,10 +175,10 @@ export default function Navbar() {
                             <Button className="text-white cursor-pointer h-12 bg-inherit hover:bg-gray-700" >
                                 <div className="flex items-center justify-center rounded-full">
                                     <Avatar>
-                                        <AvatarImage id='AvatarImage' src="" alt="User Avatar" />
+                                        <AvatarImage id='AvatarImage' src={userLogo} alt="User Avatar" />
                                         <AvatarFallback className='text-white-500 bg-transparent'>
-                                            {!!localStorage.getItem("profile") && isLoggedIn ? (
-                                                <img src={JSON.parse(localStorage.getItem("profile") || "null")?.profilePicPreview} alt="User Avatar" className="w-9 h-9 rounded-full" />
+                                            {userLogo ? (
+                                                <img src={userLogo} alt="User Avatar" className="w-9 h-9 rounded-full" />
                                             ) : (
                                                 <VscAccount className="w-9 h-9" />
                                             )}
@@ -159,7 +186,7 @@ export default function Navbar() {
                                     </Avatar>
                                 </div>
                                 <span className='hidden lg:block'>
-                                    {!!localStorage.getItem("profile") && isLoggedIn ? JSON.parse(localStorage.getItem("user") || "null")?.username : t('Account')}
+                                    {userName ? userName : t('Account')}
                                 </span>
                             </Button>
                         </HoverCardTrigger>
@@ -185,9 +212,9 @@ export default function Navbar() {
                     <Button className="relative text-white bg-inherit h-12 cursor-pointer ml-2 hover:bg-gray-700" onClick={navigateToFavourites}>
                         <div id='Favourites' className="flex items-center justify-center rounded-full p-2 relative">
                             <TfiHeart className="mr-2 w-2" />
-                            {favourites.length > 0 ? (
+                            {favouritesCount > 0 ? (
                                 <span id="FavouritesCount" className="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold rounded-full px-1.5 py-0.5 border-2 border-gray-800">
-                                    {favourites.length}
+                                    {favouritesCount}
                                 </span>
                             )
                                 : null}
@@ -197,9 +224,9 @@ export default function Navbar() {
                     <Button className="text-white bg-inherit h-12 cursor-pointer ml-2 hover:bg-gray-700" onClick={navigateToCart}>
                         <div id='Cart' className="flex items-center justify-center rounded-full p-2 relative">
                             <BsCart3 className="mr-2 w-2" />
-                            {cartItems.length > 0 ? (
+                            {cartCount > 0 ? (
                                 <span id="CartCount" className="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold rounded-full px-1.5 py-0.5 border-2 border-gray-800">
-                                    {cartItems.length}
+                                    {cartCount}
                                 </span>)
                                 : null}
                         </div>

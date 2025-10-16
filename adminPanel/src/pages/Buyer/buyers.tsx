@@ -1,6 +1,5 @@
 import Navbar from "../../components/custom/Navbar/navbar";
 import { AppSidebar } from "@/components/custom/sidebar";
-import { AdaptiveTable } from "@/components/custom/adaptive-table";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
@@ -22,92 +21,106 @@ export default function BuyersPage() {
         { id: 11, name: "Jack", surname: "Moore", email: "Email", phone: "555-666-7777" },
         { id: 12, name: "Kathy", surname: "Martin", email: "Email", phone: "888-999-0000" },
     ]);
-    const [editModal, setEditModal] = useState<{ open: boolean, buyer: any }>({ open: false, buyer: null });
-    const [editForm, setEditForm] = useState({ id: '', name: '', surname: '', email: '', phone: '' });
-    const filteredBuyers = buyers;
+    const [filterId, setFilterId] = useState('');
+    const [page, setPage] = useState(1);
+    const pageSize = 5;
+    const filteredBuyers = filterId
+        ? buyers.filter(b => b.id.toString().includes(filterId))
+        : buyers;
+    // Pagination logic
+    const totalItems = filteredBuyers.length;
+    const totalPages = Math.ceil(totalItems / pageSize);
+    const paginatedBuyers = filteredBuyers.slice((page - 1) * pageSize, page * pageSize);
+
 
     return (
         <>
             <Navbar />
-            <div className="min-h-screen bg-gray-50 flex">
+            <div className="min-h-screen flex">
                 <AppSidebar />
                 <div className="flex-1 py-8 px-2 md:px-8">
                     <div className="max-w-6xl mx-auto mb-8">
-                        <h1 className="text-3xl font-bold text-gray-800 mb-1">Buyers</h1>
-                        <p className="text-gray-500">View and manage all buyers here.</p>
+                        <h1 className="text-4xl font-extrabold text-gray-900 mb-2 tracking-tight">Buyers</h1>
+                        <p className="text-lg text-gray-500 mb-4">View and manage all buyers here.</p>
+                        <div className="mb-4 flex items-center gap-2">
+                            <label htmlFor="filterId" className="font-medium text-gray-700">Filter by ID:</label>
+                            <input
+                                id="filterId"
+                                type="text"
+                                value={filterId}
+                                onChange={e => { setFilterId(e.target.value); setPage(1); }}
+                                className="border rounded px-3 py-2 w-32 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                placeholder="Enter ID"
+                            />
+                        </div>
                     </div>
                     <div className="max-w-6xl mx-auto mt-4">
-                        <div className="overflow-x-auto rounded-lg shadow border bg-white">
-                            <div className="max-h-[750px] overflow-y-auto">
-                                <AdaptiveTable
-                                    columns={[
-                                        { key: "id", label: "ID" },
-                                        { key: "name", label: "Name" },
-                                        { key: "surname", label: "Surname" },
-                                        { key: "email", label: "Email" },
-                                        { key: "phone", label: "Phone" },
-                                        {
-                                            key: "actions",
-                                            label: "Actions",
-                                            render: (_: any, b: any) => (
-                                                <div className="flex gap-2">
-                                                    <button
-                                                        className="p-2 rounded-full bg-green-100 text-green-700 hover:bg-green-200"
-                                                        onClick={() => {
-                                                            navigate(`/buyer-details`);
-                                                        }}
-                                                        title="Edit"
-                                                    >
-                                                        <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z" /></svg>
-                                                    </button>
-                                                    <button
-                                                        className="p-2 rounded-full bg-red-100 text-red-700 hover:bg-red-200"
-                                                        onClick={() => alert(`Delete buyer ${b.name}`)}
-                                                        title="Delete"
-                                                    >
-                                                        <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 6h18" /><path d="M8 6v12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M5 6V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v2" /></svg>
-                                                    </button>
-                                                </div>
-                                            ),
-                                        },
-                                    ]}
-                                    data={filteredBuyers}
-                                />
-                                {/* Edit Modal */}
-                                {editModal.open && (
-                                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-                                        <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-                                            <h2 className="text-xl font-bold mb-4">Edit Buyer</h2>
-                                            <form onSubmit={e => {
-                                                e.preventDefault();
-                                                setBuyers(buyers.map(b => b.id === editForm.id ? { ...editForm } : b));
-                                                setEditModal({ open: false, buyer: null });
-                                            }} className="space-y-4">
-                                                <div>
-                                                    <label className="block text-sm font-medium mb-1">Name</label>
-                                                    <input className="border rounded px-2 py-1 w-full" value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium mb-1">Surname</label>
-                                                    <input className="border rounded px-2 py-1 w-full" value={editForm.surname} onChange={e => setEditForm(f => ({ ...f, surname: e.target.value }))} />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium mb-1">Email</label>
-                                                    <input className="border rounded px-2 py-1 w-full" value={editForm.email} onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))} />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium mb-1">Phone</label>
-                                                    <input className="border rounded px-2 py-1 w-full" value={editForm.phone} onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))} />
-                                                </div>
-                                                <div className="flex gap-2 justify-end mt-4">
-                                                    <button type="button" className="px-4 py-2 rounded bg-gray-200" onClick={() => setEditModal({ open: false, buyer: null })}>Cancel</button>
-                                                    <button type="submit" className="px-4 py-2 rounded bg-blue-600 text-white">Save</button>
-                                                </div>
-                                            </form>
+                        <div className="flex flex-col gap-6">
+                            {paginatedBuyers.map(buyer => (
+                                <div key={buyer.id} className="chad-card bg-white rounded-2xl shadow-xl border border-gray-200 p-6 flex flex-col md:flex-row items-center gap-6 transition-transform hover:scale-[1.02] hover:shadow-2xl">
+                                    <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-purple-400 to-blue-400 flex items-center justify-center shadow-lg mb-2 md:mb-0">
+                                        <span className="text-3xl font-bold text-white">{buyer.name[0]}{buyer.surname[0]}</span>
+                                    </div>
+                                    <div className="flex-1 flex flex-col md:flex-row md:items-center gap-4 w-full">
+                                        <div className="text-left md:w-1/3">
+                                            <div className="font-bold text-xl text-gray-900">{buyer.name} {buyer.surname}</div>
+                                            <div className="text-gray-500 text-sm mt-1">ID: {buyer.id}</div>
+                                        </div>
+                                        <div className="flex flex-col gap-1 md:w-1/3">
+                                            <div className="flex items-center gap-2 text-gray-700"><span className="font-medium">Email:</span> <span className="truncate">{buyer.email}</span></div>
+                                            <div className="flex items-center gap-2 text-gray-700"><span className="font-medium">Phone:</span> <span>{buyer.phone}</span></div>
+                                        </div>
+                                        <div className="flex flex-wrap gap-3 mt-3 md:mt-0 md:w-1/3 justify-end">
+                                            <button
+                                                className="px-4 py-2 rounded-lg bg-gradient-to-tr from-green-400 to-green-600 text-white font-semibold shadow hover:from-green-500 hover:to-green-700 transition"
+                                                onClick={() => navigate(`/buyer-details`)}
+                                                title="Profile"
+                                            >
+                                                Profile
+                                            </button>
+                                            <button
+                                                className="px-4 py-2 rounded-lg bg-gradient-to-tr from-blue-400 to-blue-600 text-white font-semibold shadow hover:from-blue-500 hover:to-blue-700 transition"
+                                                onClick={() => navigate(`/ordersBuyer?id=${buyer.id}`)}
+                                                title="Check Orders"
+                                            >
+                                                Check Orders
+                                            </button>
+                                            <button
+                                                className="px-4 py-2 rounded-lg bg-gradient-to-tr from-purple-400 to-purple-600 text-white font-semibold shadow hover:from-purple-500 hover:to-purple-700 transition"
+                                                onClick={() => navigate(`/reviewsBuyer?id=${buyer.id}`)}
+                                                title="Check Reviews"
+                                            >
+                                                Check Reviews
+                                            </button>
+                                            <button
+                                                className="px-4 py-2 rounded-lg bg-gradient-to-tr from-red-400 to-red-600 text-white font-semibold shadow hover:from-red-500 hover:to-red-700 transition"
+                                                onClick={() => alert(`Delete buyer ${buyer.name}`)}
+                                                title="Delete"
+                                            >
+                                                Delete
+                                            </button>
                                         </div>
                                     </div>
-                                )}
-                            </div>
+                                </div>
+                            ))}
+                        </div>
+                        {/* Pagination Controls */}
+                        <div className="flex justify-center items-center gap-4 mt-6">
+                            <button
+                                className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+                                onClick={() => setPage(p => Math.max(p - 1, 1))}
+                                disabled={page === 1}
+                            >
+                                Previous
+                            </button>
+                            <span className="text-gray-700">Page {page} of {totalPages}</span>
+                            <button
+                                className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+                                onClick={() => setPage(p => Math.min(p + 1, totalPages))}
+                                disabled={page === totalPages || totalPages === 0}
+                            >
+                                Next
+                            </button>
                         </div>
                     </div>
                 </div>

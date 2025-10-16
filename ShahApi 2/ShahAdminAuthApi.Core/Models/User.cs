@@ -10,7 +10,7 @@ namespace ShahAdminAuthApi.Core.Models
         public string Email { get; set; }
         public bool EmailConfirmed { get; set; } = false;
         public string Phone { get; set; }
-        public Country CountryCode { get; set; }
+        public Country CountryCitizenship { get; set; }
         public string Password { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
@@ -19,8 +19,12 @@ namespace ShahAdminAuthApi.Core.Models
 
         public string? SellerProfileId { get; set; } = null;
         public SellerProfile? SellerProfile { get; set; } = null;
+        
+        public string? AdminProfileId { get; set; } = null;
+        public AdminProfile? AdminProfile { get; set; } = null;
+        
 
-        public string? RefreshToken { get; set; }
+        public string? RefreshToken { get; set; } = null;
         public DateTime? RefreshTokenExpiryTime { get; set; } = DateTime.UtcNow;
         
         public Role Role { get; set; }

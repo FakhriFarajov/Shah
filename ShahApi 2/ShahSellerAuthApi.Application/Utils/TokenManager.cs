@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using ShahSellerAuthApi.Contracts.DTOs.Response;
-using ShahSellerAuthApi.Data.Models;
+using ShahSellerAuthApi.Core.Models;
 using ShahSellerAuthApi.Infrastructure.Contexts;
 using ShahSellerAuthApiDTOs.Response;
 

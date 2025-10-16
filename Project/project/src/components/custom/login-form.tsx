@@ -5,23 +5,30 @@ import { Label } from "@/components/ui/label"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
+import { useNavigate } from "react-router-dom"
+import { useContext } from "react";
+import { AuthContext } from "@/features/auth/contexts/AuthProvider";
 
 export default function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
   const { t } = useTranslation()
+  const navigator = useNavigate()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  // const { login, isLoading } = useAuthContext(); --- IGNORE ---
+  const { login, isLoading } = useContext(AuthContext);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Get user from localStorage
-    const user = JSON.parse(localStorage.getItem("user") || "null")
-    if (user && user.email === email && user.password === password) {
-      localStorage.setItem("userToken", "demoToken")
-      window.location.href = "/profile"
+    setError(null)
+    const result = await login({ email, password })
+    if (result.success) {
+      navigator("/main") //take the userInfo from the localStorage or claims in the token
+      toast.success(t('Successfully logged in'))
     } else {
       toast.error(t('Password or email is incorrect'))
     }
@@ -29,7 +36,7 @@ export default function LoginForm({
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <form onSubmit={handleLogin}>
+      <form onSubmit={handleLogin} className="flex flex-col gap-4 p-6 rounded-lg max-w-xl mt-10">
         <div className="flex flex-col gap-6">
           <div className="flex flex-col items-center gap-2">
             <a
@@ -90,11 +97,13 @@ export default function LoginForm({
                 </button>
               </div>
             </div>
+            {error && <div className="text-red-500 text-sm text-center">{error}</div>}
             <Button
               type="submit"
               className="w-full bg-gray-800 hover:bg-gray-700 text-white hover:text-gray-100"
+              disabled={isLoading}
             >
-              {t('Login')}
+              {isLoading ? "Loading..." : t('Login')}
             </Button>
           </div>
           <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">

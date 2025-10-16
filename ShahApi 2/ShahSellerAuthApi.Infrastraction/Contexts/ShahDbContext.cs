@@ -1,6 +1,6 @@
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
-using ShahSellerAuthApi.Data.Models;
+using ShahSellerAuthApi.Core.Models;
 
 
 namespace ShahSellerAuthApi.Infrastructure.Contexts;
@@ -10,8 +10,11 @@ public class ShahDbContext : DbContext
     public DbSet<Address> Addresses { get; set; }
     public DbSet<ProductAttribute> ProductAttributes { get; set; }
     public DbSet<ProductAttributeValue> ProductAttributeValues { get; set; }
+    public DbSet<AdminProfile> AdminProfiles { get; set; }
+    public DbSet<BlacklistedToken> BlacklistedTokens { get; set; }
     public DbSet<BuyerProfile> BuyerProfiles { get; set; }
     public DbSet<CartItem> CartItems { get; set; }
+    
     public DbSet<Category> Categories { get; set; }
     public DbSet<Favorite> Favorites { get; set; }
     public DbSet<Order> Orders { get; set; }

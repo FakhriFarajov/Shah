@@ -49,9 +49,9 @@ namespace ShahAdminAuthApi.Infrastructure.Configurations
                             .OnDelete(DeleteBehavior.SetNull);
 
                      builder.HasOne(a => a.StoreInfo)
-                            .WithOne(a => a.Address)
-                            .HasForeignKey<StoreInfo>(a => a.AddressId)
-                            .OnDelete(DeleteBehavior.SetNull);
+                            .WithOne(si => si.Address)
+                            .HasForeignKey<Address>(a => a.StoreInfoId)
+                            .OnDelete(DeleteBehavior.Cascade);
                             
               }
        }

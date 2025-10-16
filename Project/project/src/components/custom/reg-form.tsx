@@ -3,44 +3,102 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState } from "react"
-import { useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
+import { register } from "@/features/account/services/register.service";
+import type { RegisterRequest } from "@/features/account/DTOs/account.interfaces";
+import { getCountries } from "@/features/profile/Country/country.service";
+import { useContext } from "react";
+import { AuthContext } from "@/features/auth/contexts/AuthProvider";
+import { useNavigate } from "react-router-dom"
+import { useEffect } from "react"
 
 export default function RegForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const { t } = useTranslation()
-  const [username, setUsername] = useState("")
+  const { t } = useTranslation();
   const [name, setName] = useState("")
   const [surname, setSurname] = useState("")
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
-  const [countryCode, setCountryCode] = useState("")
-  const [address, setAddress] = useState("")
+  const [countryCode, setCountryCode] = useState(0)
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [countryOptions, setCountryOptions] = useState<Array<{ code: string; name: string; phone: string }>>([])
-  // Fetch country codes from API
-  useEffect(() => {
-    fetch("/api/country-codes")
-      .then(res => res.json())
-      .then(data => setCountryOptions(data))
-      .catch(() => setCountryOptions([]))
-  }, [])
+  const [countries, setCountries] = useState<{ id: number; name: string; code: string }[]>([]);
+  const navigator = useNavigate();
+  const { login } = useContext(AuthContext);
 
-  const handleRegister = (e: React.FormEvent) => {
-    e.preventDefault()
-    // Save user to localStorage as an object with all fields
-    const user = { username, name, surname, email, phone, countryCode, address, password }
-    localStorage.setItem("userToken", "demoToken") // You can use a real token or uuid
-    localStorage.setItem("user", JSON.stringify(user))
-    toast.success(t('Registration successful!'))
-    window.location.href = "/profile" // Redirect to profile or main page
-  }
+
+  useEffect(() => {
+    async function fetchCountries() {
+      try {
+        const result = await getCountries();
+        console.log("Fetched countries:", result);
+        setCountries(result.data || []); // Always set as array
+      } catch (error) {
+        setCountries([]); // fallback to empty array on error
+      }
+    }
+    fetchCountries();
+  }, []);
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const user: RegisterRequest = {
+      name,
+      surname,
+      email,
+      phone,
+      countryCitizenshipId: Number(countryCode), // Ensure number type
+      password,
+      confirmPassword
+    };
+    try {
+      const result = await register(user);
+      if (!result || !result.isSuccess) {
+        toast.error(result.message || t('Registration failed. Please check your details.'));
+        console.error("Registration error:", result);
+        return;
+      }
+      toast.success(t('Registration successful!'));
+      try {
+        var loginResult = await login({ email, password });
+        if (loginResult.success) {
+          toast.success(t('Logged in successfully!'));
+          navigator('/main');
+        } else {
+          toast.error(t('Login after registration failed. Please login manually.'));
+          navigator('/login');
+        }
+      } catch (loginError) {
+        toast.error(t('Login after registration failed. Please login manually.'));
+        navigator('/login');
+      }
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        const data = error.response.data;
+        if (data.errors && typeof data.errors === 'object') {
+          Object.values(data.errors).forEach((msgs: any) => {
+            if (Array.isArray(msgs)) msgs.forEach((msg: string) => toast.error(msg));
+          });
+        }
+        if (data.message || data.Message) {
+          toast.error(data.message || data.Message);
+        }
+        // Fallback for string error
+        if (typeof data === "string") {
+          toast.error(data);
+        }
+        console.error("Registration error:", data);
+      } else {
+        toast.error(t('Registration failed. Please try again.'));
+        console.error("Registration error:", error);
+      }
+    }
+    console.log("Registering user:", user);
+  };
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -115,18 +173,26 @@ export default function RegForm({
               />
             </div>
             <div className="grid gap-3">
-              <Label htmlFor="countryCode">{t("Country Code")}</Label>
+              <Label htmlFor="countryCode">{t("Country")}</Label>
               <select
-                id="countryCode"
-                value={countryCode}
-                onChange={e => setCountryCode(e.target.value)}
+                value={countryCode || ""}
+                onChange={e => setCountryCode(Number(e.target.value))}
                 required
                 className="border rounded px-2 py-1"
               >
                 <option value="">{t("Select country")}</option>
-                {countryOptions.map(opt => (
-                  <option key={opt.code} value={opt.code}>
-                    {opt.name} ({opt.phone})
+                {countries.map((country) => (
+                  <option key={country.id} value={country.id}>
+                    {country.code ? (
+                      <span style={{ marginRight: 8 }}>
+                        <img
+                          src={`https://flagsapi.com/${country.code}/flat/24.png`}
+                          alt={country.code}
+                          style={{ width: 20, height: 14, display: 'inline', marginRight: 4, verticalAlign: 'middle' }}
+                        />
+                      </span>
+                    ) : null}
+                    {country.name}
                   </option>
                 ))}
               </select>
@@ -150,9 +216,9 @@ export default function RegForm({
                   aria-label={showPassword ? t("Hide password") : t("Show password")}
                 >
                   {showPassword ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z"/><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z" /><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" /></svg>
                   ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z"/><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2"/><line x1="4" y1="4" x2="20" y2="20" stroke="currentColor" strokeWidth="2"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z" /><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" /><line x1="4" y1="4" x2="20" y2="20" stroke="currentColor" strokeWidth="2" /></svg>
                   )}
                 </button>
               </div>
@@ -176,9 +242,9 @@ export default function RegForm({
                   aria-label={showConfirmPassword ? t("Hide password") : t("Show password")}
                 >
                   {showConfirmPassword ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z"/><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z" /><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" /></svg>
                   ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z"/><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2"/><line x1="4" y1="4" x2="20" y2="20" stroke="currentColor" strokeWidth="2"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z" /><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" /><line x1="4" y1="4" x2="20" y2="20" stroke="currentColor" strokeWidth="2" /></svg>
                   )}
                 </button>
               </div>

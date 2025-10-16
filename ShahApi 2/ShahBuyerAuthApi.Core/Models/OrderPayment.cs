@@ -24,7 +24,9 @@ namespace ShahBuyerAuthApi.Core.Models
 
         // Dates
         public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
-        public ICollection<Order> Orders { get; set; } = new List<Order>();
+        
+        public string? OrderId { get; set; } // FK to Orders if exists
+        public Order Order { get; set; }
 
         public string BuyerProfileId { get; set; } // Payer (customer)
         public BuyerProfile BuyerProfile { get; set; }

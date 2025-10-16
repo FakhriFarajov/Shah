@@ -1,5 +1,8 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Reflection;
 using System.Text;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using ShahBuyerAuthApi.Application.Services.Classes;
 using ShahBuyerAuthApi.Application.Services.Interfaces;
 using ShahBuyerAuthApi.Infrastructure.Contexts;
@@ -27,9 +30,16 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IBuyerService, BuyerService>();
         services.AddSingleton<EmailSender>();
-        services.AddSingleton<GlobalExceptionMiddleware>();
+        services.AddScoped<ImageService>();
 
+        services.AddSingleton<GlobalExceptionMiddleware>();
         
+        services
+            .AddFluentValidationAutoValidation()
+            .AddFluentValidationClientsideAdapters();
+        // Register validators from Infrastructure assembly
+        services.AddValidatorsFromAssemblyContaining<ShahBuyerAuthApi.Infrastructure.Validators.BuyerRegisterRequestDTOValidator>();
+
         
         services.AddAutoMapper(ops => ops.AddProfile(typeof(MappingProfile)));
         services.AddAutoMapper(Assembly.GetExecutingAssembly());
@@ -88,15 +98,42 @@ public static class ApplicationServiceExtensions
                         }
 
                         res.StatusCode = StatusCodes.Status401Unauthorized;
+                    },
+
+                    OnTokenValidated = async context =>
+                    {
+                        var token = context.SecurityToken as JwtSecurityToken;
+                        if (token == null) return;
+
+                        var dbContext = context.HttpContext.RequestServices.GetRequiredService<ShahDbContext>();
+                        var blacklisted = await dbContext.BlacklistedTokens
+                            .AnyAsync(t => t.Token == token.RawData);
+
+                        if (blacklisted)
+                        {
+                            context.Fail("This token has been revoked");
+                        }
                     }
                 };
             });
+                
 
-        services.AddAuthorization(ops =>
-        {
-            ops.AddPolicy("BuyerPolicy", builder => builder.RequireRole("Buyer"));
-        });
+            services.AddAuthorization(ops =>
+            {
+                ops.AddPolicy("BuyerPolicy", builder => builder.RequireRole("Buyer"));
+            });
 
-        return services;
-    }
+            services.AddCors(options =>
+            {
+                options.AddPolicy("DefaultCors", builder =>
+                {
+                    builder.WithOrigins("http://localhost:5174")
+                           .AllowAnyMethod()
+                           .AllowAnyHeader()
+                           .AllowCredentials();
+                });
+            });
+
+            return services;
+        }
 }

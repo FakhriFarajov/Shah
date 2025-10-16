@@ -4,6 +4,7 @@ using ShahAdminAuthApi.Core.Models;
 
 namespace ShahAdminAuthApi.Infrastructure.Configurations
 {
+    
     public class SellerTaxInfoConfiguration : IEntityTypeConfiguration<SellerTaxInfo>
     {
         public void Configure(EntityTypeBuilder<SellerTaxInfo> builder)
@@ -13,7 +14,7 @@ namespace ShahAdminAuthApi.Infrastructure.Configurations
 
             builder.HasOne(st => st.SellerProfile)
                    .WithOne(sp => sp.SellerTaxInfo)
-                   .HasForeignKey<SellerTaxInfo>(st => st.Id)
+                   .HasForeignKey<SellerTaxInfo>(st => st.SellerProfileId)
                    .OnDelete(DeleteBehavior.Cascade);
         }
     }

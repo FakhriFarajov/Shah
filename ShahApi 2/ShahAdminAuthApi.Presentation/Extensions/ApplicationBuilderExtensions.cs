@@ -1,5 +1,5 @@
-using ShahAdminAuthApi.Infrastructure.Middlewares;
 using Scalar.AspNetCore;
+using ShahAdminAuthApi.Infrastructure.Middlewares;
 
 namespace ShahAdminAuthApi.Presentation.Extensions;
 
@@ -12,7 +12,12 @@ public static class ApplicationBuilderExtensions
             app.MapOpenApi();
         }
 
+
+        app.UseCors("DefaultCors");
+        
         // 2. Security / request processing
+        
+        
         app.UseHttpsRedirection();
         app.UseMiddleware<GlobalExceptionMiddleware>();
 
@@ -22,6 +27,7 @@ public static class ApplicationBuilderExtensions
 
         // 4. Controllers / endpoints
         app.MapControllers();
+        
 
         // 5. Extra mappings (Scalar, health checks, etc.)
         app.MapScalarApiReference();

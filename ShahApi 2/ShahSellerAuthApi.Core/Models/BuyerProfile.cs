@@ -1,4 +1,4 @@
-namespace ShahSellerAuthApi.Data.Models
+namespace ShahSellerAuthApi.Core.Models
 {
     public class BuyerProfile
     {
@@ -7,7 +7,7 @@ namespace ShahSellerAuthApi.Data.Models
         public User User { get; set; } = null!;
         public string? AddressId { get; set; } = null;
         public Address? Address { get; set; } = null;
-
+        public string? ImageProfile { get; set; } = null;
         public ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
         public ICollection<Order> Orders { get; set; } = new List<Order>();
         public ICollection<Review> Reviews { get; set; } = new List<Review>();

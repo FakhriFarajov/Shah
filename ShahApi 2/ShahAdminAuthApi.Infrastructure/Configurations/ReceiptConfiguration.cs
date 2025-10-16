@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ShahAdminAuthApi.Core.Models;
 
-namespace ShahAdminAuthApi.Infrastructure.Configurations
+namespace ShahAdminAuthApi.Data.Configurations
 {
     public class ReceiptConfiguration : IEntityTypeConfiguration<Receipt>
     {

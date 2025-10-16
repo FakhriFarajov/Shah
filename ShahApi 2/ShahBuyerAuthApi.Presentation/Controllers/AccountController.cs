@@ -62,7 +62,7 @@ public class AccountController : ControllerBase
     [HttpPost("ForgotPassword")]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDTO request)
     {
-        var result = await _accountService.ForgotPasswordAsync(request.Email, request.NewPassword, request.OldPassword);
+        var result = await _accountService.ForgotPasswordAsync(request);
         return Ok(result);
     }
 }

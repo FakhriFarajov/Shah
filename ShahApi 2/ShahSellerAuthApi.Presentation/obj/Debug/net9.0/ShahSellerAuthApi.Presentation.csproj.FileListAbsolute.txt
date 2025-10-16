@@ -181,3 +181,6 @@
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahSellerAuthApi.Presentation/obj/Debug/net9.0/ShahSellerAuthApi.Presentation.pdb
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahSellerAuthApi.Presentation/obj/Debug/net9.0/ShahSellerAuthApi.Presentation.genruntimeconfig.cache
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahSellerAuthApi.Presentation/obj/Debug/net9.0/ref/ShahSellerAuthApi.Presentation.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahSellerAuthApi.Presentation/bin/Debug/net9.0/FluentValidation.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahSellerAuthApi.Presentation/bin/Debug/net9.0/FluentValidation.AspNetCore.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahSellerAuthApi.Presentation/bin/Debug/net9.0/FluentValidation.DependencyInjectionExtensions.dll

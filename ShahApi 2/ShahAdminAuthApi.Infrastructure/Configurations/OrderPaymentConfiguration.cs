@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ShahAdminAuthApi.Core.Models;
-
 namespace ShahAdminAuthApi.Infrastructure.Configurations
 {
     public class OrderPaymentConfiguration : IEntityTypeConfiguration<OrderPayment>
@@ -10,13 +9,15 @@ namespace ShahAdminAuthApi.Infrastructure.Configurations
         {
             builder.HasKey(p => p.Id);
             builder.Property(p => p.Id).IsRequired().HasMaxLength(36);
+            builder.Property(p => p.OrderId).IsRequired().HasMaxLength(36);
             builder.Property(p => p.BuyerProfileId).IsRequired().HasMaxLength(36);
             builder.Property(p => p.TotalAmount).HasColumnType("decimal(18,2)");
             builder.Property(p => p.RefundAmount).HasColumnType("decimal(18,2)");
             
             // 🔹 One Order → One Payment
-            builder.HasMany(p => p.Orders)
+            builder.HasOne(p => p.Order)
                 .WithOne(o => o.OrderPayment)
+                .HasForeignKey<OrderPayment>(p => p.OrderId)
                 .OnDelete(DeleteBehavior.Restrict); // prevent multiple cascade paths
 
             // 🔹 One BuyerProfile → One Payment

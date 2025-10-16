@@ -8,8 +8,8 @@ using ShahSellerAuthApi.Application.Services.Interfaces;
 using ShahSellerAuthApi.Application.Utils;
 using ShahSellerAuthApi.Contracts.DTOs.Request;
 using ShahSellerAuthApi.Contracts.DTOs.Response;
+using ShahSellerAuthApi.Core.Models;
 using ShahSellerAuthApi.Data.Enums;
-using ShahSellerAuthApi.Data.Models;
 using ShahSellerAuthApi.Infrastructure.Contexts;
 using static BCrypt.Net.BCrypt;
 
@@ -31,27 +31,76 @@ public class AccountService : IAccountService
     }
     public async Task<Result> RegisterSellerAsync(SellerRegisterRequestDTO request)
     {
-        // Normalize email to lowercase
+        // Check for existing user
         var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == request.Email.ToLower());
         if (existingUser != null)
             return Result.Error("Email is already registered.", 409);
         
+        var existingStoreEmail = await _context.StoreInfos.FirstOrDefaultAsync(u => u.StoreEmail.ToLower() == request.Email.ToLower());
+        if (existingStoreEmail != null)
+            return Result.Error("Store Email is already registered.", 409);
+
+        // Validate CategoryId if provided
+        string? categoryId = string.IsNullOrWhiteSpace(request.CategoryId) ? null : request.CategoryId;
+        if (categoryId != null)
+        {
+            var categoryExists = await _context.Categories.AnyAsync(c => c.Id == categoryId);
+            if (!categoryExists)
+                return Result.Error("CategoryId does not exist.", 400);
+        }
+
+        // Map and create User
         var userToAdd = _mapper.Map<User>(request);
         userToAdd.Password = HashPassword(request.Password);
         userToAdd.Role = Role.Seller;
         _context.Users.Add(userToAdd);
         await _context.SaveChangesAsync(); // Save to generate UserId
-        
-        var taxInfo = _mapper.Map<SellerTaxInfo>(request);
-        
-        
-        
-        
 
+        // Map and create SellerTaxInfo
+        var storeTaxInfo = _mapper.Map<SellerTaxInfo>(request);
+        _context.SellerTaxInfos.Add(storeTaxInfo);
+        await _context.SaveChangesAsync(); // Save to generate IDs
+
+        // Map and create SellerProfile (StoreInfoId = null for now)
+        var sellerProfile = _mapper.Map<SellerProfile>(request);
+        sellerProfile.UserId = userToAdd.Id;
+        sellerProfile.SellerTaxInfoId = storeTaxInfo.Id;
+        sellerProfile.IsVerified = false;
+        sellerProfile.Passport = request.Passport;
+        sellerProfile.StoreInfoId = null; // StoreInfo not created yet
+        _context.SellerProfiles.Add(sellerProfile);
+        await _context.SaveChangesAsync(); // Save to generate SellerProfileId
+
+        // Map and create Address
+        var address = _mapper.Map<Address>(request);
+
+        // Map and create StoreInfo (set SellerProfileId before saving)
+        var storeInfo = _mapper.Map<StoreInfo>(request);
+        storeInfo.CategoryId = categoryId;
+        storeInfo.AddressId = address.Id; // Link Address to StoreInfo
+        storeInfo.SellerProfileId = sellerProfile.Id; // Set SellerProfileId before saving
+        address.StoreInfoId = storeInfo.Id;
+        _context.Addresses.Add(address);
+        _context.StoreInfos.Add(storeInfo);
+        await _context.SaveChangesAsync(); // Save to generate StoreInfoId
+
+        // Update SellerProfile with StoreInfoId
+        sellerProfile.StoreInfoId = storeInfo.Id;
+        _context.SellerProfiles.Update(sellerProfile);
+        await _context.SaveChangesAsync();
+
+        // Link SellerProfile to User
+        userToAdd.SellerProfileId = sellerProfile.Id;
+        _context.Users.Update(userToAdd);
+        await _context.SaveChangesAsync();
+
+        // Link SellerProfileId to SellerTaxInfo
+        storeTaxInfo.SellerProfileId = sellerProfile.Id;
+        _context.SellerTaxInfos.Update(storeTaxInfo);
+        await _context.SaveChangesAsync();
 
         return Result.Success("Seller registered successfully");
     }
-
 
     public async Task ConfirmEmailAsync(ClaimsPrincipal userClaims, string token, HttpContext context)
     {
@@ -91,5 +140,4 @@ public class AccountService : IAccountService
 
         return Result.Success("Password has been reset successfully.");
     }
-    
 }

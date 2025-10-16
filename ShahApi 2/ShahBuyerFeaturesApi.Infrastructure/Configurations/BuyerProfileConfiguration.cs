@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ShahBuyerFeaturesApi.Core.Models;
+
 namespace ShahBuyerFeaturesApi.Infrastructure.Configurations
 {
     public class BuyerProfileConfiguration : IEntityTypeConfiguration<BuyerProfile>
@@ -17,12 +18,12 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Configurations
                    .WithOne(u => u.BuyerProfile)
                    .HasForeignKey<BuyerProfile>(bp => bp.UserId)
                    .OnDelete(DeleteBehavior.Cascade);
-
-            // Change relationship to one-to-one
-            builder.HasOne(bp => bp.Address)
-                   .WithOne(a => a.BuyerProfile)
-                   .HasForeignKey<BuyerProfile>(bp => bp.AddressId)
-                   .OnDelete(DeleteBehavior.SetNull);
+            
+            
+                builder.HasOne(bp => bp.Address)
+                     .WithOne(a => a.BuyerProfile)
+                     .HasForeignKey<BuyerProfile>(bp => bp.AddressId)
+                     .OnDelete(DeleteBehavior.SetNull);
             
             builder.HasMany(bp => bp.Favorites)
                    .WithOne(f => f.BuyerProfile)

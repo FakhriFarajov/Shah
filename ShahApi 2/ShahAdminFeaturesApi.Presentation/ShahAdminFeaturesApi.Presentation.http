@@ -1,0 +1,6 @@
+@ShahAdminFeaturesApi.Presentation_HostAddress = http://localhost:5225
+
+GET {{ShahAdminFeaturesApi.Presentation_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

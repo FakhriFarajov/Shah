@@ -1,9 +1,7 @@
-
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using ShahSellerAuthApi.Data.Models;
 
-namespace ShahSellerAuthApi.Infrastructure.Configurations
+namespace ShahSellerAuthApi.Infrastraction.Configurations
 {
     public class CategoryConfiguration : IEntityTypeConfiguration<Category>
     {

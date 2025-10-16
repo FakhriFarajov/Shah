@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "cHmu4FBoj2c=",
+  "dgSpecHash": "kSq2olz0Lvc=",
   "success": true,
   "projectFilePath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAdminAuthApi.Presentation/ShahAdminAuthApi.Presentation.csproj",
   "expectedPackageFiles": [
@@ -10,6 +10,9 @@
     "/Users/fakhrifarajov/.nuget/packages/azure.identity/1.11.4/azure.identity.1.11.4.nupkg.sha512",
     "/Users/fakhrifarajov/.nuget/packages/bcrypt.net-next/4.0.3/bcrypt.net-next.4.0.3.nupkg.sha512",
     "/Users/fakhrifarajov/.nuget/packages/communitytoolkit.highperformance/8.2.2/communitytoolkit.highperformance.8.2.2.nupkg.sha512",
+    "/Users/fakhrifarajov/.nuget/packages/fluentvalidation/12.0.0/fluentvalidation.12.0.0.nupkg.sha512",
+    "/Users/fakhrifarajov/.nuget/packages/fluentvalidation.aspnetcore/11.3.1/fluentvalidation.aspnetcore.11.3.1.nupkg.sha512",
+    "/Users/fakhrifarajov/.nuget/packages/fluentvalidation.dependencyinjectionextensions/11.11.0/fluentvalidation.dependencyinjectionextensions.11.11.0.nupkg.sha512",
     "/Users/fakhrifarajov/.nuget/packages/humanizer.core/2.14.1/humanizer.core.2.14.1.nupkg.sha512",
     "/Users/fakhrifarajov/.nuget/packages/microsoft.aspnetcore.authentication.jwtbearer/9.0.8/microsoft.aspnetcore.authentication.jwtbearer.9.0.8.nupkg.sha512",
     "/Users/fakhrifarajov/.nuget/packages/microsoft.aspnetcore.hosting/2.3.0/microsoft.aspnetcore.hosting.2.3.0.nupkg.sha512",

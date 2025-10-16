@@ -1,7 +1,6 @@
-using ShahBuyerFeaturesApi.Core.Models;
-
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using ShahBuyerFeaturesApi.Core.Models;
 
 namespace ShahBuyerFeaturesApi.Infrastructure.Configurations
 {
@@ -32,15 +31,10 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Configurations
                      builder.Property(a => a.PostalCode)
                             .IsRequired()
                             .HasMaxLength(20);
-
-                     builder.Property(a => a.Country)
-                            .IsRequired()
-                            .HasMaxLength(100);
-
-                     // Relationships
+                     
                      builder.HasOne(a => a.BuyerProfile)
                             .WithOne(bp => bp.Address)
-                            .HasForeignKey<Address>(a => a.BuyerProfileId)
+                            .HasForeignKey<BuyerProfile>(bp => bp.AddressId)
                             .OnDelete(DeleteBehavior.SetNull);
 
                      // Fix: Warehouse relationship should be one-to-one
@@ -50,9 +44,14 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Configurations
                             .OnDelete(DeleteBehavior.SetNull);
 
                      builder.HasOne(a => a.StoreInfo)
-                            .WithOne(a => a.Address)
-                            .HasForeignKey<StoreInfo>(a => a.AddressId)
-                            .OnDelete(DeleteBehavior.SetNull);
+                            .WithOne(si => si.Address)
+                            .HasForeignKey<Address>(a => a.StoreInfoId)
+                            .OnDelete(DeleteBehavior.Cascade);
+                     
+                     builder.HasOne(a => a.Country)
+                            .WithMany(c => c.Addresses)
+                            .HasForeignKey(a => a.CountryId)
+                            .OnDelete(DeleteBehavior.Restrict);
                             
               }
        }

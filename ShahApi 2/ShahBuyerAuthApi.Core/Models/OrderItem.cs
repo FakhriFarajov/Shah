@@ -3,8 +3,8 @@ namespace ShahBuyerAuthApi.Core.Models
     public class OrderItem
     {
         public string Id { get; set; } = Guid.NewGuid().ToString();
-        
         public int Quantity { get; set; }
+
         public string OrderId { get; set; } = null!;
         public Order Order { get; set; } = null!;
 

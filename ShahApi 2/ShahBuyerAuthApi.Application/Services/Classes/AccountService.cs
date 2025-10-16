@@ -87,17 +87,23 @@ public class AccountService : IAccountService
         
         return Result.Success("Email confirmed");
     }
-
-    public async Task<Result> ForgotPasswordAsync(string email, string newPassword, string OldPassword)
-    {
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
-        if (user == null || !Verify(OldPassword, user.Password))
-            return Result.Error("User with this email does not exist or the password is incorrect.", 404);
-
-        user.Password = HashPassword(newPassword);
-        await _context.SaveChangesAsync();
-
-        return Result.Success("Password has been reset successfully.");
-    }
     
+    public async Task<Result> ForgotPasswordAsync(ForgotPasswordRequestDTO request)
+    {
+        var user = await _context.Users.FindAsync(request.userId);
+        if (user == null)
+        {
+            return Result.Error("User not found", 404);
+        }
+    
+        if (!Verify(request.OldPassword, user.Password))
+        {
+            return Result.Error("Old password is incorrect", 400);
+        }
+    
+        user.Password = HashPassword(request.NewPassword);
+        await _context.SaveChangesAsync();
+    
+        return Result.Success("Password updated successfully");
+    }
 }

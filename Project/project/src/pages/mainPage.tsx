@@ -18,13 +18,12 @@ const slides = [
     "https://ir.ozone.ru/s3/cms/fb/ta5/wc1450/en-tur_desktop_2832x600_1.jpg",
     "https://ir.ozone.ru/s3/cms/c4/t38/wc1450/azengchina.jpg",
     "https://ir.ozone.ru/s3/cms/14/ta8/wc1450/2832x600.jpg"
-
-
 ]
 
 
 export default function Main() {
     const { t } = useTranslation();
+
 
     // For demo, generate a grid of products (replace with real data as needed)
     const products = generateSampleProducts(20);
@@ -32,6 +31,7 @@ export default function Main() {
     return (
         <>
             <NavBar />
+            {/* Show user logo and name at the top */}
             <div className="min-h-screen w-full bg-gray-100">
                 <div className="w-full max-w-7xl mx-auto p-2 sm:p-4">
                     <Carousel slides={slides} size={250} />
