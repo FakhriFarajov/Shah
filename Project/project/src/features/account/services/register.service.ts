@@ -4,6 +4,7 @@ import type {
   RegisterRequest,
   RegisterResponse
 } from "@/features/account/DTOs/account.interfaces";
+import { toast } from "sonner";
 
 export async function register(payload: RegisterRequest): Promise<RegisterResponse> {
   const { data } = await authHttp.post<RegisterResponse>("/Register", payload);
@@ -24,6 +25,7 @@ export async function forgotPassword(payload: ForgetPasswordRequest): Promise<{ 
     const { data } = await authHttp.post<{ success: boolean; error?: string }>("/ForgotPassword", payload);
     return data;
   } catch (error) {
+    toast.error("Failed to send forgot password request.");
     return { success: false, error: (error as Error).message };
   }
 }

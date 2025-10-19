@@ -20,12 +20,15 @@ namespace ShahBuyerAuthApi.Presentation.Controllers
             _buyerService = buyerService;
         }
         
-        [Authorize]
+        
+    [Authorize(Policy = "BuyerPolicy")] //We need to send a Bearer token in the header to access this endpoint
+         
         [HttpGet("getProfile/{buyerId}")]
         public async Task<IActionResult> GetBuyerProfileByIdAsync(string buyerId)
             => Ok(await _buyerService.GetBuyerByIdAsync(buyerId));
         
-        [Authorize]
+    [Authorize(Policy = "BuyerPolicy")] //We need to send a Bearer token in the header to access this endpoint
+        
         [HttpPut("editProfile/{buyerId}")]
         public async Task<IActionResult> EditBuyerProfileAsync(string buyerId, [FromBody] EditBuyerRequestDTO dto)
         {

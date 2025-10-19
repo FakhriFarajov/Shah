@@ -4,21 +4,21 @@ export interface RegisterRequest {
   Email: string;
   Phone: string;
   Passport: string;
-  CountryCitizenship: number; // Use enum value
+  CountryCitizenshipId: number; // Use enum value
   Password: string;
   ConfirmPassword: string;
-  StoreLogoUrl: string;
+  StoreLogo: string;
   StoreName: string;
   StoreDescription: string;
   StoreContactPhone: string;
   StoreContactEmail: string;
-  TaxIdType: number; // Use enum value
-  TaxIdNumber: string;
+  TaxId: number; // Use enum value
+  TaxNumber: string;
   Street: string;
   City: string;
   State: string;
   PostalCode: string;
-  StoreCountryCode: number; // Use enum value
+  StoreCountryCodeId: number; // Use enum value
   CategoryId?: string | null;
 }
 export interface RegisterResponse {
@@ -35,8 +35,10 @@ export interface ForgetPasswordRequest {
   userId: string;
   oldPassword: string;
   newPassword: string;
+  confirmPassword: string;
 }
 export interface Tax {
   id: number;
   name: string;
+  RegexPattern: string;
 }

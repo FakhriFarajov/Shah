@@ -59,6 +59,7 @@ export interface BuyerProfileResponseDTO {
   addressId: string;
   userId: string;
   email: string;
+  isEmailConfirmed: boolean;
   name: string;
   surname: string;
   phone: string;

@@ -7,7 +7,7 @@ import { TypedResult, type ApiResponse } from "@/shared/types";
 const AUTH_API_KEY = import.meta.env.VITE_AUTH_API || "http://localhost:5258";
 
 export const authHttp = axios.create({
-  baseURL: `${AUTH_API_KEY}/api/Account`,
+  baseURL: `${AUTH_API_KEY}/api/Buyer/Account`,
   withCredentials: true,
   timeout: 10000,
 });

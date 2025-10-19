@@ -11,7 +11,7 @@ using SixLabors.ImageSharp.Formats.Webp;
 
 namespace ShahBuyerFeaturesApi.Application.Services.Classes
 {
-    public class ImageService : IImageService
+    public class ImageService
     {
         private readonly IMinioClient _minioClient;
         private readonly string _bucketName;

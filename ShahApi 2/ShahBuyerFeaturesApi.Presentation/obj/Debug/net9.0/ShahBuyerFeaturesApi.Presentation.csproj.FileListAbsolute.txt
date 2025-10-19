@@ -153,16 +153,10 @@
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Presentation/bin/Debug/net9.0/runtimes/win/lib/net6.0/System.Runtime.Caching.dll
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Presentation/bin/Debug/net9.0/runtimes/win/lib/net6.0/System.Security.Cryptography.ProtectedData.dll
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Presentation/bin/Debug/net9.0/runtimes/win/lib/net6.0/System.Windows.Extensions.dll
-/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Presentation/bin/Debug/net9.0/ShahBuyerAuthApi.Application.dll
-/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Presentation/bin/Debug/net9.0/ShahBuyerAuthApi.Core.dll
-/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Presentation/bin/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.dll
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Presentation/bin/Debug/net9.0/ShahBuyerFeaturesApi.Application.dll
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Presentation/bin/Debug/net9.0/ShahBuyerFeaturesApi.Core.dll
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Presentation/bin/Debug/net9.0/ShahBuyerFeaturesApi.Infrastructure.dll
-/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Presentation/bin/Debug/net9.0/ShahBuyerAuthApi.Application.pdb
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Presentation/bin/Debug/net9.0/ShahBuyerFeaturesApi.Application.pdb
-/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Presentation/bin/Debug/net9.0/ShahBuyerAuthApi.Core.pdb
-/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Presentation/bin/Debug/net9.0/ShahBuyerAuthApi.Infrastructure.pdb
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Presentation/bin/Debug/net9.0/ShahBuyerFeaturesApi.Core.pdb
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Presentation/bin/Debug/net9.0/ShahBuyerFeaturesApi.Infrastructure.pdb
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Presentation/obj/Debug/net9.0/ShahBuyerFeaturesApi.Presentation.csproj.AssemblyReference.cache
@@ -188,3 +182,9 @@
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Presentation/obj/Debug/net9.0/ShahBuyerFeaturesApi.Presentation.pdb
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Presentation/obj/Debug/net9.0/ShahBuyerFeaturesApi.Presentation.genruntimeconfig.cache
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Presentation/obj/Debug/net9.0/ref/ShahBuyerFeaturesApi.Presentation.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Presentation/bin/Debug/net9.0/ShahAuthApi.Application.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Presentation/bin/Debug/net9.0/ShahAuthApi.Core.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Presentation/bin/Debug/net9.0/ShahAuthApi.Infrastructure.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Presentation/bin/Debug/net9.0/ShahAuthApi.Application.pdb
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Presentation/bin/Debug/net9.0/ShahAuthApi.Core.pdb
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Presentation/bin/Debug/net9.0/ShahAuthApi.Infrastructure.pdb

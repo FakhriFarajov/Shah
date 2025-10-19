@@ -2232,7 +2232,7 @@
           }
         }
       },
-      "ShahBuyerAuthApi.Application/1.0.0": {
+      "ShahAuthApi.Application/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v9.0",
         "dependencies": {
@@ -2242,21 +2242,21 @@
           "Microsoft.AspNetCore.Hosting.Abstractions": "2.3.0",
           "Microsoft.AspNetCore.Http": "2.3.0",
           "Minio.AspNetCore": "6.0.1",
-          "ShahBuyerAuthApi.Core": "1.0.0",
-          "ShahBuyerAuthApi.Infrastructure": "1.0.0",
+          "ShahAuthApi.Core": "1.0.0",
+          "ShahAuthApi.Infrastructure": "1.0.0",
           "SixLabors.ImageSharp": "3.1.11"
         },
         "compile": {
-          "bin/placeholder/ShahBuyerAuthApi.Application.dll": {}
+          "bin/placeholder/ShahAuthApi.Application.dll": {}
         },
         "runtime": {
-          "bin/placeholder/ShahBuyerAuthApi.Application.dll": {}
+          "bin/placeholder/ShahAuthApi.Application.dll": {}
         },
         "frameworkReferences": [
           "Microsoft.AspNetCore.App"
         ]
       },
-      "ShahBuyerAuthApi.Core/1.0.0": {
+      "ShahAuthApi.Core/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v9.0",
         "dependencies": {
@@ -2265,13 +2265,13 @@
           "SixLabors.ImageSharp": "3.1.11"
         },
         "compile": {
-          "bin/placeholder/ShahBuyerAuthApi.Core.dll": {}
+          "bin/placeholder/ShahAuthApi.Core.dll": {}
         },
         "runtime": {
-          "bin/placeholder/ShahBuyerAuthApi.Core.dll": {}
+          "bin/placeholder/ShahAuthApi.Core.dll": {}
         }
       },
-      "ShahBuyerAuthApi.Infrastructure/1.0.0": {
+      "ShahAuthApi.Infrastructure/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v9.0",
         "dependencies": {
@@ -2287,14 +2287,14 @@
           "Microsoft.EntityFrameworkCore.Tools": "9.0.8",
           "Minio.AspNetCore": "6.0.1",
           "Newtonsoft.Json": "13.0.3",
-          "ShahBuyerAuthApi.Core": "1.0.0",
+          "ShahAuthApi.Core": "1.0.0",
           "SixLabors.ImageSharp": "3.1.11"
         },
         "compile": {
-          "bin/placeholder/ShahBuyerAuthApi.Infrastructure.dll": {}
+          "bin/placeholder/ShahAuthApi.Infrastructure.dll": {}
         },
         "runtime": {
-          "bin/placeholder/ShahBuyerAuthApi.Infrastructure.dll": {}
+          "bin/placeholder/ShahAuthApi.Infrastructure.dll": {}
         },
         "frameworkReferences": [
           "Microsoft.AspNetCore.App"
@@ -6142,20 +6142,20 @@
         "useSharedDesignerContext.txt"
       ]
     },
-    "ShahBuyerAuthApi.Application/1.0.0": {
+    "ShahAuthApi.Application/1.0.0": {
       "type": "project",
-      "path": "../ShahBuyerAuthApi.Application/ShahBuyerAuthApi.Application.csproj",
-      "msbuildProject": "../ShahBuyerAuthApi.Application/ShahBuyerAuthApi.Application.csproj"
+      "path": "../ShahAuthApi.Application/ShahAuthApi.Application.csproj",
+      "msbuildProject": "../ShahAuthApi.Application/ShahAuthApi.Application.csproj"
     },
-    "ShahBuyerAuthApi.Core/1.0.0": {
+    "ShahAuthApi.Core/1.0.0": {
       "type": "project",
-      "path": "../ShahBuyerAuthApi.Core/ShahBuyerAuthApi.Core.csproj",
-      "msbuildProject": "../ShahBuyerAuthApi.Core/ShahBuyerAuthApi.Core.csproj"
+      "path": "../ShahAuthApi.Core/ShahAuthApi.Core.csproj",
+      "msbuildProject": "../ShahAuthApi.Core/ShahAuthApi.Core.csproj"
     },
-    "ShahBuyerAuthApi.Infrastructure/1.0.0": {
+    "ShahAuthApi.Infrastructure/1.0.0": {
       "type": "project",
-      "path": "../ShahBuyerAuthApi.Infrastructure/ShahBuyerAuthApi.Infrastructure.csproj",
-      "msbuildProject": "../ShahBuyerAuthApi.Infrastructure/ShahBuyerAuthApi.Infrastructure.csproj"
+      "path": "../ShahAuthApi.Infrastructure/ShahAuthApi.Infrastructure.csproj",
+      "msbuildProject": "../ShahAuthApi.Infrastructure/ShahAuthApi.Infrastructure.csproj"
     },
     "ShahBuyerFeaturesApi.Application/1.0.0": {
       "type": "project",
@@ -6179,7 +6179,7 @@
       "Microsoft.AspNetCore.OpenApi >= 9.0.2",
       "Minio.AspNetCore >= 6.0.1",
       "Scalar.AspNetCore >= 2.7.2",
-      "ShahBuyerAuthApi.Application >= 1.0.0",
+      "ShahAuthApi.Application >= 1.0.0",
       "ShahBuyerFeaturesApi.Application >= 1.0.0",
       "SixLabors.ImageSharp >= 3.1.11"
     ]
@@ -6209,8 +6209,8 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "projectReferences": {
-            "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Application/ShahBuyerAuthApi.Application.csproj": {
-              "projectPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Application/ShahBuyerAuthApi.Application.csproj"
+            "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Application/ShahAuthApi.Application.csproj": {
+              "projectPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Application/ShahAuthApi.Application.csproj"
             },
             "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Application/ShahBuyerFeaturesApi.Application.csproj": {
               "projectPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Application/ShahBuyerFeaturesApi.Application.csproj"

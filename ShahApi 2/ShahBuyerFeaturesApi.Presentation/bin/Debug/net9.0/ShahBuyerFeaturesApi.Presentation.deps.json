@@ -12,7 +12,7 @@
           "Microsoft.AspNetCore.OpenApi": "9.0.2",
           "Minio.AspNetCore": "6.0.1",
           "Scalar.AspNetCore": "2.7.2",
-          "ShahBuyerAuthApi.Application": "1.0.0",
+          "ShahAuthApi.Application": "1.0.0",
           "ShahBuyerFeaturesApi.Application": "1.0.0",
           "SixLabors.ImageSharp": "3.1.11"
         },
@@ -1277,7 +1277,7 @@
           }
         }
       },
-      "ShahBuyerAuthApi.Application/1.0.0": {
+      "ShahAuthApi.Application/1.0.0": {
         "dependencies": {
           "AutoMapper.Extensions.Microsoft.DependencyInjection": "12.0.1",
           "BCrypt.Net-Next": "4.0.3",
@@ -1285,31 +1285,31 @@
           "Microsoft.AspNetCore.Hosting.Abstractions": "2.3.0",
           "Microsoft.AspNetCore.Http": "2.3.0",
           "Minio.AspNetCore": "6.0.1",
-          "ShahBuyerAuthApi.Core": "1.0.0",
-          "ShahBuyerAuthApi.Infrastructure": "1.0.0",
+          "ShahAuthApi.Core": "1.0.0",
+          "ShahAuthApi.Infrastructure": "1.0.0",
           "SixLabors.ImageSharp": "3.1.11"
         },
         "runtime": {
-          "ShahBuyerAuthApi.Application.dll": {
+          "ShahAuthApi.Application.dll": {
             "assemblyVersion": "1.0.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
       },
-      "ShahBuyerAuthApi.Core/1.0.0": {
+      "ShahAuthApi.Core/1.0.0": {
         "dependencies": {
           "Microsoft.EntityFrameworkCore": "9.0.8",
           "Minio.AspNetCore": "6.0.1",
           "SixLabors.ImageSharp": "3.1.11"
         },
         "runtime": {
-          "ShahBuyerAuthApi.Core.dll": {
+          "ShahAuthApi.Core.dll": {
             "assemblyVersion": "1.0.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
       },
-      "ShahBuyerAuthApi.Infrastructure/1.0.0": {
+      "ShahAuthApi.Infrastructure/1.0.0": {
         "dependencies": {
           "AutoMapper.Extensions.Microsoft.DependencyInjection": "12.0.1",
           "FluentValidation": "12.0.0",
@@ -1323,11 +1323,11 @@
           "Microsoft.EntityFrameworkCore.Tools": "9.0.8",
           "Minio.AspNetCore": "6.0.1",
           "Newtonsoft.Json": "13.0.3",
-          "ShahBuyerAuthApi.Core": "1.0.0",
+          "ShahAuthApi.Core": "1.0.0",
           "SixLabors.ImageSharp": "3.1.11"
         },
         "runtime": {
-          "ShahBuyerAuthApi.Infrastructure.dll": {
+          "ShahAuthApi.Infrastructure.dll": {
             "assemblyVersion": "1.0.0.0",
             "fileVersion": "1.0.0.0"
           }
@@ -2195,17 +2195,17 @@
       "path": "system.windows.extensions/6.0.0",
       "hashPath": "system.windows.extensions.6.0.0.nupkg.sha512"
     },
-    "ShahBuyerAuthApi.Application/1.0.0": {
+    "ShahAuthApi.Application/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "ShahBuyerAuthApi.Core/1.0.0": {
+    "ShahAuthApi.Core/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "ShahBuyerAuthApi.Infrastructure/1.0.0": {
+    "ShahAuthApi.Infrastructure/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

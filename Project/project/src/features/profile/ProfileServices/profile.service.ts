@@ -4,7 +4,9 @@ import type { BuyerProfileResponseDTO, EditBuyerRequestDTO } from "@/features/pr
 
 // Buyer profile
 export async function getBuyerProfile(id: string): Promise<BuyerProfileResponseDTO> {
+  console.log("Fetching profile for ID:", id);
   const { data } = await authHttp.get(`/getProfile/${id}`);
+  console.log("Get response:", data);
   return data;
 }
 

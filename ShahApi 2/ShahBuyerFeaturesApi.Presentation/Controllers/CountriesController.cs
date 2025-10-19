@@ -19,7 +19,6 @@ namespace ShahBuyerFeaturesApi.Presentation.Controllers
             _countryCodeService = countryCodeService;
         }
         
-        
         [HttpGet("all")]
         public async Task<IActionResult> GetAllCountryCodesAsync() 
             => Ok(await _countryCodeService.GetAllCountryCodesAsync());

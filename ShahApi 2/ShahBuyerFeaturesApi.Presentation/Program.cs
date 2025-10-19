@@ -1,5 +1,3 @@
-
-using ShahBuyerAuthApi.Presentation.Extensions;
 using ShahBuyerFeaturesApi.Presentation.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,6 +5,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 
 builder.Services.AddApplicationServices(builder.Configuration);
+
+builder.Services.AddControllers();
 
 var app = builder.Build();
 

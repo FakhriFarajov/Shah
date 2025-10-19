@@ -5,6 +5,9 @@ import { Label } from "@/components/ui/label"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
+import { AuthContext } from "@/features/auth/contexts/AuthProvider"
+import { useContext } from "react";
+import { useNavigate } from "react-router"
 
 export default function LoginForm({
   className,
@@ -13,16 +16,17 @@ export default function LoginForm({
   const { t } = useTranslation()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const navigator = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const { login } = useContext(AuthContext);
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Get user from localStorage
-    const user = JSON.parse(localStorage.getItem("user") || "null")
-    if (user && user.email === email && user.password === password) {
-      localStorage.setItem("userToken", "demoToken")
-      window.location.href = "/profile"
-    } else {
-      toast.error(t('Password or email is incorrect'))
+    var result = await login({ email, password });
+    if (result.success) {
+      toast.success(t('Logged in successfully!'));
+      navigator('/home');
+      return;
     }
   }
 

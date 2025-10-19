@@ -3,11 +3,11 @@ import { tokenStorage } from "@/shared/tokenStorage";
 
 
 export async function uploadProfileImage(file: File): Promise<string> {
-  const AUTH_API_KEY = import.meta.env.VITE_AUTH_API || "http://localhost:5298";
+  const VITE_FEATURES_API = import.meta.env.VITE_FEATURES_API || "http://localhost:5298";
   const formData = new FormData();
   formData.append("file", file);
   const response = await axios.post(
-    AUTH_API_KEY + "/api/Image/UploadImage",
+    VITE_FEATURES_API + "/api/BuyerFeatures/Image/UploadImage",
     formData,
     {
       headers: {
@@ -24,10 +24,10 @@ export async function uploadProfileImage(file: File): Promise<string> {
 }
 
 
-export async function getProfileImageUrl(objectName: string): Promise<string> {
-  const AUTH_API_KEY = import.meta.env.VITE_AUTH_API || "http://localhost:5298";
+export async function getProfileImage(objectName: string): Promise<string> {
+  const VITE_FEATURES_API = import.meta.env.VITE_FEATURES_API || "http://localhost:5298";
   const response = await axios.get(
-    `${AUTH_API_KEY}/api/Image/GetImage`,
+    `${VITE_FEATURES_API}/api/BuyerFeatures/Image/GetImage`,
     {
       params: { objectName },
       headers: { "Authorization": `Bearer ${tokenStorage.get()}` },

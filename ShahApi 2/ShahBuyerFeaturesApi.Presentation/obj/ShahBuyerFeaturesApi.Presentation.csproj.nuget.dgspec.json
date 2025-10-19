@@ -4,14 +4,14 @@
     "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Presentation/ShahBuyerFeaturesApi.Presentation.csproj": {}
   },
   "projects": {
-    "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Application/ShahBuyerAuthApi.Application.csproj": {
+    "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Application/ShahAuthApi.Application.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Application/ShahBuyerAuthApi.Application.csproj",
-        "projectName": "ShahBuyerAuthApi.Application",
-        "projectPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Application/ShahBuyerAuthApi.Application.csproj",
+        "projectUniqueName": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Application/ShahAuthApi.Application.csproj",
+        "projectName": "ShahAuthApi.Application",
+        "projectPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Application/ShahAuthApi.Application.csproj",
         "packagesPath": "/Users/fakhrifarajov/.nuget/packages/",
-        "outputPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Application/obj/",
+        "outputPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Application/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/Users/fakhrifarajov/.nuget/NuGet/NuGet.Config"
@@ -26,11 +26,11 @@
           "net9.0": {
             "targetAlias": "net9.0",
             "projectReferences": {
-              "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Core/ShahBuyerAuthApi.Core.csproj": {
-                "projectPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Core/ShahBuyerAuthApi.Core.csproj"
+              "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Core/ShahAuthApi.Core.csproj": {
+                "projectPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Core/ShahAuthApi.Core.csproj"
               },
-              "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/ShahBuyerAuthApi.Infrastructure.csproj": {
-                "projectPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/ShahBuyerAuthApi.Infrastructure.csproj"
+              "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Infrastructure/ShahAuthApi.Infrastructure.csproj": {
+                "projectPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Infrastructure/ShahAuthApi.Infrastructure.csproj"
               }
             }
           }
@@ -103,14 +103,14 @@
         }
       }
     },
-    "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Core/ShahBuyerAuthApi.Core.csproj": {
+    "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Core/ShahAuthApi.Core.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Core/ShahBuyerAuthApi.Core.csproj",
-        "projectName": "ShahBuyerAuthApi.Core",
-        "projectPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Core/ShahBuyerAuthApi.Core.csproj",
+        "projectUniqueName": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Core/ShahAuthApi.Core.csproj",
+        "projectName": "ShahAuthApi.Core",
+        "projectPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Core/ShahAuthApi.Core.csproj",
         "packagesPath": "/Users/fakhrifarajov/.nuget/packages/",
-        "outputPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Core/obj/",
+        "outputPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Core/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/Users/fakhrifarajov/.nuget/NuGet/NuGet.Config"
@@ -176,14 +176,14 @@
         }
       }
     },
-    "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/ShahBuyerAuthApi.Infrastructure.csproj": {
+    "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Infrastructure/ShahAuthApi.Infrastructure.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/ShahBuyerAuthApi.Infrastructure.csproj",
-        "projectName": "ShahBuyerAuthApi.Infrastructure",
-        "projectPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/ShahBuyerAuthApi.Infrastructure.csproj",
+        "projectUniqueName": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Infrastructure/ShahAuthApi.Infrastructure.csproj",
+        "projectName": "ShahAuthApi.Infrastructure",
+        "projectPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Infrastructure/ShahAuthApi.Infrastructure.csproj",
         "packagesPath": "/Users/fakhrifarajov/.nuget/packages/",
-        "outputPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Infrastructure/obj/",
+        "outputPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Infrastructure/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/Users/fakhrifarajov/.nuget/NuGet/NuGet.Config"
@@ -198,8 +198,8 @@
           "net9.0": {
             "targetAlias": "net9.0",
             "projectReferences": {
-              "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Core/ShahBuyerAuthApi.Core.csproj": {
-                "projectPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Core/ShahBuyerAuthApi.Core.csproj"
+              "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Core/ShahAuthApi.Core.csproj": {
+                "projectPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Core/ShahAuthApi.Core.csproj"
               }
             }
           }
@@ -610,8 +610,8 @@
           "net9.0": {
             "targetAlias": "net9.0",
             "projectReferences": {
-              "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Application/ShahBuyerAuthApi.Application.csproj": {
-                "projectPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerAuthApi.Application/ShahBuyerAuthApi.Application.csproj"
+              "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Application/ShahAuthApi.Application.csproj": {
+                "projectPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Application/ShahAuthApi.Application.csproj"
               },
               "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Application/ShahBuyerFeaturesApi.Application.csproj": {
                 "projectPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahBuyerFeaturesApi.Application/ShahBuyerFeaturesApi.Application.csproj"

@@ -30,5 +30,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src", "src/components/custom/map.tsx"]
+  "include": ["src", "src/components/custom/map.tsx", "src/shared/utils/.ts"]
 }

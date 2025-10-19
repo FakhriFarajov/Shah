@@ -11,33 +11,35 @@ import ReportPage from './pages/report'
 import ReviewsPage from './pages/reviews'
 import { Toaster } from 'sonner';
 import ProductDetailsPage from './pages/ProductDetails'
+import AuthProvider from './features/auth/contexts/AuthProvider'
 
 
 function App() {
 
   return (
     <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path='/main' element={<LandingPage />} />
-          <Route path='/login' element={<Login />} />
-          <Route path='/register' element={<Reg />} />
-          <Route path='/' element={<LandingPage />} />
-          <Route path='/home' element={<Main />} />
-          <Route path='/profile' element={<SellerProfile />} />
-          <Route path='/products' element={<ProductsPage />} />
-          <Route path='/product-details' element={<ProductDetailsPage />} />
-          <Route path='/orders' element={<OrdersPage />} />
-          <Route path='/report' element={<ReportPage />} />
-          <Route path='/reviews' element={<ReviewsPage />} />
-        </Routes>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path='/main' element={<LandingPage />} />
+            <Route path='/login' element={<Login />} />
+            <Route path='/register' element={<Reg />} />
+            <Route path='/' element={<LandingPage />} />
+            <Route path='/home' element={<Main />} />
+            <Route path='/profile' element={<SellerProfile />} />
+            <Route path='/products' element={<ProductsPage />} />
+            <Route path='/product-details' element={<ProductDetailsPage />} />
+            <Route path='/orders' element={<OrdersPage />} />
+            <Route path='/report' element={<ReportPage />} />
+            <Route path='/reviews' element={<ReviewsPage />} />
+          </Routes>
 
-      </BrowserRouter>
-      <Toaster
-        position="top-right"
-        richColors
-      />
-
+        </BrowserRouter>
+        <Toaster
+          position="top-right"
+          richColors
+        />
+      </AuthProvider>
     </div>
   )
 }

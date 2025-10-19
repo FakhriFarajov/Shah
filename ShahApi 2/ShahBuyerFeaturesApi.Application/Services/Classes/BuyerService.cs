@@ -5,16 +5,17 @@ using ShahBuyerFeaturesApi.Contracts.DTOs.Response;
 using ShahBuyerFeaturesApi.Core.DTOs.Request;
 using ShahBuyerFeaturesApi.Core.DTOs.Response;
 using ShahBuyerFeaturesApi.Infrastructure.Contexts;
+
 namespace ShahBuyerFeaturesApi.Application.Services.Classes;
 
 public class BuyerService : IBuyerService
 {
     private readonly ShahDbContext _context;
     private readonly IMapper _mapper;
-    private readonly IImageService _imageService;
+    private readonly ImageService _imageService;
     
 
-    public BuyerService(ShahDbContext context, IMapper mapper, IImageService imageService)
+    public BuyerService(ShahDbContext context, IMapper mapper, ImageService imageService)
     {
         _context = context;
         _mapper = mapper;
@@ -60,6 +61,7 @@ public class BuyerService : IBuyerService
             AddressId = profile.AddressId,
             UserId = profile.UserId,
             Email = profile.User.Email,
+            IsEmailConfirmed = profile.User.EmailConfirmed,
             Name = profile.User.Name,
             Surname = profile.User.Surname,
             Phone = profile.User.Phone,

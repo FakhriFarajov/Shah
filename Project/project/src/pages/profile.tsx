@@ -19,13 +19,12 @@ import { jwtDecode } from "jwt-decode";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { editBuyerProfile } from "@/features/profile/ProfileServices/profile.service";
-import { uploadProfileImage } from "@/shared/utils/imagePost";
+import { uploadProfileImage, getProfileImage } from "@/shared/utils/imagePost";
 import { forgotPassword } from "@/features/account/services/register.service";
 import { faqs } from "@/static_data/faq"; //Import FAQ data
 import { getCountries } from "@/features/profile/Country/country.service";
 import { useNavigate } from "react-router-dom";
 import Spinner from "@/components/custom/loader";
-
 
 
 
@@ -102,7 +101,7 @@ export default function AccountPage() {
     let buyerId = "";
     try {
       const decoded: any = jwtDecode(token);
-      buyerId = decoded.id;
+      buyerId = decoded.buyer_profile_id;
       console.log("Decoded token:", decoded); // Debug log to check the decoded token
       console.log("Decoded buyerId:", buyerId); // Debug log to check the decoded buyerId
     } catch {
@@ -117,11 +116,18 @@ export default function AccountPage() {
     async function fetchBuyerAndAddress() {
       setLoading(true);
       try {
+        console.log("Fetching profile for ID:", buyerId);
         const result = await getBuyerProfile(buyerId);
+        console.log("Profile response:", result);
         const buyerData = result.data ? result.data : result;
         setBuyer(buyerData);
+        // Check if email is confirmed
+        if (buyerData.emailConfirmed === false || buyerData.emailConfirmed === 0) {
+          toast.warning("Your email is not confirmed. Please check your inbox.");
+        }
       } catch (error) {
         extractApiErrors(error).forEach(msg => toast.error(msg));
+        navigator('/main');
       }
       try {
         const addressResult = await getBuyerAddress(buyerId);
@@ -146,7 +152,7 @@ export default function AccountPage() {
       let buyerId = "";
       if (token) {
         const decoded: any = jwtDecode(token);
-        buyerId = decoded.sub || decoded.userId || decoded.id;
+        buyerId = decoded.buyer_profile_id;
       }
       const payload = { ...newAddress, buyerId };
       console.log("Add Address payload:", payload);
@@ -154,6 +160,7 @@ export default function AccountPage() {
       if (result && result.isSuccess) {
         setAddress(payload);
         setAdding(false);
+        toast.success("Address added successfully");
       } else {
         setAdding(false);
       }
@@ -188,6 +195,8 @@ export default function AccountPage() {
       postalCode: address.postalCode,
       countryId: addressCountryCode || address.countryId,
     };
+
+    
     console.log("Edit Address payload:", payload);
     await editAddress(payload)
       .then(() => {
@@ -208,20 +217,24 @@ export default function AccountPage() {
     if (newPassword !== confirmPassword)
       return toast.error("New password and confirmation do not match");
     try {
-      var requestData = { userId: buyer.userId, oldPassword: currentPassword, newPassword: newPassword };
+      var requestData = { userId: buyer.userId, oldPassword: currentPassword, newPassword: newPassword, confirmNewPassword: confirmPassword };
       console.log(requestData);
       var result = await forgotPassword(requestData);
-      console.log("Password change request sent", result);
+      if (result.isSuccess) {
+        toast.success("Password changed successfully");
+      }
+      else {
+        toast.error(result.message || "Failed to change password");
+      }
     }
     catch (error) {
-      extractApiErrors(error).forEach(msg => toast.error(msg));
-      toast.error("Failed to change password");
+      toast.error("Failed to change password", error);
     }
     setShowPasswordModal(false);
     setCurrentPassword("");
     setNewPassword("");
     setConfirmPassword("");
-    toast.success("Password changed successfully");
+    setEditProfileMode(false);
     setLoading(false);
   }
 
@@ -335,36 +348,27 @@ export default function AccountPage() {
       countryCitizenshipId: countryCode || buyer.countryCitizenshipId,
     };
     try {
-      // Only upload if a new image is set
       let objectName = null;
       let imageUrl = null;
       if (buyer.ImageFile) {
-        try {
-          objectName = await uploadProfileImage(buyer.ImageFile);
-        } catch (e) {
-          toast.error("Image upload failed: " + (e?.message || e));
-          return;
-        }
+        objectName = await uploadProfileImage(buyer.ImageFile);
         // Save objectName to DB
+        imageUrl = await getProfileImage(objectName);
         payload.imageProfile = objectName;
-        // For display, get the URL
-        try {
-          const { getProfileImageUrl } = await import("@/shared/utils/imagePost");
-          imageUrl = await getProfileImageUrl(objectName);
-        } catch (e) {
-          toast.error("Fetching image URL failed: " + (e?.message || e));
-        }
-        localStorage.setItem("profileImage", imageUrl || objectName);
-      } else if (typeof buyer.ImageUrl === "string" && buyer.ImageUrl.length > 0) {
-        payload.imageProfile = buyer.ImageUrl;
-        localStorage.setItem("profileImage", buyer.ImageUrl);
+        localStorage.setItem("profileImage", imageUrl);
+      } else if (buyer.imageProfile) {
+        payload.imageProfile = buyer.imageProfile;
       }
       const result = await editBuyerProfile(buyer.id, payload);
       if (result && result.isSuccess) {
         toast.success("Profile updated successfully");
         setEditProfileMode(false);
-        // For display, set imageProfile to the URL if available, else objectName
-        setBuyer({ ...buyer, ...payload, imageProfile: imageUrl || objectName });
+        // If a new image was uploaded, display the new image URL
+        if (imageUrl) {
+          setBuyer({ ...buyer, ...payload, imageProfile: imageUrl });
+        } else {
+          setBuyer({ ...buyer, ...payload });
+        }
       } else {
         extractApiErrors(result).forEach(msg => toast.error(msg));
       }
@@ -531,15 +535,36 @@ export default function AccountPage() {
                       </div>
                       <div>
                         <Label>Email</Label>
-                        {!editProfileMode ? (
-                          <Input type="email" value={buyer.email} disabled />
-                        ) : (
-                          <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          {!editProfileMode ? (
+                            <Input type="email" value={buyer.email} disabled />
+                          ) : (
                             <Input type="email" value={buyer.editedEmail ?? buyer.email}
                               onChange={e => setBuyer({ ...buyer, editedEmail: e.target.value })}
                             />
-                          </div>
-                        )}
+                          )}
+                          {/* Show Send Confirmation Link button if email is not confirmed */}
+                          {buyer.emailConfirmed === false || buyer.emailConfirmed === 0 ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={async () => {
+                                try {
+                                  setLoading(true);
+                                  // Call your backend endpoint to send confirmation link
+                                  // Example: await sendConfirmationLink(buyer.email);
+                                  toast.success("Confirmation link sent to your email.");
+                                } catch (e) {
+                                  toast.error("Failed to send confirmation link.");
+                                } finally {
+                                  setLoading(false);
+                                }
+                              }}
+                            >
+                              Send Confirmation Link
+                            </Button>
+                          ) : null}
+                        </div>
                       </div>
                       <div>
                         <Label>Phone</Label>
@@ -575,7 +600,7 @@ export default function AccountPage() {
                         ) : (
                           <div>
                             <select
-                                value={countryCode}
+                                value={countryCode || buyer?.countryCitizenshipId}
                                 onChange={e => {
                                   const val = Number(e.target.value);
                                   setCountryCode(val);

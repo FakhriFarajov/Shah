@@ -17,4 +17,5 @@ export default interface ForgetPasswordRequest {
     userId: string; 
     oldPassword: string;
     newPassword: string;
+    confirmNewPassword: string;
 }

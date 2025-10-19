@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom"
 import { useContext } from "react";
 import { AuthContext } from "@/features/auth/contexts/AuthProvider";
 
+
 export default function LoginForm({
   className,
   ...props
@@ -30,7 +31,7 @@ export default function LoginForm({
       navigator("/main") //take the userInfo from the localStorage or claims in the token
       toast.success(t('Successfully logged in'))
     } else {
-      toast.error(t('Password or email is incorrect'))
+      toast.error(t('Password or email is incorrect or the account does not exist'))
     }
   }
 

@@ -5,15 +5,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using FluentValidation;
 using FluentValidation.AspNetCore;
-using ShahBuyerAuthApi.Application.Utils;
+using ShahAuthApi.Application.Services.Utils;
 using ShahBuyerFeaturesApi.Application.Services.Classes;
 using ShahBuyerFeaturesApi.Application.Services.Interfaces;
 using ShahBuyerFeaturesApi.Application.Utils.GetChain;
 using ShahBuyerFeaturesApi.Infrastructure.MappingConfigurations;
 using ShahBuyerFeaturesApi.Infrastructure.Contexts;
 using ShahBuyerFeaturesApi.Infrastructure.Middlewares;
-using ShahBuyerFeaturesApi.Presentation.Controllers;
-
 
 namespace ShahBuyerFeaturesApi.Presentation.Extensions;
 
@@ -31,7 +29,8 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IBuyerService, BuyerService>();
         services.AddScoped<ICartService, CartService>();
         services.AddScoped<IFavoriteService, FavoriteService>();
-        services.AddScoped<IImageService, ImageService>();
+        services.AddScoped< ImageService>();
+
         services.AddScoped<CountryCodeService>();
 
         
@@ -46,7 +45,7 @@ public static class ApplicationServiceExtensions
             .AddFluentValidationAutoValidation()
             .AddFluentValidationClientsideAdapters();
         // Register validators from Infrastructure assembly
-        services.AddValidatorsFromAssemblyContaining<ShahBuyerFeaturesApi.Infrastructure.Validators.BuyerEditRequestValidator>();
+        services.AddValidatorsFromAssemblyContaining<ShahBuyerFeaturesApi.Application.Validators.BuyerEditRequestValidator>();
 
 
         

@@ -61,7 +61,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
         name: decoded.name ?? "",
         surname: decoded.surname ?? "",
         email: decoded.email ?? "",
-        imageUrl: decoded.imageUrl ?? undefined
+        imageUrl: decoded.imageUrl,
       };
       setUser(mappedUser);
     }

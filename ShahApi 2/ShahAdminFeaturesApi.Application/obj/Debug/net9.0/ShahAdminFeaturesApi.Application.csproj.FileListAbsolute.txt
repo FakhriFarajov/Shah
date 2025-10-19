@@ -1,0 +1,12 @@
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAdminFeaturesApi.Application/obj/Debug/net9.0/ShahAdminFeaturesApi.Application.GeneratedMSBuildEditorConfig.editorconfig
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAdminFeaturesApi.Application/obj/Debug/net9.0/ShahAdminFeaturesApi.Application.AssemblyInfoInputs.cache
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAdminFeaturesApi.Application/obj/Debug/net9.0/ShahAdminFeaturesApi.Application.AssemblyInfo.cs
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAdminFeaturesApi.Application/obj/Debug/net9.0/ShahAdminFeaturesApi.Application.csproj.CoreCompileInputs.cache
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAdminFeaturesApi.Application/obj/Debug/net9.0/ShahAdminFeaturesApi.Application.sourcelink.json
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAdminFeaturesApi.Application/bin/Debug/net9.0/ShahAdminFeaturesApi.Application.deps.json
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAdminFeaturesApi.Application/bin/Debug/net9.0/ShahAdminFeaturesApi.Application.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAdminFeaturesApi.Application/bin/Debug/net9.0/ShahAdminFeaturesApi.Application.pdb
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAdminFeaturesApi.Application/obj/Debug/net9.0/ShahAdminFeaturesApi.Application.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAdminFeaturesApi.Application/obj/Debug/net9.0/refint/ShahAdminFeaturesApi.Application.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAdminFeaturesApi.Application/obj/Debug/net9.0/ShahAdminFeaturesApi.Application.pdb
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAdminFeaturesApi.Application/obj/Debug/net9.0/ref/ShahAdminFeaturesApi.Application.dll

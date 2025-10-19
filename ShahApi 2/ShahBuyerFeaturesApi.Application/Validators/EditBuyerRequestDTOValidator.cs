@@ -1,7 +1,7 @@
 using FluentValidation;
 using ShahBuyerFeaturesApi.Core.DTOs.Request;
 
-namespace ShahBuyerFeaturesApi.Infrastructure.Validators
+namespace ShahBuyerFeaturesApi.Application.Validators
 {
     public class BuyerEditRequestValidator : AbstractValidator<EditBuyerRequestDTO>
     {
@@ -20,7 +20,7 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Validators
                 .WithMessage("Email must be a valid email address.");
             RuleFor(x => x.Phone)
                 .NotEmpty().WithMessage("Phone number is required.")
-                .MinimumLength(10).WithMessage("Phone must be at least 10 digits.")
+                .MinimumLength(5).WithMessage("Phone must be at least 5 digits.")
                 .MaximumLength(15).WithMessage("Phone must not exceed 15 digits.")
                 .Matches("^\\d+$").WithMessage("Phone must contain only digits.");
             RuleFor(x => x.CountryCitizenshipId)

@@ -1,0 +1,13 @@
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Core/bin/Debug/net9.0/ShahAuthApi.Core.deps.json
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Core/bin/Debug/net9.0/ShahAuthApi.Core.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Core/bin/Debug/net9.0/ShahAuthApi.Core.pdb
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Core/obj/Debug/net9.0/ShahAuthApi.Core.csproj.AssemblyReference.cache
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Core/obj/Debug/net9.0/ShahAuthApi.Core.GeneratedMSBuildEditorConfig.editorconfig
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Core/obj/Debug/net9.0/ShahAuthApi.Core.AssemblyInfoInputs.cache
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Core/obj/Debug/net9.0/ShahAuthApi.Core.AssemblyInfo.cs
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Core/obj/Debug/net9.0/ShahAuthApi.Core.csproj.CoreCompileInputs.cache
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Core/obj/Debug/net9.0/ShahAuthApi.Core.sourcelink.json
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Core/obj/Debug/net9.0/ShahAuthApi.Core.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Core/obj/Debug/net9.0/refint/ShahAuthApi.Core.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Core/obj/Debug/net9.0/ShahAuthApi.Core.pdb
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Core/obj/Debug/net9.0/ref/ShahAuthApi.Core.dll

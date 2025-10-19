@@ -7,7 +7,7 @@ import { TypedResult, type ApiResponse } from "@/shared/types";
 const AUTH_API_KEY = import.meta.env.VITE_AUTH_API || "http://localhost:5298";
 
 export const authHttp = axios.create({
-  baseURL: `${AUTH_API_KEY}/api/Auth`,
+  baseURL: `${AUTH_API_KEY}/api/Seller/Auth`,
   withCredentials: true,
   timeout: 10000,
 });
@@ -79,35 +79,35 @@ export const authHttpTyped = {
     }
   },
 
-  // async put<T>(url: string, data?: any, config?: any): Promise<TypedResult<T>> {
-  //   try {
-  //     const response = await authHttp.put(url, data, config);
-  //     return authResponseMiddleware.processResponse<T>(
-  //       response.data as ApiResponse<T>
-  //     );
-  //   } catch (error: any) {
-  //     if (error.response) {
-  //       return authResponseMiddleware.processResponse<T>(
-  //         error.response.data as ApiResponse<T>
-  //       );
-  //     }
-  //     return TypedResult.error<T>(error.message || "Network error", 0);
-  //   }
-  // },
+  async put<T>(url: string, data?: any, config?: any): Promise<TypedResult<T>> {
+    try {
+      const response = await authHttp.put(url, data, config);
+      return authResponseMiddleware.processResponse<T>(
+        response.data as ApiResponse<T>
+      );
+    } catch (error: any) {
+      if (error.response) {
+        return authResponseMiddleware.processResponse<T>(
+          error.response.data as ApiResponse<T>
+        );
+      }
+      return TypedResult.error<T>(error.message || "Network error", 0);
+    }
+  },
 
-  // async delete<T>(url: string, config?: any): Promise<TypedResult<T>> {
-  //   try {
-  //     const response = await authHttp.delete(url, config);
-  //     return authResponseMiddleware.processResponse<T>(
-  //       response.data as ApiResponse<T>
-  //     );
-  //   } catch (error: any) {
-  //     if (error.response) {
-  //       return authResponseMiddleware.processResponse<T>(
-  //         error.response.data as ApiResponse<T>
-  //       );
-  //     }
-  //     return TypedResult.error<T>(error.message || "Network error", 0);
-  //   }
-  // },
+  async delete<T>(url: string, config?: any): Promise<TypedResult<T>> {
+    try {
+      const response = await authHttp.delete(url, config);
+      return authResponseMiddleware.processResponse<T>(
+        response.data as ApiResponse<T>
+      );
+    } catch (error: any) {
+      if (error.response) {
+        return authResponseMiddleware.processResponse<T>(
+          error.response.data as ApiResponse<T>
+        );
+      }
+      return TypedResult.error<T>(error.message || "Network error", 0);
+    }
+  },
 };

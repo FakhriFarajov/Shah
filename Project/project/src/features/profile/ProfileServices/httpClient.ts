@@ -4,10 +4,10 @@ import axios from "axios";
 import { createResponseMiddleware } from "@/shared/middlewares";
 import { TypedResult, type ApiResponse } from "@/shared/types";
 
-const AUTH_API_KEY = import.meta.env.VITE_FEATURES_API || "http://localhost:5258";
+const VITE_FEATURES_API = import.meta.env.VITE_FEATURES_API || "http://localhost:5258";
 
 export const authHttp = axios.create({
-  baseURL: `${AUTH_API_KEY}/api/Buyer`,
+  baseURL: `${VITE_FEATURES_API}/api/Buyer`,
   withCredentials: true,
   timeout: 10000,
 });

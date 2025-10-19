@@ -1,0 +1,6 @@
+@ShahSellerFeaturesApi.Presentation_HostAddress = http://localhost:5018
+
+GET {{ShahSellerFeaturesApi.Presentation_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

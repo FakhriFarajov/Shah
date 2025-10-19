@@ -2,52 +2,26 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useState, type ChangeEvent } from "react"
+import { useContext, useEffect, useState } from "react"
 import ImageCropper from "@/components/ui/image-crop"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
-import { Eye, EyeOff, Store } from "lucide-react"
+import { Eye, EyeOff } from "lucide-react"
 import { Dialog, DialogContent } from "../ui/dialog"
 import { MdAccountCircle } from "react-icons/md"
 import type { RegisterRequest } from "@/features/account/DTOs/account.interfaces"
-import { register } from "@/features/account/services/register.service"
+import { register } from "@/features/account/services/profile.service"
 import { useNavigate } from "react-router-dom"
-import { login } from "@/features/auth/services/auth.service"
 import { uploadProfileImage } from "@/shared/utils/imagePost"; // Use your actual image upload function
+import { getCountries } from "@/features/profile/Country/country.service";
+import { getTaxes } from "@/features/profile/Tax/tax.service";
+import { getCategories } from "@/features/profile/Category/category.service";
+import { AuthContext } from "@/features/auth/contexts/AuthProvider";
+
 
 
 
 // Category and Tax ID Type lists (same as profile)
-const categories = [
-  { id: null, name: "Select category" },
-  { id: "electronics-1", name: "Electronics" },
-  { id: "fashion-2", name: "Fashion" },
-  { id: "home-3", name: "Home & Garden" },
-  { id: "beauty-4", name: "Beauty & Health" },
-  { id: "sports-5", name: "Sports & Outdoors" },
-  { id: "toys-6", name: "Toys & Hobbies" },
-  { id: "auto-7", name: "Automotive" },
-  { id: "books-8", name: "Books" },
-  { id: "other-9", name: "Other" },
-];
-const taxIdTypes = [
-  { id: 1, name: "VAT" },
-  { id: 2, name: "TIN" },
-  { id: 3, name: "EIN" },
-  { id: 4, name: "SSN" },
-  { id: 5, name: "GST" },
-  { id: 6, name: "CIF" },
-  { id: 7, name: "PAN" },
-  { id: 8, name: "Other" },
-];
-
-const countries = [
-    { id: 1, code: "AZ", name: "Azerbaijan" },
-    { id: 2, code: "TR", name: "Turkey" },
-    { id: 3, code: "GE", name: "Georgia" },
-    { id: 4, code: "RU", name: "Russia" },
-];
-
 export default function RegForm({
   className,
   ...props
@@ -62,7 +36,7 @@ export default function RegForm({
   const [surname, setSurname] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [countryCitizenship, setCountryCitizenship] = useState(0);
+  const [countryCitizenship, setCountryCitizenship] = useState("");
   const [passport, setPassport] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -71,24 +45,59 @@ export default function RegForm({
   const [storeDescription, setStoreDescription] = useState("");
   const [storeContactPhone, setStoreContactPhone] = useState("");
   const [storeContactEmail, setStoreContactEmail] = useState("");
-  const [taxIdType, setTaxIdType] = useState(0);
+  const [storeCountryCode, setStoreCountryCode] = useState("");
+  const [taxIdType, setTaxIdType] = useState("");
   const [taxIdNumber, setTaxIdNumber] = useState("");
+  const [taxIdNumberError, setTaxIdNumberError] = useState<string | null>(null);
   const [street, setStreet] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [postalCode, setPostalCode] = useState("");
-  const [storeCountryCode, setStoreCountryCode] = useState(0);
   const [categoryId, setCategoryId] = useState<null | string>(null);
-  const [storeLogoPreview, setStoreLogoPreview] = useState<string>("");
+  const [storeLogoPreview] = useState<string>("");
   const [cropperOpen, setCropperOpen] = useState(false);
   const [avatar, setAvatar] = useState<string>("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [taxes, setTaxes] = useState<Array<{ id: number; name: string; RegexPattern: string }>>([]);
+  const [categories, setCategories] = useState<Array<{ id: number; name: string }>>([]);
+  const [countries, setCountries] = useState<{ id: number; name: string; code: string }[]>([]);
 
-  const [pendingVariantIdx, setPendingVariantIdx] = useState<number | null>(null);
-  // Ref for avatar file input
-  const avatarInputRef = useState<HTMLInputElement | null>(null);
 
 
+  const { login } = useContext(AuthContext);
+
+  useEffect(() => {
+    async function fetchCountries() {
+      try {
+        const result = await getCountries();
+        setCountries(result.data || []); // Always set as array
+      } catch (error) {
+        setCountries([]); // fallback to empty array on error
+      }
+    }
+    async function fetchTaxes() {
+      try {
+        const result = await getTaxes();
+        setTaxes(result.data || []); // Always set as array
+      } catch (error) {
+        setCountries([]); // fallback to empty array on error
+      }
+    }
+
+    async function fetchCategories() {
+      try {
+        const result = await getCategories();
+        setCategories(result|| []); // Always set as array
+      } catch (error) {
+        setCategories([]); // fallback to empty array on error
+      }
+    }
+
+    fetchCountries();
+    fetchTaxes();
+    fetchCategories();
+
+  }, []);
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     const user: RegisterRequest = {
@@ -97,28 +106,26 @@ export default function RegForm({
       Email: email,
       Phone: phone,
       Passport: passport,
-      CountryCitizenship: Number(countryCitizenship), // or correct enum value
+      CountryCitizenshipId: Number(countryCitizenship), // or correct enum value
       Password: password,
       ConfirmPassword: confirmPassword,
       StoreName: storeName,
       StoreDescription: storeDescription,
       StoreContactEmail: storeContactEmail,
       StoreContactPhone: storeContactPhone,
-      TaxIdType: Number(taxIdType), // or correct enum value
-      TaxIdNumber: taxIdNumber,
+      TaxId: Number(taxIdType), // or correct enum value
+      TaxNumber: taxIdNumber,
       Street: street,
       City: city,
       State: state,
       PostalCode: postalCode,
-      StoreCountryCode: Number(storeCountryCode), // or correct enum value
+      StoreCountryCodeId: Number(storeCountryCode), // or correct enum value
       CategoryId: categoryId === "null" ? null : categoryId
     };
     console.log("Registering user:", user);
-
-
     try {
-      const imageUrl = await uploadProfileImage(avatarFile);
-      user.StoreLogoUrl = imageUrl;
+      const imageName = await uploadProfileImage(avatarFile);
+      user.StoreLogo = imageName;
       console.log("Registering user with image URL:", user);
       const result = await register(user);
       if (!result || !result.isSuccess) {
@@ -128,7 +135,8 @@ export default function RegForm({
       }
       toast.success(t('Registration successful!'));
       await login({ email, password });
-      navigator('/main');
+      toast.success(t('Logged in successfully!'));
+      navigator('/home');
     } catch (error: any) {
       if (error.response && error.response.data) {
         const data = error.response.data;
@@ -151,37 +159,6 @@ export default function RegForm({
       }
     }
   };
-
-
-  const handleCrop = async (croppedImageUrl: string) => {
-    const response = await fetch(croppedImageUrl);
-    const blob = await response.blob();
-    const file = new File([blob], "profile.png", { type: blob.type });
-    setAvatarFile(file);
-    setCropperOpen(false);
-    toast.success("Cropped image ready to save. Click Save to upload.");
-  };
-
-
-  const handleAvatarClick = () => {
-    const input = document.getElementById("avatar-upload") as HTMLInputElement | null;
-    if (input) {
-      input.click();
-    }
-  };
-
-  // Handle avatar file change
-  const handleAvatarFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setAvatarFile(file);
-      setCropperOpen(true);
-    }
-  };
-
-
-
-
   const [step, setStep] = useState(1);
 
   const handleNext = (e: React.FormEvent) => {
@@ -211,6 +188,33 @@ export default function RegForm({
     }
   };
 
+
+  // Helper to get regex for selected tax type
+  const getSelectedTaxRegex = () => {
+    const selected = taxes.find(t => t.id === taxIdType);
+    return selected?.RegexPattern || null;
+  };
+
+  const handleTaxIdNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setTaxIdNumber(value);
+    const regexStr = getSelectedTaxRegex();
+    if (regexStr) {
+      try {
+        const regex = new RegExp(regexStr);
+        if (!regex.test(value)) {
+          toast.error(`Tax number must match: ${regexStr}`);
+          setTaxIdNumberError("Invalid format for selected tax type");
+        } else {
+          setTaxIdNumberError(null);
+        }
+      } catch {
+        setTaxIdNumberError(null); // fallback if regex is invalid
+      }
+    } else {
+      setTaxIdNumberError(null);
+    }
+  };
 
   return (
     <div className={cn("flex flex-col gap-6 w-full max-w-4xl mx-auto", className)} {...props}>
@@ -293,20 +297,31 @@ export default function RegForm({
                   required
                 />
               </div>
-              <div>
-                <Label className="mb-4">{t("Country Citizen")}</Label>
+              <div className="grid gap-3">
+                <Label htmlFor="countryCode">{t("Country")}</Label>
                 <select
-                  id="country"
-                  value={countryCitizenship}
-                  onChange={(e) => setCountryCitizenship(Number(e.target.value))}
+                  value={countryCitizenship || ""}
+                  onChange={e => setCountryCitizenship(e.target.value)}
                   required
-                  className="border rounded px-2 py-1 w-full"
+                  className="border rounded px-2 py-1"
                 >
-                  <option value="" disabled>{t("Select country")}</option>
-                  {countries.map((c) => (
-                    <option key={c.code} value={c.id}>{c.name}</option>
+                  <option value="">{t("Select country")}</option>
+                  {countries.map((country) => (
+                    <option key={country.id} value={country.id.toString()}>
+                      {country.name}
+                    </option>
                   ))}
                 </select>
+                {countryCitizenship && countries.find(c => c.id.toString() === countryCitizenship) && (
+                  <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <img
+                      src={`https://flagsapi.com/${countries.find(c => c.id.toString() === countryCitizenship)?.code}/flat/32.png`}
+                      alt={countries.find(c => c.id.toString() === countryCitizenship)?.code}
+                      style={{ width: 32, height: 22 }}
+                    />
+                    <span style={{ fontSize: 16 }}>{countries.find(c => c.id.toString() === countryCitizenship)?.name}</span>
+                  </div>
+                )}
               </div>
               <div className="grid gap-3">
                 <Label htmlFor="idPassport">{t("ID/Passport")}</Label>
@@ -377,7 +392,7 @@ export default function RegForm({
                     <span
                       className="w-24 h-24 rounded-full border mb-2 flex items-center justify-center bg-gray-100 text-gray-400"
                       style={{ cursor: 'pointer', fontSize: '96px' }}
-                      onClick={handleAvatarClick}
+                      onClick={setCropperOpen}
                     >
                       {avatar ? (
                         <img src={avatar} alt={t("Avatar")} className="w-24 h-24 rounded-full object-cover" />
@@ -385,13 +400,6 @@ export default function RegForm({
                         <MdAccountCircle />
                       )}
                     </span>
-                    <input
-                      id="avatar-upload"
-                      type="file"
-                      accept="image/*"
-                      style={{ display: "none" }}
-                      onChange={handleAvatarFileChange}
-                    />
                     <div className="text-sm text-gray-500 mb-2">
                       <Label>{t("Click icon to change")}</Label>
                     </div>
@@ -463,7 +471,7 @@ export default function RegForm({
                       className="border rounded px-2 py-1 w-full"
                     >
                       <option value="" disabled>{t("Select tax ID type")}</option>
-                      {taxIdTypes.map((type) => (
+                      {taxes.map((type) => (
                         <option key={type.id} value={type.id}>{type.name}</option>
                       ))}
                     </select>
@@ -474,10 +482,13 @@ export default function RegForm({
                       id="sellerTaxInfoId"
                       type="text"
                       value={taxIdNumber}
-                      onChange={(e) => setTaxIdNumber(e.target.value)}
+                      onChange={handleTaxIdNumberChange}
                       required
                       placeholder={t("123456789")}
                     />
+                    {taxIdNumberError && (
+                      <div className="text-red-500 text-xs mt-1">{taxIdNumberError}</div>
+                    )}
                   </div>
                   <h1 className="border-b pb-2">
                     {t("Address Information")}
@@ -527,32 +538,43 @@ export default function RegForm({
                     />
                   </div>
                   <div className="grid gap-3">
-                    <Label htmlFor="addressCountry">{t("Country")}</Label>
+                    <Label htmlFor="countryCode">{t("Address Country")}</Label>
                     <select
-                      id="addressCountry"
-                      value={storeCountryCode}
-                      onChange={e => setStoreCountryCode(Number(e.target.value))}
+                      value={storeCountryCode || ""}
+                      onChange={e => setStoreCountryCode(e.target.value)}
                       required
-                      className="border rounded px-2 py-1 w-full"
+                      className="border rounded px-2 py-1"
                     >
-                      <option value="" disabled>{t("Select country")}</option>
-                      {countries.map((c) => (
-                        <option key={c.code} value={c.id}>{c.name}</option>
+                      <option value="">{t("Select country")}</option>
+                      {countries.map((country) => (
+                        <option key={country.id} value={country.id.toString()}>
+                          {country.name}
+                        </option>
                       ))}
                     </select>
+                    {countryCitizenship && countries.find(c => c.id.toString() === countryCitizenship) && (
+                      <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <img
+                          src={`https://flagsapi.com/${countries.find(c => c.id.toString() === countryCitizenship)?.code}/flat/32.png`}
+                          alt={countries.find(c => c.id.toString() === countryCitizenship)?.code}
+                          style={{ width: 32, height: 22 }}
+                        />
+                        <span style={{ fontSize: 16 }}>{countries.find(c => c.id.toString() === countryCitizenship)?.name}</span>
+                      </div>
+                    )}
                   </div>
                   <div className="grid gap-3">
                     <Label htmlFor="categoryId">{t("Category")}</Label>
                     <select
                       id="categoryId"
-                      value={categoryId ?? "null"}
-                      onChange={e => setCategoryId(e.target.value === "null" ? null : e.target.value)}
+                      value={categoryId ?? ""}
+                      onChange={e => setCategoryId(e.target.value)}
                       required
                       className="border rounded px-2 py-1 w-full"
                     >
-                      <option value="null">{t("Select category")}</option>
-                      {categories.filter(cat => cat.id !== null).map((cat) => (
-                        <option key={cat.id} value={cat.id!}>{cat.name}</option>
+                      <option value="">{t("Select category")}</option>
+                      {categories.map((cat) => (
+                        <option key={cat.id} value={cat.id}>{cat.categoryName}</option>
                       ))}
                     </select>
                   </div>
