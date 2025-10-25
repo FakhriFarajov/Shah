@@ -1,5 +1,3 @@
-using ShahAdminFeaturesApi.Core.Enums;
-
 namespace ShahAdminFeaturesApi.Core.DTOs.Request
 {
     public class EditAddressRequestDTO
@@ -10,6 +8,6 @@ namespace ShahAdminFeaturesApi.Core.DTOs.Request
         public string City { get; set; }
         public string State { get; set; }
         public string PostalCode { get; set; }
-        public Country Country { get; set; }
+        public int CountryId { get; set; }
     }
 }

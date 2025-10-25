@@ -3,8 +3,6 @@ using ShahSellerFeaturesApi.Infrastructure.Middlewares;
 
 namespace ShahSellerFeaturesApi.Presentation.Extensions;
 
-
-
 public static class ApplicationBuilderExtensions
 {
     public static WebApplication UseApplicationMiddleware(this WebApplication app)
@@ -13,19 +11,24 @@ public static class ApplicationBuilderExtensions
         {
             app.MapOpenApi();
         }
-        
-        app.UseCors("DefaultCors");
-
 
         app.UseHttpsRedirection();
-        app.MapControllers();
+        
+        // Global exception handling early in the pipeline
         app.UseMiddleware<GlobalExceptionMiddleware>();
+        
+        // Use the CORS policy registered in services
+        app.UseCors("DefaultCors");
+        
+        // Auth before hitting endpoints
         app.UseAuthentication();
         app.UseAuthorization();
+
+        // Map controllers at the end
+        app.MapControllers();
 
         app.MapScalarApiReference();
 
         return app;
-
     }
 }

@@ -8,6 +8,5 @@ builder.Services.AddApplicationServices(builder.Configuration);
 
 var app = builder.Build();
 
-app.UseCors("AllowAll");
 app.UseApplicationMiddleware();
 app.Run();

@@ -7,10 +7,8 @@ public interface IAuthService
 {
     public Task<TypedResult<object>> LoginAsync(SellerLoginRequestDTO request);
     public Task<TypedResult<object>> LogoutAsync(string token);
+    public Task<TypedResult<object>> RefreshTokenAsync(RefreshRequest request);
 
-    public Task BlacklistTokenAsync(string token, DateTime expiry);
-    
-    public Task<TypedResult<object>> RefreshTokenAsync(string refreshToken);
-    
+
 
 }

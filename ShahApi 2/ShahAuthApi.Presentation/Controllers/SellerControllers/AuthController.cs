@@ -23,18 +23,50 @@ public class AuthController : ControllerBase
     {
         return Ok(await _authService.LoginAsync(request));
     }
+    
+    
     [HttpPost("RefreshToken")]
-    public async Task<IActionResult> RefreshTokenAsync(string token)
+    public async Task<IActionResult> RefreshTokenAsync([FromBody] RefreshRequest request)
     {
-        return Ok(await _authService.RefreshTokenAsync(token));
+        if (request == null || string.IsNullOrEmpty(request.RefreshToken))
+            return BadRequest("Refresh token is required");
+
+        var oldAccessToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+
+        var result = await _authService.RefreshTokenAsync(new RefreshRequest
+        {
+            RefreshToken = request.RefreshToken,
+            OldAccessToken = oldAccessToken
+        });
+
+        if (!result.IsSuccess)
+            return Unauthorized(result.Message);
+
+        return Ok(result.Data); // Return new accessToken & refreshToken
     }
-    [Authorize(Policy = "SellerPolicy")] //We need to send a Bearer token in the header to access this endpoint
+
+
+
+    [Authorize(Policy = "BuyerPolicy")] // Require Bearer token
     [HttpPost("Logout")]
     public async Task<IActionResult> Logout()
     {
+        // Extract the Bearer token from the Authorization header
         var authHeader = Request.Headers["Authorization"].ToString();
         var token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : authHeader;
+
+        if (string.IsNullOrEmpty(token))
+        {
+            return BadRequest(new 
+            { 
+                isSuccess = false, 
+                message = "No access token provided" 
+            });
+        }
+
+        // Call the AuthService to logout (blacklist the token)
         var result = await _authService.LogoutAsync(token);
-        return Ok(result);
+
+        return Ok(result); // result already contains success info
     }
 }

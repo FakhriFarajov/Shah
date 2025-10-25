@@ -15,6 +15,7 @@ import CategoryManager from './pages/categoriesPage';
 
 
 import OrdersPage from './pages/orders';
+import AdminProfilesPage from './pages/AdminProfileAdd';
 function App() {
 
   return (
@@ -36,6 +37,7 @@ function App() {
           <Route path='/reviews-buyer' element={<ReviewsPage />} />//by id
           <Route path='/products' element={<ProductsPage />} />//by id
           <Route path='/categories' element={<CategoryManager />} />
+          <Route path='/admin-profiles' element={<AdminProfilesPage />} />
           <Route path='*' element={<Login />} />
 
         </Routes>

@@ -102,8 +102,11 @@ export default function RegForm({
         console.error("Registration error:", error);
       }
     }
-    console.log("Registering user:", user);
+    finally {
     setLoading(false);
+
+    }
+    console.log("Registering user:", user);
   };
 
   return (

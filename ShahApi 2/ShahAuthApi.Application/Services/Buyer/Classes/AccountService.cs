@@ -69,10 +69,11 @@ public class AccountService : IAccountService
 
         var messageContent = new StringBuilder(await File.ReadAllTextAsync(filePath));
 
-        var link = $"{context.Request.Scheme}://{context.Request.Host}/api/Account/VerifyToken/{user.Id}/{token}";
+        var link = $"{context.Request.Scheme}://{context.Request.Host}/api/Buyer/Account/VerifyToken/{user.Id}/{token}";
         
         messageContent.Replace("{User}", user.Name);
         messageContent.Replace("{ConfirmationLink}", link);
+        // var reuslt = _imageService.GetImageUrlAsync("ShahLogo.png").Result;    Take IT FROM wwwroot if needed
         
         await _emailSender.SendEmailAsync(user.Email, "Confirm your email", messageContent.ToString());
     }

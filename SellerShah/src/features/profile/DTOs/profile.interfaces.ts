@@ -8,71 +8,63 @@ export interface DecodedToken {
   aud?: string;
   [key: string]: any;
 }
-export interface GetBuyerProfileByIdRequest {
+export interface GetSellerProfileByIdRequest {
   id: string;
 }
 
-export default interface EditBuyerProfileRequest {
+export default interface EditSellerProfileRequest {
   oldPassword: string;
   newPassword: string;
   confirmPassword: string;
 }
 
-export interface EditBuyerProfileResponse {
+export interface EditSellerProfileResponse {
   isSuccess: boolean;
   message?: string;
   error?: string;
-
-}
-export interface AddAddressDto {
-  buyerId: string;
-  street: string;
-  city: string;
-  state: string;
-  postalCode: string;
-  countryId: number;
 }
 
-export interface EditAddressDto {
-  id: string;
-  buyerId: string;
-  street: string;
-  city: string;
-  state: string;
-  postalCode: string;
-  countryId: number;
+// SellerProfileResponseDTO matches backend C# DTO
+export interface SellerProfileResponseDTO {
+  Name: string;
+  Surname: string;
+  Email: string;
+  Phone: string;
+  CountryCitizenshipId: number;
+  StoreLogo?: string;
+  StoreName: string;
+  StoreDescription: string;
+  StoreContactPhone: string;
+  StoreContactEmail: string;
+  TaxId: number;
+  TaxNumber: string;
+  Street: string;
+  City: string;
+  State: string;
+  PostalCode: string;
+  StoreCountryCodeId: number;
+  CategoryId?: string;
 }
 
-export interface AddressResponseDTO {
-  id: string;
-  buyerId: string;
-  street: string;
-  city: string;
-  state: string;
-  postalCode: string;
-  country: number;
-}
-
-export interface BuyerProfileResponseDTO {
-  id: string;
-  imageProfile: string | null;
-  addressId: string;
-  userId: string;
-  email: string;
-  name: string;
-  surname: string;
-  phone: string;
-  countryCitizenshipId: number | null;
-  createdAt: string;
-}
-
-export interface EditBuyerRequestDTO {
-  name?: string;
-  surname?: string;
-  email?: string;
-  phone?: string;
-  imageProfile?: string;
-  countryCitizenshipId?: number;
+export interface EditSellerRequestDTO {
+  Name?: string;
+  Surname?: string;
+  Email?: string;
+  Phone?: string;
+  CountryCitizenshipId?: number;
+  StoreLogo?: string;
+  StoreName?: string;
+  StoreDescription?: string;
+  StoreContactPhone?: string;
+  StoreContactEmail?: string;
+  TaxId?: number;
+  TaxNumber?: string;
+  Street?: string;
+  City?: string;
+  State?: string;
+  PostalCode?: string;
+  StoreCountryCodeId?: number;
+  CategoryId?: string;
 }
 
 export interface Country {
@@ -90,4 +82,5 @@ export interface Tax {
 export interface Category {
   id: string;
   name: string;
+  parentId?: number;
 }

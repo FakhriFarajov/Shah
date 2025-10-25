@@ -64,76 +64,45 @@ public static class ApplicationServiceExtensions
 
 
         services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
             {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddJwtBearer(options =>
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = configuration["JWT:Issuer"],
+                ValidAudience = configuration["JWT:Audience"],
+                IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(configuration["JWT:SecretKey"] ?? string.Empty)),
+                RoleClaimType = "role"
+            };
+
+            options.Events = new JwtBearerEvents
             {
-                options.TokenValidationParameters = new TokenValidationParameters
+                OnTokenValidated = async context =>
                 {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = configuration["JWT:Issuer"],
-                    ValidAudience = configuration["JWT:Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(configuration["JWT:SecretKey"] ?? string.Empty))
-                };
+                    var token = context.SecurityToken as JwtSecurityToken;
+                    if (token == null) return;
 
-                // Custom OnAuthenticationFailed event for refresh token logic
-                options.Events = new JwtBearerEvents
-                {
-                    OnAuthenticationFailed = async context =>
+                    var dbContext = context.HttpContext.RequestServices.GetRequiredService<ShahDbContext>();
+                    var blacklisted = await dbContext.BlacklistedTokens
+                        .AnyAsync(t => t.Token == token.RawData);
+
+                    if (blacklisted)
                     {
-                        var req = context.Request;
-                        var res = context.Response;
-
-                        if (req.Headers.TryGetValue("refreshToken", out var hdr) && !string.IsNullOrWhiteSpace(hdr))
-                        {
-                            var tokenManager = context.HttpContext.RequestServices.GetRequiredService<TokenManager>();
-                            var refreshToken = hdr.ToString();
-                            var refreshed = await tokenManager.RefreshTokenAsync(refreshToken);
-
-                            if (refreshed != null && refreshed.IsSuccess && refreshed.Data != null)
-                            {
-                                var data = refreshed.Data;
-                                var accessTokenProp = data.GetType().GetProperty("AccessToken");
-                                var refreshTokenProp = data.GetType().GetProperty("RefreshToken");
-
-                                var accessToken = accessTokenProp?.GetValue(data)?.ToString();
-                                var refreshTokenNew = refreshTokenProp?.GetValue(data)?.ToString();
-
-                                if (!string.IsNullOrEmpty(accessToken) && !string.IsNullOrEmpty(refreshTokenNew))
-                                {
-                                    res.Headers["accessToken"] = accessToken;
-                                    res.Headers["refreshToken"] = refreshTokenNew;
-                                    res.StatusCode = StatusCodes.Status200OK;
-                                    return;
-                                }
-                            }
-                        }
-
-                        res.StatusCode = StatusCodes.Status401Unauthorized;
-                    },
-
-                    OnTokenValidated = async context =>
-                    {
-                        var token = context.SecurityToken as JwtSecurityToken;
-                        if (token == null) return;
-
-                        var dbContext = context.HttpContext.RequestServices.GetRequiredService<ShahDbContext>();
-                        var blacklisted = await dbContext.BlacklistedTokens
-                            .AnyAsync(t => t.Token == token.RawData);
-
-                        if (blacklisted)
-                        {
-                            context.Fail("This token has been revoked");
-                        }
+                        context.Fail("This token has been revoked");
                     }
-                };
-            });
+                }
+
+            };
+        });
+
                 
         services.AddAuthorization(options =>
         {

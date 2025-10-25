@@ -81,3 +81,9 @@ export interface Country {
   name: string;
   code: string; // ISO country code for flag representation
 }
+
+export interface Category {
+  id: string;
+  categoryName: string;
+  parentCategoryId?: string;
+}

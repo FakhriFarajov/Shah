@@ -7,7 +7,7 @@ public record UpsertAddressRequestDTO(
     string? City,
     string? State,
     string? PostalCode,
-    int? CountryCode,
+    int? CountryId,
     string? StoreId,
     string? WarehouseId
 );

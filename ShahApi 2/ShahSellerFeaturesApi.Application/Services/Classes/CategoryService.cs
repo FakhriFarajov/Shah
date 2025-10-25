@@ -14,7 +14,7 @@ public class CategoryService
     public async Task<TypedResult<object>> GetAllCategoriesAsync()
     {
         var categories = await _context.Categories
-            .Select(c => new { c.Id, c.CategoryName })
+            .Select(c => new { c.Id, c.CategoryName, c.ParentCategoryId })
             .ToListAsync();
         
         return TypedResult<object>.Success(categories, "Categories retrieved successfully");

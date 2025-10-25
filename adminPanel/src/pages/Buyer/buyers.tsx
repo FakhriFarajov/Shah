@@ -7,7 +7,7 @@ import { useState } from "react";
 export default function BuyersPage() {
     const navigate = useNavigate();
     // Mock data for buyers
-    const [buyers, setBuyers] = useState([
+    const [buyers] = useState([
         { id: 1, name: "John", surname: "Doe", email: "Email", phone: "123-456-7890" },
         { id: 2, name: "Jane", surname: "Smith", email: "Email", phone: "987-654-3210" },
         { id: 3, name: "Alice", surname: "Johnson", email: "Email", phone: "555-123-4567" },

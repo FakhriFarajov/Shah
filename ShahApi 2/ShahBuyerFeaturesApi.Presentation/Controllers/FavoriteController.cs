@@ -15,14 +15,16 @@ namespace ShahBuyerFeaturesApi.Presentation.Controllers
         }
         
         
-        [Authorize]
+        [Authorize(Policy = "BuyerPolicy")] //We need to send a Bearer token in the header to access this endpoint
+
         [HttpPost("add")]
         public async Task<IActionResult> AddToFavorites([FromQuery] string buyerId, [FromQuery] string productId)
         {
             await _favoriteService.AddToFavorites(buyerId, productId);
             return Ok();
         }
-        [Authorize]
+        [Authorize(Policy = "BuyerPolicy")] //We need to send a Bearer token in the header to access this endpoint
+
 
         [HttpDelete("remove")]
         public async Task<IActionResult> RemoveFromFavorites([FromQuery] string buyerId, [FromQuery] string productId)
@@ -31,15 +33,15 @@ namespace ShahBuyerFeaturesApi.Presentation.Controllers
             return Ok();
         }
 
-        [Authorize]
+        [Authorize(Policy = "BuyerPolicy")] //We need to send a Bearer token in the header to access this endpoint
+
         [HttpGet("is-favorite")]
         public async Task<IActionResult> IsFavorite([FromQuery] string buyerId, [FromQuery] string productId)
         {
             var result = await _favoriteService.IsFavorite(buyerId, productId);
             return Ok(result);
         }
-
-        [Authorize]
+        [Authorize(Policy = "BuyerPolicy")] //We need to send a Bearer token in the header to access this endpoint
         [HttpGet("all")]
         public async Task<IActionResult> GetAllFavorites([FromQuery] string buyerId)
         {

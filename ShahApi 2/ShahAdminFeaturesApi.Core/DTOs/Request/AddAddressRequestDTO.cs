@@ -1,5 +1,3 @@
-using ShahAdminFeaturesApi.Core.Enums;
-
 namespace ShahAdminFeaturesApi.Core.DTOs.Request
 {
     public class AddAddressRequestDTO
@@ -9,7 +7,7 @@ namespace ShahAdminFeaturesApi.Core.DTOs.Request
         public string City { get; set; }
         public string State { get; set; }
         public string PostalCode { get; set; }
-        public Country Country { get; set; }
-        // Add other required fields for address creation
+        public int CountryId { get; set; }
+        
     }
 }

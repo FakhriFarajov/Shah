@@ -12,7 +12,7 @@ namespace ShahSellerFeaturesApi.Infrastructure.Configurations
             builder.Property(si => si.Id).IsRequired().HasMaxLength(36).HasColumnType("nvarchar(36)");
             builder.Property(si => si.StoreName).IsRequired().HasMaxLength(100);
             builder.Property(si => si.StoreDescription).IsRequired().HasMaxLength(500);
-            builder.Property(si => si.StoreLogoUrl).HasMaxLength(2000);
+            builder.Property(si => si.StoreLogo).HasMaxLength(2000);
             builder.Property(si => si.StoreEmail).IsRequired().HasMaxLength(100);
             builder.Property(si => si.StorePhone).IsRequired().HasMaxLength(15);
             builder.Property(si => si.SellerProfileId).IsRequired().HasMaxLength(36);

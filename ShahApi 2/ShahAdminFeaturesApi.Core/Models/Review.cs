@@ -7,7 +7,9 @@ namespace ShahAdminFeaturesApi.Core.Models
         public BuyerProfile BuyerProfile { get; set; } = null!;
         public string ProductId { get; set; } = null!;
         public Product Product { get; set; } = null!;
-
+        
+        public List<string> Images { get; set; } = new List<string>();
+        
         public int Rating { get; set; } // 1..5
         public string Comment { get; set; } = null!;
         

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { tokenStorage } from "@/shared/tokenStorage";
 import axios from "axios";
 import { createResponseMiddleware } from "@/shared/middlewares";
@@ -28,9 +27,7 @@ const authResponseMiddleware = createResponseMiddleware({
     console.log("Auth API Success:", response);
   },
   onError: (response) => {
-    if (response.innerStatusCode === 401) {
-      tokenStorage.remove();
-    }
+    // No automatic token removal or refresh here
   },
   onStatusCodeMismatch: (externalStatus, internalStatus) => {
     console.warn(

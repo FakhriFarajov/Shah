@@ -10,6 +10,9 @@ import { Label } from "@/components/ui/label";
 import Navbar from "@/components/custom/Navbar/navbar";
 import Footer from "@/components/custom/footer";
 import { FaUser, FaHistory, FaRegBell } from "react-icons/fa";
+import FaqSection from "./FaqSection";
+import ReviewsSection from "./ReviewsSection";
+import NotificationsSection from "./NotificationsSection";
 import ImageCropper from "@/components/ui/image-crop"; // Import the ImageCropper component
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { MdAccountCircle } from "react-icons/md";
@@ -20,11 +23,13 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { editBuyerProfile } from "@/features/profile/ProfileServices/profile.service";
 import { uploadProfileImage, getProfileImage } from "@/shared/utils/imagePost";
-import { forgotPassword } from "@/features/account/services/register.service";
+import { confirmEmail, forgotPassword } from "@/features/account/services/register.service";
 import { faqs } from "@/static_data/faq"; //Import FAQ data
 import { getCountries } from "@/features/profile/Country/country.service";
 import { useNavigate } from "react-router-dom";
 import Spinner from "@/components/custom/loader";
+import OrdersSection from "./OrdersSection";
+import { apiCallWithManualRefresh } from '@/shared/apiWithManualRefresh';
 
 
 
@@ -36,6 +41,8 @@ const reviews = [
 ];
 
 export default function AccountPage() {
+  // Handler for email confirmation
+
   const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
   const [editedReview, setEditedReview] = useState<{ comment: string; rating: number }>({ comment: '', rating: 5 });
   const [countryCode, setCountryCode] = useState<number | "">("");
@@ -78,24 +85,45 @@ export default function AccountPage() {
   const [countries, setCountries] = useState<{ id: number; name: string; code: string }[]>([]);
   const [loading, setLoading] = useState(false);
 
-  var navigator = useNavigate();
+  useNavigate();
+
+
+  const handleConfirmEmail = async () => {
+    setLoading(true);
+    if (buyer?.email) {
+      await apiCallWithManualRefresh(() => confirmEmail());
+      toast.info("Confirmation email sent. Please check your inbox.");
+    } else {
+      toast.error("No email found for this user.");
+    }
+    setLoading(false);
+  };
 
   async function fetchCountries() {
     setLoading(true);
     try {
-      const countries = await getCountries();
-      setCountries(countries.data);
-      console.log("Fetched countries:", countries.data);
-    } catch (error) {
-      console.error("Failed to fetch countries:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const countriesResult = await apiCallWithManualRefresh(() => getCountries());
+  setCountries(countriesResult);
+  console.log("Fetched countries:", countriesResult);
+     } catch (error) {
+       console.error("Failed to fetch countries:", error);
+     } finally {
+       setLoading(false);
+     }
+   }
 
   useEffect(() => {
     fetchCountries();
-    const token = tokenStorage.get();
+    // Support access token from URL
+    let token = tokenStorage.get();
+    if (!token) {
+      const params = new URLSearchParams(window.location.search);
+      const urlToken = params.get('access_token');
+      if (urlToken) {
+        localStorage.setItem('access_token', urlToken);
+        token = urlToken;
+      }
+    }
     console.log("Token:", token); // Debug log to check the token value
     if (!token) return;
     let buyerId = "";
@@ -111,29 +139,30 @@ export default function AccountPage() {
     if (!buyerId) {
       toast.error("Buyer ID not found in token");
       return;
-    };
+    }
 
     async function fetchBuyerAndAddress() {
       setLoading(true);
       try {
         console.log("Fetching profile for ID:", buyerId);
-        const result = await getBuyerProfile(buyerId);
-        console.log("Profile response:", result);
-        const buyerData = result.data ? result.data : result;
+  const result = await apiCallWithManualRefresh(() => getBuyerProfile(buyerId));
+  console.log("Profile response:", result);
+  const buyerData = result;
         setBuyer(buyerData);
         // Check if email is confirmed
-        if (buyerData.emailConfirmed === false || buyerData.emailConfirmed === 0) {
-          toast.warning("Your email is not confirmed. Please check your inbox.");
+        if (buyerData.isEmailConfirmed === false) {
+          toast.info("Your email is not confirmed. Please check your inbox.");
         }
       } catch (error) {
+        console.error("Failed to fetch buyer profile:", error);
         extractApiErrors(error).forEach(msg => toast.error(msg));
-        navigator('/main');
       }
       try {
-        const addressResult = await getBuyerAddress(buyerId);
-        const addressData = addressResult.data ? addressResult.data : addressResult;
-        setAddress(addressData);
-        setAddressCountryCode(addressData.countryId || "");
+  const addressResult = await apiCallWithManualRefresh(() => getBuyerAddress(buyerId));
+  const addressData = addressResult;
+  setAddress(addressData);
+  // Support different DTO shapes: countryId or country?.id
+  setAddressCountryCode((addressData as any).countryId || (addressData as any).country?.id || "");
       } catch (error) {
         extractApiErrors(error).forEach(msg => toast.error(msg));
       } finally {
@@ -156,7 +185,7 @@ export default function AccountPage() {
       }
       const payload = { ...newAddress, buyerId };
       console.log("Add Address payload:", payload);
-      const result = await addAddress(payload);
+      const result = await apiCallWithManualRefresh(() => addAddress(payload));
       if (result && result.isSuccess) {
         setAddress(payload);
         setAdding(false);
@@ -196,7 +225,7 @@ export default function AccountPage() {
       countryId: addressCountryCode || address.countryId,
     };
 
-    
+
     console.log("Edit Address payload:", payload);
     await editAddress(payload)
       .then(() => {
@@ -211,41 +240,127 @@ export default function AccountPage() {
     setLoading(false);
   };
 
-
   const handleChangePassword = async () => {
     setLoading(true);
-    if (newPassword !== confirmPassword)
-      return toast.error("New password and confirmation do not match");
+    if (newPassword !== confirmPassword) {
+      toast.error("New password and confirmation do not match");
+      setLoading(false);
+      return;
+    }
+
     try {
       var requestData = { userId: buyer.userId, oldPassword: currentPassword, newPassword: newPassword, confirmNewPassword: confirmPassword };
+      if (currentPassword.trim() === "") {
+        toast.error("Current password cannot be empty");
+        return;
+      }
+      if (newPassword.trim() === "") {
+        toast.error("New password cannot be empty");
+        return;
+      }
+      if (confirmPassword.trim() === "") {
+        toast.error("Confirm password cannot be empty");
+        return;
+      }
       console.log(requestData);
-      var result = await forgotPassword(requestData);
+      var result = await apiCallWithManualRefresh(() => forgotPassword(requestData));
       if (result.isSuccess) {
         toast.success("Password changed successfully");
-      }
-      else {
+        setShowPasswordModal(false);
+      } else {
+        console.log("Password change failed:", result.message);
         toast.error(result.message || "Failed to change password");
       }
-    }
-    catch (error) {
+    } catch (error: any) {
       toast.error("Failed to change password", error);
     }
-    setShowPasswordModal(false);
+    finally {
+      setLoading(false);
+    }
     setCurrentPassword("");
     setNewPassword("");
     setConfirmPassword("");
+    setShowPasswordModal(false);
     setEditProfileMode(false);
-    setLoading(false);
   }
 
-  if(tokenStorage.get() === null) {
-    toast.error("You must be logged in to view this page.");
-    navigator('/main');
-  }
+
+
+
+
+  const [orderStatusFilter, setOrderStatusFilter] = useState("");
+  // Save handler for profile and addresses
+  const handleSaveProfile = async () => {
+    setLoading(true);
+    if (!buyer) return;
+    const payload: any = {
+      name: buyer.editedName ?? buyer.name,
+      surname: buyer.editedSurname ?? buyer.surname,
+      email: buyer.editedEmail ?? buyer.email,
+      phone: buyer.editedPhone ?? buyer.phone,
+      countryCitizenshipId: countryCode || buyer.countryCitizenshipId,
+    };
+    try {
+      let objectName = null;
+      let imageProfileUrl = null;
+      if (buyer.ImageFile) {
+        objectName = await uploadProfileImage(buyer.ImageFile);
+        imageProfileUrl = await getProfileImage(objectName);
+        console.log("Uploaded image URL:", imageProfileUrl);
+        payload.imageProfile = objectName;
+      }
+
+      console.log("Profile update payload:", payload);
+      const result = await apiCallWithManualRefresh(() => editBuyerProfile(buyer.id, payload));
+      if (!result || !result.isSuccess) {
+        toast.error(result.message || 'Profile update failed. Please check your details.');
+        console.error("Profile update error:", result);
+        setLoading(false);
+        return;
+      }
+      toast.success('Profile updated successfully!');
+      if (imageProfileUrl) {
+        setBuyer({ ...buyer, ...payload, imageProfile: imageProfileUrl });
+      } else {
+        setBuyer({ ...buyer, ...payload });
+      }
+      setEditProfileMode(false);
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        const data = error.response.data;
+        if (data.errors && typeof data.errors === 'object') {
+          Object.values(data.errors).forEach((msgs: any) => {
+            if (Array.isArray(msgs)) msgs.forEach((msg: string) => toast.error(msg));
+          });
+        }
+        if (data.message || data.Message) {
+          toast.error(data.message || data.Message);
+        }
+        if (typeof data === "string") {
+          toast.error(data);
+        }
+        console.error("Profile update error:", data);
+      } else {
+        toast.error('Profile update failed. Please try again.');
+        console.error("Profile update error:", error);
+      }
+    }
+    setLoading(false);
+  };
+
+  const handleCrop = async (croppedImageUrl: string) => {
+    const response = await fetch(croppedImageUrl);
+    const blob = await response.blob();
+    const file = new File([blob], "profile.png", { type: blob.type });
+  setBuyer((prev: any) => ({ ...prev, ImageFile: file, ImageUrl: croppedImageUrl }));
+    setCropperOpen(false);
+    toast.success("Cropped image ready to save. Click Save to upload.");
+  };
+
+
   // Order status enum
   type OrderStatus = "Pending" | "Shipped" | "Delivered" | "Cancelled";
   // Mock order history data
-
 
   const orderHistory = [
     {
@@ -335,57 +450,6 @@ export default function AccountPage() {
     { id: "h3", action: "Address added", date: "2025-08-20" },
   ];
   // Order status filter for history page
-  const [orderStatusFilter, setOrderStatusFilter] = useState("");
-  // Save handler for profile and addresses
-  const handleSaveProfile = async () => {
-    setLoading(true);
-    if (!buyer) return;
-    const payload: any = {
-      name: buyer.editedName ?? buyer.name,
-      surname: buyer.editedSurname ?? buyer.surname,
-      email: buyer.editedEmail ?? buyer.email,
-      phone: buyer.editedPhone ?? buyer.phone,
-      countryCitizenshipId: countryCode || buyer.countryCitizenshipId,
-    };
-    try {
-      let objectName = null;
-      let imageUrl = null;
-      if (buyer.ImageFile) {
-        objectName = await uploadProfileImage(buyer.ImageFile);
-        // Save objectName to DB
-        imageUrl = await getProfileImage(objectName);
-        payload.imageProfile = objectName;
-        localStorage.setItem("profileImage", imageUrl);
-      } else if (buyer.imageProfile) {
-        payload.imageProfile = buyer.imageProfile;
-      }
-      const result = await editBuyerProfile(buyer.id, payload);
-      if (result && result.isSuccess) {
-        toast.success("Profile updated successfully");
-        setEditProfileMode(false);
-        // If a new image was uploaded, display the new image URL
-        if (imageUrl) {
-          setBuyer({ ...buyer, ...payload, imageProfile: imageUrl });
-        } else {
-          setBuyer({ ...buyer, ...payload });
-        }
-      } else {
-        extractApiErrors(result).forEach(msg => toast.error(msg));
-      }
-    } catch (error) {
-      extractApiErrors(error).forEach(msg => toast.error(msg));
-    }
-    setLoading(false);
-  };
-
-  const handleCrop = async (croppedImageUrl: string) => {
-    const response = await fetch(croppedImageUrl);
-    const blob = await response.blob();
-    const file = new File([blob], "profile.png", { type: blob.type });
-    setBuyer(prev => ({ ...prev, ImageFile: file, ImageUrl: croppedImageUrl }));
-    setCropperOpen(false);
-    toast.success("Cropped image ready to save. Click Save to upload.");
-  };
 
 
   return (
@@ -452,6 +516,8 @@ export default function AccountPage() {
                   <div className="text-center py-8 text-gray-500">Loading profile...</div>
                 ) : (
                   <>
+                    {/* Email Confirmation Status */}
+
                     <div className="flex flex-col items-center mb-6">
                       {editProfileMode ? (
                         buyer.ImageUrl ? (
@@ -534,7 +600,14 @@ export default function AccountPage() {
                         )}
                       </div>
                       <div>
-                        <Label>Email</Label>
+                        <Label>
+                          Email
+                          {!buyer.isEmailConfirmed && !editProfileMode && (
+                            <Button variant="link" className="ml-2 p-0" onClick={handleConfirmEmail}>
+                              (Confirm Email)
+                            </Button>
+                          )}
+                        </Label>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                           {!editProfileMode ? (
                             <Input type="email" value={buyer.email} disabled />
@@ -544,26 +617,7 @@ export default function AccountPage() {
                             />
                           )}
                           {/* Show Send Confirmation Link button if email is not confirmed */}
-                          {buyer.emailConfirmed === false || buyer.emailConfirmed === 0 ? (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={async () => {
-                                try {
-                                  setLoading(true);
-                                  // Call your backend endpoint to send confirmation link
-                                  // Example: await sendConfirmationLink(buyer.email);
-                                  toast.success("Confirmation link sent to your email.");
-                                } catch (e) {
-                                  toast.error("Failed to send confirmation link.");
-                                } finally {
-                                  setLoading(false);
-                                }
-                              }}
-                            >
-                              Send Confirmation Link
-                            </Button>
-                          ) : null}
+
                         </div>
                       </div>
                       <div>
@@ -598,26 +652,28 @@ export default function AccountPage() {
                             </div>
                           </Label>
                         ) : (
-                          <div>
+                          <div className="flex items-center gap-2">
+                            {(() => {
+                              const selectedCountry = countries.find(c => c.id === (countryCode || buyer?.countryCitizenshipId));
+                              const flagUrl = selectedCountry?.code
+                                ? `https://flagsapi.com/${selectedCountry.code}/flat/24.png`
+                                : "https://flagsapi.com/UN/flat/24.png";
+                              return (
+                                <img src={flagUrl} alt={selectedCountry ? `${selectedCountry.name} flag` : "No flag"} />
+                              );
+                            })()}
                             <select
-                                value={countryCode || buyer?.countryCitizenshipId}
-                                onChange={e => {
-                                  const val = Number(e.target.value);
-                                  setCountryCode(val);
-                                }}
+                              value={countryCode || buyer?.countryCitizenshipId}
+                              onChange={e => {
+                                const val = Number(e.target.value);
+                                setCountryCode(val);
+                              }}
                               required
                               className="border rounded px-2 py-1"
                             >
                               <option value="">{t("Select country")}</option>
                               {countries.map((country) => (
                                 <option key={country.id} value={country.id}>
-                                  {country.code && (
-                                    <img
-                                      src={`https://flagsapi.com/${country.code}/flat/24.png`}
-                                      alt={`${country.name} flag`}
-                                      style={{ width: '24px', height: '24px', verticalAlign: 'middle', marginRight: '4px' }}
-                                    />
-                                  )}
                                   {country.name}
                                 </option>
                               ))}
@@ -699,44 +755,44 @@ export default function AccountPage() {
                           />
                         </div>
                         <div>
-                      <div className="col-span-2">
-                        <Label>Country</Label>
-                          <Label className="text-lg">
-                            <div className="flex flex-cols items-center gap-2">
-                              {(() => {
-                                const country = countries.find(c => c.id === addressCountryCode);
-                                const flagUrl = country?.code
-                                  ? `https://flagsapi.com/${country.code}/flat/24.png`
-                                  : "https://flagsapi.com/UN/flat/24.png";
-                                return country ? (
-                                  <>
-                                    <img src={flagUrl} alt={`${country.name} flag`} />
+                          <div className="col-span-2">
+                            <Label>Country</Label>
+                            <Label className="text-lg">
+                              <div className="flex flex-cols items-center gap-2">
+                                {(() => {
+                                  const country = countries.find(c => c.id === addressCountryCode);
+                                  const flagUrl = country?.code
+                                    ? `https://flagsapi.com/${country.code}/flat/24.png`
+                                    : "https://flagsapi.com/UN/flat/24.png";
+                                  return country ? (
+                                    <>
+                                      <img src={flagUrl} alt={`${country.name} flag`} />
+                                      {country.name}
+                                    </>
+                                  ) : null;
+                                })()}
+                              </div>
+                            </Label>
+                            <div>
+                              <select
+                                value={addressCountryCode}
+                                onChange={e => {
+                                  const val = Number(e.target.value);
+                                  setAddressCountryCode(val);
+                                  setNewAddress({ ...newAddress, countryId: val });
+                                }}
+                                required
+                                className="border rounded px-2 py-1"
+                              >
+                                <option value="">{t("Select country")}</option>
+                                {countries.map((country) => (
+                                  <option key={country.id} value={country.id}>
                                     {country.name}
-                                  </>
-                                ) : null;
-                              })()}
+                                  </option>
+                                ))}
+                              </select>
                             </div>
-                          </Label>
-                          <div>
-                            <select
-                              value={addressCountryCode}
-                              onChange={e => {
-                                const val = Number(e.target.value);
-                                setAddressCountryCode(val);
-                                setNewAddress({ ...newAddress, countryId: val });
-                              }}
-                              required
-                              className="border rounded px-2 py-1"
-                            >
-                              <option value="">{t("Select country")}</option>
-                              {countries.map((country) => (
-                                <option key={country.id} value={country.id}>
-                                  {country.name}
-                                </option>
-                              ))}
-                            </select>
                           </div>
-                      </div>
                         </div>
                         <div className="flex justify-end gap-2">
                           <Button
@@ -872,162 +928,31 @@ export default function AccountPage() {
             </Card>
           )}
           {activePage === "history" && (
-            <div className="flex flex-col gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Order History</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-2">
-                    <label htmlFor="order-status-filter" className="font-medium">Filter by status:</label>
-                    <select
-                      id="order-status-filter"
-                      className="border rounded px-2 py-1"
-                      value={orderStatusFilter}
-                      onChange={e => setOrderStatusFilter(e.target.value)}
-                    >
-                      <option value="">All</option>
-                      <option value="Pending">Pending</option>
-                      <option value="Shipped">Shipped</option>
-                      <option value="Delivered">Delivered</option>
-                      <option value="Cancelled">Cancelled</option>
-                    </select>
-                  </div>
-                  <ul className="divide-y">
-                    {orderHistory
-                      .filter(order => !orderStatusFilter || order.status === orderStatusFilter)
-                      .map((order) => (
-                        <li key={order.id} className="py-2">
-                          <div className="flex justify-between items-center">
-                            <span className="font-medium">Order #{order.id}</span>
-                            <span>{order.createdAt}</span>
-                            <span className={`text-xs px-2 py-1 rounded ${order.status === "Delivered" ? "bg-green-200" : order.status === "Cancelled" ? "bg-red-200" : "bg-yellow-200"}`}>{order.status}</span>
-                          </div>
-                          <div className="ml-2 text-sm text-gray-600">Total: ${order.totalAmount}</div>
-                          <div className="ml-2 text-sm text-gray-600">Shipping: {order.shippingAddress.street}, {order.shippingAddress.city}</div>
-                          <div className="ml-2 mt-1">
-                            <span className="font-semibold">Items:</span>
-                            <ul className="ml-4 list-disc">
-                              {order.orderItems.map((item) => (
-                                <li key={item.id} className="flex items-center gap-2">
-                                  <a
-                                    href={`/product/${item.product.id}`}
-                                    className="flex items-center gap-2 hover:underline"
-                                    style={{ display: 'inline-flex', alignItems: 'center' }}
-                                  >
-                                    {/* Replace with actual image path or fallback */}
-                                    <img
-                                      src={item.product.image || <MdAccountCircle />}
-                                      alt={item.product.title}
-                                      className="w-10 h-10 object-cover rounded mr-2 border"
-                                      style={{ minWidth: 40, minHeight: 40 }}
-                                    />
-                                    <span>{item.product.title}</span>
-                                  </a>
-                                  <span className="ml-2">x{item.quantity} (${item.product.price})</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        </li>
-                      ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            </div>
+            <OrdersSection
+              orderHistory={orderHistory}
+              orderStatusFilter={orderStatusFilter}
+              setOrderStatusFilter={setOrderStatusFilter}
+              MdAccountCircle={MdAccountCircle}
+            />
           )}
           {activePage === "notifications" && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Notifications</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="divide-y">
-                  {history.map((notif) => (
-                    <li key={notif.id} className="py-2 flex justify-between items-center">
-                      <span>{notif.action}</span>
-                      <span className="text-xs text-gray-500">{notif.date}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
+            <NotificationsSection history={history} />
           )}
           {activePage === "reviews" && (
-            <Card className="max-w-4xl mx-auto">
-              <CardHeader>
-                <CardTitle>Name's Reviews</CardTitle>// Replace Name with actual buyer's name if available
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-4">
-                  {reviews.map((r: any) => (
-                    <li key={r.id} className="border-b pb-4 flex gap-4 items-center">
-                      <img src={r.product.image} alt={r.product.name} className="w-20 h-20 object-cover rounded border" />
-                      <div className="flex-1">
-                        <div className="font-semibold">
-                          Product: <a href={`/products/${r.product.id}`} className="text-blue-600 underline">{r.product.name}</a>
-                          {" "}| Seller: <a href={`/sellers/${r.seller.id}`} className="text-blue-600 underline">{r.seller.name}</a>
-                        </div>
-                        {editingReviewId === r.id ? (
-                          <div className="mt-2">
-                            <Label>Edit Comment</Label>
-                            <Input
-                              value={editedReview.comment}
-                              onChange={e => setEditedReview({ ...editedReview, comment: e.target.value })}
-                              className="mb-2"
-                            />
-                            <Label>Edit Rating</Label>
-                            <select
-                              value={editedReview.rating}
-                              onChange={e => setEditedReview({ ...editedReview, rating: Number(e.target.value) })}
-                              className="mb-2 border rounded px-2 py-1"
-                            >
-                              {[1, 2, 3, 4, 5].map(n => (
-                                <option key={n} value={n}>{"★".repeat(n)}{"☆".repeat(5 - n)}</option>
-                              ))}
-                            </select>
-                            <div className="flex gap-2">
-                              <Button size="sm" onClick={() => saveReview(r.id)}>Save</Button>
-                              <Button size="sm" variant="outline" onClick={() => setEditingReviewId(null)}>Cancel</Button>
-                            </div>
-                          </div>
-                        ) : (
-                          <>
-                            <div className="text-yellow-500">Rating: {"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</div>
-                            <div className="mt-1 text-gray-700">{r.comment}</div>
-                            <Button size="sm" variant="outline" className="mt-2" onClick={() => {
-                              setEditingReviewId(r.id);
-                              setEditedReview({ comment: r.comment, rating: r.rating });
-                            }}>Edit</Button>
-                          </>
-                        )}
-                      </div>
-                      <div className="text-sm text-gray-400">{r.Date}</div>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
+            <ReviewsSection
+              reviews={reviews}
+              editingReviewId={editingReviewId}
+              setEditingReviewId={setEditingReviewId}
+              editedReview={editedReview}
+              setEditedReview={setEditedReview}
+              // @ts-ignore
+              saveReview={typeof saveReview !== 'undefined' ? saveReview : undefined}
+              buyer={buyer}
+            />
           )}
           {activePage === "faq" && (
-            <Card className="max-w-4xl mx-auto">
-              <CardHeader>
-                <CardTitle>Frequently Asked Questions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {faqs.map((faq, idx) => (
-                    <div key={idx} className="border-b pb-2">
-                      <div className="font-semibold">{faq.question}</div>
-                      <div className="mt-1 text-gray-700">{faq.answer}</div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <FaqSection faqs={faqs} />
           )}
-
-          {/* Modals */}
           {/* Change Password Modal */}
           {showPasswordModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">

@@ -11,17 +11,22 @@ import CategorySideBar from "@/components/custom/categorySidebar";
 import { useSelector } from "react-redux";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { useTranslation } from "react-i18next";
-import { getTranslatedCategories } from './getTranslatedCategories';
 import { toast } from 'sonner';
 import { CiLogout } from "react-icons/ci";
 import { tokenStorage } from '@/shared';
 import { useEffect } from 'react';
 import { jwtDecode } from "jwt-decode";
 import { logout } from '@/features/auth/services/auth.service';
+import { getCountries } from "@/features/profile/Country/country.service";
+import { getCategories } from "@/features/profile/Category/category.service";
+import type { Category } from '@/features/profile/DTOs/profile.interfaces';
+import type { Country } from '@/features/profile/DTOs/profile.interfaces';
+
+
+
 
 export default function Navbar() {
     const { t, i18n } = useTranslation();
-    const categories = getTranslatedCategories(t);
     const [flag, setFlag] = useState<string>(() => localStorage.getItem('flag') || 'https://flagsapi.com/GB/flat/64.png');// Default to UK flag
     const [searchTerm, setSearchTerm] = useState("");
     const [searchResults, setSearchResults] = useState<any[]>([]); // Explicitly type as any[] or Product[] if available
@@ -30,6 +35,8 @@ export default function Navbar() {
     const [userName, setUserName] = useState<string>("");
     const [cartCount, setCartCount] = useState<number>(0);
     const [favouritesCount, setFavouritesCount] = useState<number>(0);
+    const [countries, setCountries] = useState<Country[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
 
     const navigate = useNavigate();
 
@@ -43,7 +50,6 @@ export default function Navbar() {
                 setCartCount(Number(decoded.cart_count) || 0); // Assuming the token contains cart item count
                 setFavouritesCount(Number(decoded.favourite_count) || 0); // Assuming the token contains favourites item count
             } catch (err) {
-                // If token is invalid, clear storage
                 tokenStorage.clear();
                 setUserLogo("");
                 setUserName("");
@@ -51,6 +57,37 @@ export default function Navbar() {
                 setFavouritesCount(0);
             }
         }
+
+        const fetchCountries = async () => {
+            const fetchedCountries = await getCountries();
+            let arr = Array.isArray(fetchedCountries)
+                ? fetchedCountries
+                : (fetchedCountries && Array.isArray(fetchedCountries.data) ? fetchedCountries.data : []);
+            setCountries(arr);
+            // Always read the flag from localStorage on mount
+            const storedFlag = localStorage.getItem('flag');
+            if (storedFlag) {
+                setFlag(storedFlag);
+            } else {
+                // If not in localStorage, set based on current language
+                const currentLang = i18n.language;
+                const selected = arr.find((c: any) => c.code === currentLang);
+                const flagUrl = selected?.code
+                    ? `https://flagsapi.com/${selected.code.toUpperCase()}/flat/64.png`
+                    : 'https://flagsapi.com/GB/flat/64.png';
+                setFlag(flagUrl);
+                localStorage.setItem('flag', flagUrl);
+            }
+        };
+
+
+        const fetchCategories = async () => {
+            const result = await getCategories();
+            setCategories(result);
+        }
+
+        fetchCountries();
+        fetchCategories();
     }, []);
 
     const navigateToCart = () => {
@@ -59,22 +96,14 @@ export default function Navbar() {
     const navigateToFavourites = () => {
         navigate('/favourites');
     }
-    const handleLanguageChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const handleLanguageChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
         const selectedLanguage = event.target.value;
-        let flagUrl = 'https://flagsapi.com/GB/flat/64.png';
-        switch (selectedLanguage) {
-            case 'en':
-                flagUrl = 'https://flagsapi.com/GB/flat/64.png';
-                break;
-            case 'ru':
-                flagUrl = 'https://flagsapi.com/RU/flat/64.png';
-                break;
-            case 'az':
-                flagUrl = 'https://flagsapi.com/AZ/flat/64.png';
-                break;
-            default:
-                flagUrl = 'https://flagsapi.com/GB/flat/64.png';
-        }
+        // Defensive: ensure countries is always an array
+        const arr = Array.isArray(countries) ? countries : (countries?.data || []);
+        const selected = arr.find((c: any) => c.code === selectedLanguage);
+        const flagUrl = selected?.code
+            ? `https://flagsapi.com/${selected.code.toUpperCase()}/flat/64.png`
+            : 'https://flagsapi.com/GB/flat/64.png';
         setFlag(flagUrl);
         localStorage.setItem('flag', flagUrl);
         i18n.changeLanguage(selectedLanguage);
@@ -108,14 +137,12 @@ export default function Navbar() {
     };
 
     const handleProductClick = (product: any) => {
-        const categoryKey = Object.keys(categories).find(
-            (key) => categories[key].id === product.categoryId
-        );
-        if (categoryKey) {
+        const category = categories.find((cat: any) => cat.id === product.categoryId);
+        if (category) {
             if (product.subcategoryId) {
-                navigate(`/category/${categoryKey}/${product.subcategoryId}`);
+                navigate(`/category/${category.id}/${product.subcategoryId}`);
             } else {
-                navigate(`/category/${categoryKey}`);
+                navigate(`/category/${category.id}`);
             }
         }
         setSearchResults([]);
@@ -236,15 +263,24 @@ export default function Navbar() {
             </div>
             <div>
                 <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-2">
-                    <CategorySideBar categories={categories} />
+                    <CategorySideBar categories={
+                        Array.isArray(categories)
+                            ? Object.fromEntries(categories
+                                .filter((cat: any) => cat.parentId == null)
+                                .map((cat: any) => [cat.id, cat])
+                            )
+                            : categories
+                    } />
                     <div className="flex items-center space-x-2 mt-2 sm:mt-0">
                         <img src={flag} alt={t('flag')} className='w-8 h-8' />
                         <select className="languageDropdown bg-white text-gray-800 p-2 rounded"
                             onChange={handleLanguageChange}
                             value={i18n.language} >
-                            <option value="en">{t('English')}</option>
-                            <option value="ru">{t('Russian')}</option>
-                            <option value="az">{t('Azerbaijani')}</option>
+                            {countries.map((country) => (
+                                <option key={country.code} value={country.code}>
+                                    {country.code}
+                                </option>
+                            ))}
                         </select>
                     </div>
                 </div>

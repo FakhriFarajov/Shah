@@ -33,7 +33,7 @@ public class AuthService : IAuthService
         
         if (string.IsNullOrEmpty(user.AdminProfileId))
         {
-            return TypedResult<object>.Error("User is not a buyer.", 403);
+            return TypedResult<object>.Error("User is not an admin.", 403);
         }
 
         var accessToken = await _tokenService.CreateTokenAsync(user);
@@ -81,23 +81,6 @@ public class AuthService : IAuthService
 
     public async Task<TypedResult<object>> RefreshTokenAsync([FromBody] string refreshToken)
     {
-        if (string.IsNullOrEmpty(refreshToken))
-            return TypedResult<object>.Error("Refresh token is required", 400);
-
-        var result = await _tokenService.RefreshTokenAsync(refreshToken);
-
-        if (!result.IsSuccess)
-            return TypedResult<object>.Error(result.Message, 400);
-
-        return TypedResult<object>.Success(new
-        {
-            isSuccess = true,
-            message = result.Message,
-            data = new
-            {
-                accessToken = result.Data.AccessToken,
-                refreshToken = result.Data.RefreshToken
-            }
-        }, "Token refreshed successfully");
+        throw new NotImplementedException();
     }
 }

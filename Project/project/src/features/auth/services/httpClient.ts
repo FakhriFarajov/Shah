@@ -1,5 +1,3 @@
-import { refreshToken } from "@/features/auth/services/auth.service";
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { tokenStorage } from "@/shared/tokenStorage";
 import axios from "axios";
 import { createResponseMiddleware } from "@/shared/middlewares";
@@ -13,41 +11,23 @@ export const authHttp = axios.create({
   timeout: 10000,
 });
 
-// Move interceptor setup after declaration
-authHttp.interceptors.response.use(
-  response => response,
-  async error => {
-    if (error.response?.status === 401) {
-      const storedRefreshToken = localStorage.getItem("refresh_token");
-      if (storedRefreshToken) {
-        try {
-          const result = await refreshToken(storedRefreshToken);
-          if (result.data?.isSuccess && result.data?.data) {
-            tokenStorage.set({
-              accessToken: result.data.data.accessToken,
-              refreshToken: result.data.data.refreshToken,
-            });
-            // Retry the original request with new token
-            error.config.headers["Authorization"] = `Bearer ${result.data.data.accessToken}`;
-            return authHttp.request(error.config);
-          }
-        } catch (e) {
-          tokenStorage.clear();
-        }
-      }
-    }
-    return Promise.reject(error);
+authHttp.interceptors.request.use((config) => {
+  const token = tokenStorage.get();
+  if (token) {
+    config.headers = config.headers ?? {};
+    (config.headers as Record<string, string>)[
+      "Authorization"
+    ] = `Bearer ${token}`;
   }
-);
+  return config;
+});
 
 const authResponseMiddleware = createResponseMiddleware({
   onSuccess: (response) => {
     console.log("Auth API Success:", response);
   },
   onError: (response) => {
-    if (response.innerStatusCode === 401) {
-      tokenStorage.remove();
-    }
+    // No automatic token removal or refresh here
   },
   onStatusCodeMismatch: (externalStatus, internalStatus) => {
     console.warn(

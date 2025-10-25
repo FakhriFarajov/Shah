@@ -1,5 +1,6 @@
 using System.Security.Authentication;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 using ShahAuthApi.Application.Services.Seller.Interfaces;
 using ShahAuthApi.Application.Services.Utils;
@@ -32,7 +33,7 @@ public class AuthService : IAuthService
             throw new InvalidCredentialException("Invalid Credentials or no such user exists");
         }
         
-        if (string.IsNullOrEmpty(user.SellerProfileId))
+        if (string.IsNullOrEmpty(user.BuyerProfileId))
         {
             return TypedResult<object>.Error("User is not a buyer.", 403);
         }
@@ -43,7 +44,6 @@ public class AuthService : IAuthService
         if (!string.IsNullOrEmpty(user.RefreshToken) && user.RefreshTokenExpiryTime.HasValue &&
             user.RefreshTokenExpiryTime > now)
         {
-            // Reuse existing valid refresh token
             refreshToken = user.RefreshToken;
         }
         else
@@ -55,48 +55,45 @@ public class AuthService : IAuthService
         {
             AccessToken = accessToken,
             RefreshToken = refreshToken,
+
         }, "Successfully logged in");
 
     }
-    
+
     public async Task<TypedResult<object>> LogoutAsync(string token)
     {
-        await BlacklistTokenAsync(token, DateTime.UtcNow.AddHours(1)); // Set expiry as needed
+        // 1. Blacklist the current access token
+        await _tokenService.BlacklistTokenAsync(token, DateTime.UtcNow.AddMinutes(3));
+
+        // 2. Find the user associated with this token
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.RefreshToken != null);
+        if (user != null)
+        {
+            // 3. Invalidate the refresh token
+            user.RefreshToken = null;
+            user.RefreshTokenExpiryTime = null;
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+        }
+
         return TypedResult<object>.Success(null, "Successfully logged out");
     }
     
-    public async Task BlacklistTokenAsync(string token, DateTime expiry)
+    //Auth 
+    public async Task<TypedResult<object>> RefreshTokenAsync(RefreshRequest request)
     {
-        var blacklisted = new BlacklistedToken
-        {
-            Token = token,
-            ExpiryTime = expiry
-        };
-        
-        await _context.BlacklistedTokens.AddAsync(blacklisted);
-        await _context.SaveChangesAsync();
-    }
-
-
-    public async Task<TypedResult<object>> RefreshTokenAsync([FromBody] string refreshToken)
-    {
-        if (string.IsNullOrEmpty(refreshToken))
+        if (string.IsNullOrEmpty(request.RefreshToken))
             return TypedResult<object>.Error("Refresh token is required", 400);
 
-        var result = await _tokenService.RefreshTokenAsync(refreshToken);
+        var result = await _tokenService.RefreshTokenAsync(request.RefreshToken, request.OldAccessToken);
 
         if (!result.IsSuccess)
-            return TypedResult<object>.Error(result.Message, 400);
+            return TypedResult<object>.Error(result.Message, 401);
 
         return TypedResult<object>.Success(new
         {
-            isSuccess = true,
-            message = result.Message,
-            data = new
-            {
-                accessToken = result.Data.AccessToken,
-                refreshToken = result.Data.RefreshToken
-            }
-        }, "Token refreshed successfully");
+            accessToken = result.Data.AccessToken,
+            refreshToken = result.Data.RefreshToken
+        });
     }
 }

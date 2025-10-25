@@ -22,8 +22,6 @@ export default function ProductPage() {
   const cartItems = useSelector((state: any) => state.cart);
   const { id } = useParams();
 
-
-
   const products = generateSampleProducts(20); //take random products for related products section
 
   let product = useSelector((state: any) =>

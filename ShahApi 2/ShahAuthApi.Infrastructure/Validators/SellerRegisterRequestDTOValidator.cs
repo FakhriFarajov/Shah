@@ -10,11 +10,11 @@ public class SellerRegisterRequestDTOValidator : AbstractValidator<SellerRegiste
         RuleFor(x => x.Name).NotEmpty().WithMessage("Name is required.");
         RuleFor(x => x.Surname).NotEmpty().WithMessage("Surname is required.");
         RuleFor(x => x.Email)
-            .NotEmpty().WithMessage("Email is required.")
-            .EmailAddress().WithMessage("Email must be a valid email address.");
+            .NotEmpty().WithMessage("Seller Email is required.")
+            .EmailAddress().WithMessage("Seller Email must be a valid email address.");
         RuleFor(x => x.Phone)
             .NotEmpty().WithMessage("Phone is required.")
-            .Matches(@"^[0-9]+$").WithMessage("Phone must contain only numbers, e.g., 123456789")
+            .Matches(@"^[0-9]+$").WithMessage("Phone must contain only numbers, e.g., 0551112233")
             .MinimumLength(5).WithMessage("Phone must be at least 5 digits.")
             .MaximumLength(15).WithMessage("Phone must be at most 15 digits.");
         RuleFor(x => x.Passport)
@@ -33,13 +33,12 @@ public class SellerRegisterRequestDTOValidator : AbstractValidator<SellerRegiste
             .EmailAddress().WithMessage("Store email must be a valid email address.");
         RuleFor(x => x.StoreContactPhone)
             .NotEmpty().WithMessage("Store phone is required.")
-            .Matches(@"^[0-9]+$").WithMessage("Store phone must contain only numbers, e.g., 123123123123")
+            .Matches(@"^[0-9]+$").WithMessage("Store phone must contain only numbers, e.g., 0551112233")
             .MinimumLength(5).WithMessage("Store phone must be at least 5 digits.")
             .MaximumLength(15).WithMessage("Store phone must be at most 15 digits.");
         RuleFor(x => x.TaxId).NotEmpty().WithMessage("TaxIdType must be valid.");
         RuleFor(x => x.TaxNumber)
-            .NotEmpty().WithMessage("Tax ID is required.")
-            .Matches(@"^[A-Za-z0-9\-]{5,20}$").WithMessage("Tax ID must be alphanumeric, may include dashes, and 5-20 characters.");
+            .NotEmpty().WithMessage("Tax ID is required.");
         RuleFor(x => x.Street).NotEmpty().WithMessage("Street is required.");
         RuleFor(x => x.City).NotEmpty().WithMessage("City is required.");
         RuleFor(x => x.State).NotEmpty().WithMessage("State is required.");

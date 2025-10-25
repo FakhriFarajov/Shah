@@ -34,7 +34,7 @@ public class AccountService : IAccountService
         // Check for existing user
         var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == request.Email.ToLower());
         if (existingUser != null)
-            return Result.Error("Email is already registered.", 409);
+            return Result.Error("Seller Email is already registered.", 409);
         
         var existingStoreEmail = await _context.StoreInfos.FirstOrDefaultAsync(u => u.StoreEmail.ToLower() == request.Email.ToLower());
         if (existingStoreEmail != null)
@@ -113,7 +113,7 @@ public class AccountService : IAccountService
 
         var messageContent = new StringBuilder(await File.ReadAllTextAsync(filePath));
 
-        var link = $"{context.Request.Scheme}://{context.Request.Host}/api/Account/VerifyToken/{user.Id}/{token}";
+        var link = $"{context.Request.Scheme}://{context.Request.Host}/api/Seller/Account/VerifyToken/{user.Id}/{token}";
         
         messageContent.Replace("{User}", user.Name);
         messageContent.Replace("{ConfirmationLink}", link);

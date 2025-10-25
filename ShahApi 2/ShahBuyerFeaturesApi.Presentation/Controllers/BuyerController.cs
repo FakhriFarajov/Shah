@@ -5,34 +5,37 @@ using Microsoft.AspNetCore.Authorization;
 using ShahBuyerFeaturesApi.Application.Services.Interfaces;
 using ShahBuyerFeaturesApi.Core.DTOs.Request;
 
-namespace ShahBuyerAuthApi.Presentation.Controllers
-{
-    [ApiController]
-    [Route("api/[controller]")]
-    public class BuyerController : ControllerBase
-    {
-        private readonly IMapper _mapper;
-        private readonly IBuyerService _buyerService;
+namespace ShahBuyerAuthApi.Presentation.Controllers;
 
-        public BuyerController(IMapper mapper, IBuyerService buyerService)
-        {
-            _mapper = mapper;
-            _buyerService = buyerService;
-        }
-        
-        
+[ApiController]
+[Route("api/[controller]")]
+public class BuyerController : ControllerBase
+{
+    private readonly IMapper _mapper;
+    private readonly IBuyerService _buyerService;
+
+    public BuyerController(IMapper mapper, IBuyerService buyerService)
+    {
+        _mapper = mapper;
+        _buyerService = buyerService;
+    }
+    
     [Authorize(Policy = "BuyerPolicy")] //We need to send a Bearer token in the header to access this endpoint
-         
-        [HttpGet("getProfile/{buyerId}")]
-        public async Task<IActionResult> GetBuyerProfileByIdAsync(string buyerId)
-            => Ok(await _buyerService.GetBuyerByIdAsync(buyerId));
-        
+    [HttpGet("getIdByEmail/{email}")]
+    public async Task<IActionResult> GetIdByEmailAsync(string email)
+        => Ok(await _buyerService.GetIdByEmailAsync(email));
+    
+    
     [Authorize(Policy = "BuyerPolicy")] //We need to send a Bearer token in the header to access this endpoint
-        
-        [HttpPut("editProfile/{buyerId}")]
-        public async Task<IActionResult> EditBuyerProfileAsync(string buyerId, [FromBody] EditBuyerRequestDTO dto)
-        {
-            return Ok(await _buyerService.EditBuyerAsync(buyerId, dto));
-        }
+    [HttpGet("getProfile/{buyerId}")]
+    public async Task<IActionResult> GetBuyerProfileByIdAsync(string buyerId)
+        => Ok(await _buyerService.GetBuyerByIdAsync(buyerId));
+    
+    [Authorize(Policy = "BuyerPolicy")] //We need to send a Bearer token in the header to access this endpoint
+    [HttpPut("editProfile/{buyerId}")]
+    public async Task<IActionResult> EditBuyerProfileAsync(string buyerId, [FromBody] EditBuyerRequestDTO dto)
+    {
+        return Ok(await _buyerService.EditBuyerAsync(buyerId, dto));
     }
 }
+

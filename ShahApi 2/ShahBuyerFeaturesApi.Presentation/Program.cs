@@ -10,6 +10,6 @@ builder.Services.AddControllers();
 
 var app = builder.Build();
 
-app.UseCors("AllowAll");
+// CORS is applied via UseApplicationMiddleware (DefaultCors)
 app.UseApplicationMiddleware();
 app.Run();

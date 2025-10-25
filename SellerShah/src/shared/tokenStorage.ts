@@ -9,10 +9,23 @@ export const tokenStorage = {
       return null;
     }
   },
+  getRefresh(): string | null {
+    try {
+      return localStorage.getItem(REFRESH_TOKEN_KEY);
+    } catch {
+      return null;
+    }
+  },
+  setRefresh(refreshToken: string) {
+    try {
+      localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+    } catch {
+      return null;
+    }
+  },
   set(data: LoginResponse) {
     try {
       console.log(data.accessToken);
-
       localStorage.setItem(ACCESS_TOKEN_KEY, data.accessToken);
       localStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken);
     } catch {
@@ -36,3 +49,4 @@ export const tokenStorage = {
     }
   },
 };
+
