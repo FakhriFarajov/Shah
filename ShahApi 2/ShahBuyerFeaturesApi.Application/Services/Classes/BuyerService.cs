@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using ShahBuyerFeaturesApi.Application.Services.Interfaces;
-using ShahBuyerFeaturesApi.Contracts.DTOs.Response;
 using ShahBuyerFeaturesApi.Core.DTOs.Request;
 using ShahBuyerFeaturesApi.Core.DTOs.Response;
 using ShahBuyerFeaturesApi.Infrastructure.Contexts;
@@ -73,8 +72,7 @@ public class BuyerService : IBuyerService
             return TypedResult<object>.Error($"Mapping error: {ex.Message}");
         }
     }
-
-
+    
     public async Task<Result> EditBuyerAsync(string buyerId, EditBuyerRequestDTO dto)
     {
         var user = await _context.Users.Include(u => u.BuyerProfile).FirstOrDefaultAsync(u => u.BuyerProfileId == buyerId);

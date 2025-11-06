@@ -6,7 +6,6 @@ public class WarehouseOrder
 
     public string OrderId { get; set; } = null!;
     public Order Order { get; set; } = null!;
-
     public string WarehouseId { get; set; } = null!;
     public Warehouse Warehouse { get; set; } = null!;
 

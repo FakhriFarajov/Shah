@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using ShahBuyerFeaturesApi.Application.Services.Interfaces;
-using ShahBuyerFeaturesApi.Contracts.DTOs.Request;
+using ShahBuyerFeaturesApi.Core.DTOs.Request;
 
 namespace ShahBuyerFeaturesApi.Presentation.Controllers
 {

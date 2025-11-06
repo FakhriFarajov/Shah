@@ -1,4 +1,4 @@
-namespace ShahBuyerFeaturesApi.Contracts.DTOs.Request;
+namespace ShahBuyerFeaturesApi.Core.DTOs.Request;
 
 public record UpsertAddressRequestDTO(
     string? Id,

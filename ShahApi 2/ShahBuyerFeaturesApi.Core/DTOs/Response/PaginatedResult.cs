@@ -1,4 +1,4 @@
-namespace ShahBuyerFeaturesApi.Contracts.DTOs.Response;
+namespace ShahBuyerFeaturesApi.Core.DTOs.Response;
 
 
 public class PaginatedResult<T>

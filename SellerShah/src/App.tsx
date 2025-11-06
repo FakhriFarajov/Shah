@@ -10,8 +10,9 @@ import OrdersPage from './pages/orders'
 import ReportPage from './pages/report'
 import ReviewsPage from './pages/reviews'
 import { Toaster } from 'sonner';
-import ProductDetailsPage from './pages/ProductDetails'
+import ProductDetailsPage from './pages/productsPage'
 import AuthProvider from './features/auth/contexts/AuthProvider'
+import ProductsEditOrAddPage from './pages/productEditPage'
 
 
 function App() {
@@ -28,6 +29,7 @@ function App() {
             <Route path='/home' element={<Main />} />
             <Route path='/profile' element={<SellerProfile />} />
             <Route path='/products' element={<ProductsPage />} />
+            <Route path='/productsEditOrAdd' element={<ProductsEditOrAddPage />} />
             <Route path='/product-details' element={<ProductDetailsPage />} />
             <Route path='/orders' element={<OrdersPage />} />
             <Route path='/report' element={<ReportPage />} />

@@ -24,7 +24,7 @@ namespace ShahAdminFeaturesApi.Infrastructure.Configurations
                    .HasForeignKey(img => img.ProductVariantId)
                    .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasMany(pv => pv.ProductVariantAttributeValue)
+            builder.HasMany(pv => pv.ProductVariantAttributeValues)
                    .WithOne(pvav => pvav.ProductVariant)
                    .HasForeignKey(pvav => pvav.ProductVariantId)
                    .OnDelete(DeleteBehavior.Cascade);

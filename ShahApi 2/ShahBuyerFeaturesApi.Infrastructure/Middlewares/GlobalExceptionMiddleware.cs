@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
-using ShahBuyerFeaturesApi.Contracts.DTOs.Response;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
+using ShahBuyerFeaturesApi.Core.DTOs.Response;
 
 namespace ShahBuyerFeaturesApi.Infrastructure.Middlewares;
 

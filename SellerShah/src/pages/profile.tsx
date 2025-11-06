@@ -5,223 +5,270 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import Navbar from "../components/custom/Navbar/navbar";
-import { AppSidebar } from "@/components/custom/sidebar";
+import Navbar from "@/components/custom/Navbar/navbar";
 import { Eye, EyeOff } from "lucide-react";
 import ImageCropper from "@/components/ui/image-crop";
 import { MdAccountCircle } from "react-icons/md";
 import { getCountries } from "@/features/profile/Country/country.service";
 import { getCategories } from "@/features/profile/Category/category.service";
-import { getTaxes } from "@/features/profile/Tax/tax.service";
 import Spinner from "@/components/custom/loader";
 import { getSellerProfile, editSellerProfile } from "@/features/profile/ProfileServices/profile.service";
-import { tokenStorage } from "@/shared/tokenStorage";
+import { tokenStorage } from "@/shared";
 import { jwtDecode } from "jwt-decode";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router";
+import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
+import { forgotPassword } from "@/features/account/services/profile.service";
+import { uploadProfileImage, getProfileImage } from "@/shared/utils/imagePost";
+import { AppSidebar } from "@/components/custom/sidebar";
+import { confirmEmail } from "@/features/account/services/profile.service";
+
 
 export default function ProfileSeller() {
+    const [editedTaxId, setEditedTaxId] = useState<number | "">("");
+    const [taxes, setTaxes] = useState<{ id: number; name: string; RegexPattern: string }[]>([]);
+    const [editedTaxNumber, setEditedTaxNumber] = useState<string>("");
+    const [editedCategoryId, setEditedCategoryId] = useState<string>("");
     const [showCurrent, setShowCurrent] = useState(false);
     const [showNew, setShowNew] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
-    const [confirmNewPassword, setConfirmNewPassword] = useState("");
-    const [cropperOpen, setCropperOpen] = useState(false); // State to control cropper modal
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [cropperOpen, setCropperOpen] = useState(false);
     const [loading, setLoading] = useState(false);
 
+    const [countries, setCountries] = useState<{ id: number; name: string; code: string }[]>([]);
+    const [categories, setCategories] = useState<Array<{ id: string; name: string; parentCategoryId: string | null }>>([]);
+    const [seller, setSeller] = useState<any>(null);
+    const [editMode, setEditMode] = useState(false);
+
+    const [countryCode, setCountryCode] = useState<number | null>(null);
+    const [storeCountryCodeId, setStoreCountryCodeId] = useState<number | null>(null);
     const navigator = useNavigate();
-    // Simulate hashed password for demo (in real app, never store plain password)
-    const [hashedPassword, setHashedPassword] = useState();  //test
+
     const handleOpenPasswordModal = () => {
         setShowPasswordModal(true);
         setCurrentPassword("");
         setNewPassword("");
-        setConfirmNewPassword("");
+        setConfirmPassword("");
     };
-    const [countries, setCountries] = useState<{ id: number; name: string; code: string }[]>([]);
-    const [taxes, setTaxes] = useState<Array<{ id: string; name: string; regexPattern: string }>>([]);
-    const [categories, setCategories] = useState<Array<{ id: string; name: string; parentCategoryId: string | null }>>([]);
-    const [seller, setSeller] = useState<any>(null);
-    const [editMode, setEditMode] = useState(false);
-    const [editValues, setEditValues] = useState<any>({});
-    const [countryCitizenshipId, setCountryCitizenshipId] = useState<number | null>(null);
-    const [countryCode, setCountryCode] = useState<number | null>(null);
-    const [storeCountryCode, setStoreCountryCode] = useState<number | null>(null);
 
-
-
-    if (tokenStorage.get() === null) {
-        toast.error("You must be logged in to view this page.");
-        navigator('/main');
-    }
-
-    async function fetchTaxes() {
-        const taxes = await getTaxes();
-        setTaxes(taxes.data ? taxes.data : []);
-    }
+    useEffect(() => {
+        if (tokenStorage.get() === null) {
+            toast.error("You must be logged in to view this page.");
+            navigator("/main");
+        }
+    }, [navigator]);
 
     async function fetchCountries() {
-        const result = await getCountries();
-        setCountries(Array.isArray(result) ? result : result.data);
+        try {
+            const countriesRaw = await apiCallWithManualRefresh(() => getCountries());
+            const normalizedCountries = Array.isArray(countriesRaw)
+                ? countriesRaw.map((c: any) => ({ id: Number(c.id), name: c.name, code: c.code ?? "UN" }))
+                : [];
+            setCountries(normalizedCountries);
+        } catch (err) {
+            console.error("Failed to fetch countries", err);
+        }
     }
 
     async function fetchCategories() {
-        const categories = await getCategories();
-        setCategories(Array.isArray(categories) ? categories : []);
+        try {
+            const categoriesRaw = await apiCallWithManualRefresh(() => getCategories());
+            const normalizedCategories = Array.isArray(categoriesRaw)
+                ? categoriesRaw.map((cat: any) => ({ id: String(cat.id), name: cat.categoryName || cat.name, parentCategoryId: cat.parentCategoryId ?? null }))
+                : [];
+            setCategories(normalizedCategories);
+        } catch (err) {
+            console.error("Failed to fetch categories", err);
+        }
     }
 
+    const handleConfirmEmail = async () => {
+        setLoading(true);
+        if (seller?.email) {
+            await apiCallWithManualRefresh(() => confirmEmail());
+            toast.info("Confirmation email sent. Please check your inbox.");
+        } else {
+            toast.error("No email found for this user.");
+        }
+        setLoading(false);
+    };
 
     async function fetchSellerProfile() {
-        const token = tokenStorage.get();
-        if (!token) return;
-        const decoded: any = jwtDecode(token);
-        const sellerId = decoded.seller_profile_id;
-        const profile = await getSellerProfile(sellerId);
-        const mappedProfile = mapSellerProfile(profile.data ? profile.data : profile);
-        console.log("Mapped Profile:", mappedProfile);
-        setSeller(mappedProfile);
-        setEditValues(mappedProfile);
-        setCountryCitizenshipId(mappedProfile.countryCitizenshipId); // Set countryCitizenshipId
+        try {
+            const token = tokenStorage.get();
+            if (!token) return;
+            const decoded: any = jwtDecode(token);
+            const profileId = decoded?.seller_profile_id;
+            if (!profileId) return;
+            const profile = await apiCallWithManualRefresh(() => getSellerProfile(profileId));
+            if (!profile) {
+                setSeller(null);
+                toast.error("Failed to fetch profile: No data returned.");
+                return;
+            }
+            console.log("Fetched seller profile:", profile);
+            setSeller(profile);
+            if (profile.emailConfirmed === false) {
+                toast.info("Your email is not confirmed. Please check your inbox.");
+            }
+        } catch (err) {
+            console.error("Failed to fetch seller profile", err);
+            toast.error("Failed to fetch seller profile.");
+        }
     }
 
-    useEffect(() => {
-        try {
-            setLoading(true);
-            fetchCountries();
-            fetchTaxes();
-            fetchCategories();
-            fetchSellerProfile();
-        }
-        catch (error) {
-            console.error("Failed to fetch initial data:", error);
-            toast.error("Failed to load profile data. Please try again later.");
-            navigator('/main');
-        } finally {
-            setLoading(false);
-        }
-
-    }, []);
-
-    const handleChangePassword = (e: React.FormEvent) => {
-        e.preventDefault();
-        // Simulate hash check (replace with real hash check in production)
-        if (currentPassword !== hashedPassword) {
-            toast.error("Current password is incorrect.");
-            return;
-        }
-        // Regex: min 8 chars, 1 uppercase, 1 lowercase, 1 digit, 1 special char
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
-        if (!newPassword || !passwordRegex.test(newPassword)) {
-            toast.error("Password must be at least 8 characters and include uppercase, lowercase, digit, and special character.");
-            return;
-        }
-        if (newPassword !== confirmNewPassword) {
-            toast.error("New passwords do not match.");
-            return;
-        }
-        setHashedPassword(newPassword); // Simulate password change
-        setShowPasswordModal(false);
-        toast.success("Password changed successfully.");
-    };
-
-    const handleSave = async () => {
+    const handleSaveProfile = async () => {
         setLoading(true);
         try {
-            // Update country and store country codes in editValues if changed
-            let updatedValues = { ...editValues };
-            if (countryCode !== null) {
-                updatedValues.countryCitizenshipId = countryCode;
-            }
-            if (storeCountryCode !== null) {
-                updatedValues.storeCountryCodeId = storeCountryCode;
+            if (!seller) return;
+            const payload: any = {
+                name: seller?.editedName || seller?.name,
+                surname: seller?.editedSurname || seller?.surname,
+                email: seller?.editedEmail || seller?.email,
+                phone: seller?.editedPhone || seller?.phone,
+                passportNumber: seller?.editedPassportNumber || seller?.passportNumber,
+                countryCitizenshipId: countryCode || seller?.countryCitizenshipId,
+                storeName: seller?.editedStoreName || seller?.storeName,
+                storeDescription: seller?.editedStoreDescription || seller?.storeDescription,
+                storeContactPhone: seller?.editedStoreContactPhone || seller?.storeContactPhone,
+                storeContactEmail: seller?.editedStoreContactEmail || seller?.storeContactEmail,
+                taxId: editedTaxId || seller?.taxId,
+                taxNumber: editedTaxNumber || seller?.taxNumber,
+                storeCountryCodeId: storeCountryCodeId || seller?.storeCountryCodeId,
+                street: seller?.editedStreet || seller?.street,
+                city: seller?.editedCity || seller?.city,
+                state: seller?.editedState || seller?.state,
+                postalCode: seller?.editedPostalCode || seller?.postalCode,
+                categoryId: editedCategoryId || seller?.categoryId,
+            };
+
+            console.log("Preparing to upload store logo if changed", seller);
+            let objectName = null;
+            let storeLogoUrl = null;
+            if (seller?.storeLogoFile) {
+                objectName = await uploadProfileImage(seller.storeLogoFile as File);
+                storeLogoUrl = await getProfileImage(objectName);
+                payload.storeLogo = objectName;
             }
 
-            // Validate required fields (example: name, email, storeName)
-            if (!updatedValues.name || !updatedValues.email || !updatedValues.storeName) {
-                toast.error("Please fill in all required fields: Name, Email, and Store Name.");
+
+            console.log("Payload", payload);
+            const result = await apiCallWithManualRefresh(() => editSellerProfile(seller.id, payload));
+            if (!result || !result.isSuccess) {
+                toast.error(result?.message || "Profile update failed. Please check your details.");
                 setLoading(false);
                 return;
             }
-
-            const token = tokenStorage.get();
-            if (!token) {
-                toast.error("No authentication token found.");
-                setLoading(false);
-                return;
-            }
-            const decoded: any = jwtDecode(token);
-            const sellerId = decoded.seller_profile_id;
-            console.log("Updating seller profile with values:", updatedValues);
-            const result = await editSellerProfile(sellerId, updatedValues);
-            if (result && result.isSuccess) {
-                setSeller({ ...seller, ...updatedValues });
-                setEditMode(false);
-                toast.success("Profile updated successfully.");
+            toast.success("Profile updated successfully!");
+            if (storeLogoUrl) setSeller({ ...seller, ...payload, storeLogo: storeLogoUrl });
+            else setSeller({ ...seller, ...payload });
+            setEditMode(false);
+        } catch (error: any) {
+            console.error("Save profile failed", error);
+            if (error?.response?.data) {
+                const data = error.response.data;
+                if (data.errors && typeof data.errors === "object") {
+                    Object.values(data.errors).forEach((msgs: any) => {
+                        if (Array.isArray(msgs)) msgs.forEach((m: string) => toast.error(m));
+                    });
+                }
+                if (data.message || data.Message) toast.error(data.message || data.Message);
+                if (typeof data === "string") toast.error(data);
             } else {
-                toast.error("Failed to update profile. Please try again.");
+                toast.error("Profile update failed. Please try again.");
             }
-        } catch (error) {
-            toast.error("An error occurred while saving the profile.");
         } finally {
             setLoading(false);
         }
     };
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        const { name, value, type, files } = e.target as HTMLInputElement;
-        if (type === "file" && files && files[0]) {
-            const file = files[0];
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setEditValues((prev) => ({ ...prev, avatar: reader.result as string, storeLogoUrl: reader.result as string }));
-            };
-            reader.readAsDataURL(file);
-        } else if (name.startsWith("address.")) {
-            const addrField = name.split(".")[1];
-            setEditValues((prev) => ({ ...prev, address: { ...prev.address, [addrField]: value } }));
-        } else {
-            setEditValues((prev) => ({ ...prev, [name]: value }));
+    useEffect(() => {
+        (async () => {
+            setLoading(true);
+            try {
+                await Promise.all([
+                    fetchCountries(),
+                    fetchCategories(),
+                    (async () => {
+                        try {
+                            const taxesRaw = await apiCallWithManualRefresh(() => import("@/features/profile/Tax/tax.service").then(m => m.getTaxes()));
+                            const normalizedTaxes = Array.isArray(taxesRaw)
+                                ? taxesRaw.map((t: any) => ({ id: Number(t.id), name: t.name, RegexPattern: t.RegexPattern }))
+                                : [];
+                            setTaxes(normalizedTaxes);
+                        } catch (err) {
+                            console.error("Failed to fetch taxes", err);
+                        }
+                    })(),
+                    fetchSellerProfile()
+                ]);
+            } catch (err) {
+                console.error("Init load failed", err);
+                toast.error("Failed to load profile data.");
+            } finally {
+                setLoading(false);
+            }
+        })();
+    }, []);
+
+    const handleChangePassword = async () => {
+        setLoading(true);
+        try {
+            if (newPassword !== confirmPassword) {
+                toast.error("New password and confirmation do not match");
+                return;
+            }
+            if (!seller) return;
+            const requestData = { userId: seller.userId, oldPassword: currentPassword, newPassword: newPassword, confirmPassword: confirmPassword };
+            if (currentPassword.trim() === "") {
+                toast.error("Current password cannot be empty");
+                return;
+            }
+            if (newPassword.trim() === "") {
+                toast.error("New password cannot be empty");
+                return;
+            }
+            if (confirmPassword.trim() === "") {
+                toast.error("Confirm password cannot be empty");
+                return;
+            }
+            const result = await apiCallWithManualRefresh(() => forgotPassword(requestData));
+            if (result?.isSuccess) {
+                toast.success("Password changed successfully");
+                setShowPasswordModal(false);
+            } else {
+                toast.error(result?.message || "Failed to change password");
+            }
+        } catch (err) {
+            console.error("Change password failed", err);
+            toast.error("Failed to change password");
+        } finally {
+            setLoading(false);
+            setCurrentPassword("");
+            setNewPassword("");
+            setConfirmPassword("");
+            setShowPasswordModal(false);
+            setEditMode(false);
         }
     };
 
-    // Handler for avatar crop
-    const handleAvatarCrop = (croppedImage: string) => {
-        setEditValues((prev: any) => ({ ...prev, storeLogo: croppedImage, storeLogoUrl: croppedImage }));
-        toast.success("The store logo is ready, please save the profile to apply changes.");
+    const handleCrop = async (croppedImageUrl: string) => {
+        const response = await fetch(croppedImageUrl);
+        const blob = await response.blob();
+        const file = new File([blob], "profile.png", { type: blob.type });
+        setSeller({ ...seller, storeLogoFile: file, storeLogoUrl: croppedImageUrl });
         setCropperOpen(false);
+        toast.success("Cropped image ready to save. Click Save to upload.");
     };
-
-    function mapSellerProfile(data: any) {
-        return {
-            name: data.name,
-            surname: data.surname,
-            email: data.email,
-            phone: data.phone,
-            passportNumber: data.passportNumber,
-            countryCitizenshipId: data.countryCitizenshipId,
-            storeLogo: data.storeLogo,
-            storeName: data.storeName,
-            storeDescription: data.storeDescription,
-            storeContactPhone: data.storeContactPhone,
-            storeContactEmail: data.storeContactEmail,
-            taxId: data.taxId,
-            taxNumber: data.taxNumber,
-            street: data.street,
-            city: data.city,
-            state: data.state,
-            postalCode: data.postalCode,
-            storeCountryCodeId: data.storeCountryCodeId,
-            categoryId: data.categoryId,
-            isConfirmed: data.isConfirmed,
-        };
-    }
 
     return (
         <>
             {loading && (
-                <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(255,255,255,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "rgba(255,255,255,0.5)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <Spinner />
                 </div>
             )}
@@ -235,98 +282,78 @@ export default function ProfileSeller() {
                         </CardHeader>
                         <CardContent>
                             <div className="flex flex-col items-center mb-6">
-                                <label htmlFor="avatar-upload" className={editMode ? "cursor-pointer" : undefined}>
-                                    <span
-                                        className="w-24 h-24 rounded-full border mb-2 flex items-center justify-center bg-gray-100 text-gray-400"
-                                        style={editMode ? { cursor: 'pointer', fontSize: '96px' } : { fontSize: '96px' }}
-                                    >
-                                        {editMode
-                                            ? (editValues.storeLogo || editValues.storeLogoUrl)
-                                                ? <img src={editValues.storeLogo || editValues.storeLogoUrl} alt="Store Logo" className="w-24 h-24 rounded-full object-cover" />
-                                                : <MdAccountCircle />
-                                            : seller?.storeLogo
-                                                ? <img src={seller.storeLogo} alt="Store Logo" className="w-24 h-24 rounded-full object-cover" />
-                                                : <MdAccountCircle />
-                                        }
+                                {seller ? (
+                                    editMode ? (
+                                        seller.storeLogoUrl ? (
+                                            <img src={seller.storeLogoUrl} alt="Avatar" className="w-24 h-24 rounded-full border mb-2" onClick={() => setCropperOpen(true)} style={{ cursor: "pointer" }} />
+                                        ) : seller.storeLogo ? (
+                                            <img src={seller.storeLogo} alt="Avatar" className="w-24 h-24 rounded-full border mb-2" onClick={() => setCropperOpen(true)} style={{ cursor: "pointer" }} />
+                                        ) : (
+                                            <span className="w-24 h-24 rounded-full border mb-2 flex items-center justify-center bg-gray-100 text-gray-400" style={{ fontSize: "96px", cursor: "pointer" }} onClick={() => setCropperOpen(true)}>
+                                                <MdAccountCircle />
+                                            </span>
+                                        )
+                                    ) : seller.storeLogoUrl ? (
+                                        <img src={seller.storeLogoUrl} alt="Avatar" className="w-24 h-24 rounded-full border mb-2" />
+                                    ) : seller.storeLogo ? (
+                                        <img src={seller.storeLogo} alt="Avatar" className="w-24 h-24 rounded-full border mb-2" />
+                                    ) : (
+                                        <span className="w-24 h-24 rounded-full border mb-2 flex items-center justify-center bg-gray-100 text-gray-400" style={{ fontSize: "96px" }}>
+                                            <MdAccountCircle />
+                                        </span>
+                                    )
+                                ) : (
+                                    <span className="w-24 h-24 rounded-full border mb-2 flex items-center justify-center bg-gray-100 text-gray-400" style={{ fontSize: "96px" }}>
+                                        <MdAccountCircle />
                                     </span>
-                                </label>
-                                {editMode && (
-                                    <div className="text-sm text-gray-500">
-                                        <Button variant="outline" size="sm" onClick={() => setCropperOpen(true)}>
-                                            Change Avatar
-                                        </Button>
+                                )}
+                                {editMode && seller && (
+                                    <div className="text-sm text-gray-500 mb-2">
+                                        <Label>Click {seller.storeLogoUrl ? "image" : "icon"} to change</Label>
                                         <Dialog open={cropperOpen} onOpenChange={setCropperOpen}>
                                             <DialogContent className="min-w-2xl w-full">
-                                                <ImageCropper onCrop={handleAvatarCrop} />
+                                                <ImageCropper onCrop={handleCrop} />
                                             </DialogContent>
                                         </Dialog>
                                     </div>
                                 )}
-                                {!editMode ? (
-                                    <>
-                                        <div className="text-lg font-semibold">{seller?.name}</div>
-                                        <div className="text-gray-500 text-sm">{seller?.email}</div>
-                                    </>
-                                ) : null}
                             </div>
+
                             <form className="space-y-4">
                                 <div className="flex flex-col md:flex-row md:items-start gap-4 md:gap-8">
-                                    {/* Personal Info */}
                                     <div className="w-full md:flex-1 min-w-[280px] order-1 md:order-none">
                                         <h3 className="text-lg font-semibold mb-3 border-b pb-1">Personal Info</h3>
                                         <div className="mb-3">
-                                            <label className="block text-sm font-medium mb-1">Name</label>
-                                            <Input
-                                                name="name"
-                                                value={editMode ? editValues.name : seller?.name}
-                                                onChange={handleChange}
-                                                disabled={!editMode}
-                                                placeholder="e.g. John"
-                                            />
+                                            <Label className="mb-2">Name</Label>
+                                            {!editMode ? <Input value={seller?.name ?? ""} disabled /> : <Input value={seller?.editedName ?? seller?.name ?? ""} onChange={(e) => setSeller({ ...seller, editedName: e.target.value })} />}
                                         </div>
                                         <div className="mb-3">
-                                            <label className="block text-sm font-medium mb-1">Surname</label>
-                                            <Input
-                                                name="surname"
-                                                value={editMode ? editValues.surname : seller?.surname}
-                                                onChange={handleChange}
-                                                disabled={!editMode}
-                                                placeholder="e.g. Doe"
-                                            />
+                                            <Label className="mb-2">Surname</Label>
+                                            {!editMode ? <Input value={seller?.surname ?? ""} disabled /> : <Input value={seller?.editedSurname ?? seller?.surname ?? ""} onChange={(e) => setSeller({ ...seller, editedSurname: e.target.value })} />}
                                         </div>
                                         <div className="mb-3">
-                                            <label className="block text-sm font-medium mb-1">Email {
-                                                <span className={seller?.emailConfirmed ? "text-green-600 font-semibold" : "text-red-600 font-semibold"}>
-                                                    {seller?.emailConfirmed ? "Email Confirmed" : "Email Not Confirmed"}</span>
-                                            }</label>
-                                            <Input
-                                                name="email"
-                                                value={editMode ? editValues.email : seller?.email}
-                                                onChange={handleChange}
-                                                disabled={!editMode}
-                                                placeholder="m@example.com"
-                                            />
+                                            <Label>Email
+                                                {seller && !seller.emailConfirmed && !editMode && (
+                                                    <Button variant="link" className="m-0 p-0" onClick={handleConfirmEmail}>
+                                                        (Confirm Email)
+                                                    </Button>
+                                                )}
+                                            </Label>
+                                            {!editMode ? <Input type="email" value={seller?.email ?? ""} disabled /> : <Input type="email" value={seller?.editedEmail ?? seller?.email ?? ""} onChange={(e) => setSeller({ ...seller, editedEmail: e.target.value })} />}
                                         </div>
                                         <div className="mb-3">
-                                            <label className="block text-sm font-medium mb-1">Phone</label>
-                                            <Input
-                                                name="phone"
-                                                value={editMode ? editValues.phone : seller?.phone}
-                                                onChange={handleChange}
-                                                disabled={!editMode}
-                                                placeholder="e.g. +1 555-123-4567"
-                                            />
+                                            <Label className="mb-2">Phone</Label>
+                                            {!editMode ? <Input value={seller?.phone ?? ""} disabled /> : <Input value={seller?.editedPhone ?? seller?.phone ?? ""} onChange={(e) => setSeller({ ...seller, editedPhone: e.target.value })} />}
                                         </div>
+
                                         <div className="col-span-2">
-                                            <Label>Country</Label>
+                                            <Label className="mb-2">Country</Label>
                                             {!editMode ? (
                                                 <Label className="text-lg">
                                                     <div className="flex flex-cols items-center gap-2">
                                                         {(() => {
-                                                            const country = countries.find(c => c.id === seller.countryCitizenshipId);
-                                                            const flagUrl = country?.code
-                                                                ? `https://flagsapi.com/${country.code}/flat/24.png`
-                                                                : "https://flagsapi.com/UN/flat/24.png";
+                                                            const country = countries.find((c) => String(c.id) === String(seller?.countryCitizenshipId));
+                                                            const flagUrl = country?.code ? `https://flagsapi.com/${country.code}/flat/24.png` : "https://flagsapi.com/UN/flat/24.png";
                                                             return country ? (
                                                                 <>
                                                                     <img src={flagUrl} alt={`${country.name} flag`} />
@@ -341,28 +368,11 @@ export default function ProfileSeller() {
                                             ) : (
                                                 <div className="flex items-center gap-2">
                                                     {(() => {
-                                                        const selectedCountry = countries.find(
-                                                            c => c.id === (countryCode || seller?.countryCitizenshipId)
-                                                        );
-                                                        const flagUrl = selectedCountry?.code
-                                                            ? `https://flagsapi.com/${selectedCountry.code}/flat/24.png`
-                                                            : "https://flagsapi.com/UN/flat/24.png";
-                                                        return (
-                                                            <img
-                                                                src={flagUrl}
-                                                                alt={selectedCountry ? `${selectedCountry.name} flag` : "No flag"}
-                                                            />
-                                                        );
+                                                        const selectedCountry = countries.find((c) => c.id === (countryCode || seller?.countryCitizenshipId));
+                                                        const flagUrl = selectedCountry?.code ? `https://flagsapi.com/${selectedCountry.code}/flat/24.png` : "https://flagsapi.com/UN/flat/24.png";
+                                                        return <img src={flagUrl} alt={selectedCountry ? `${selectedCountry.name} flag` : "No flag"} />;
                                                     })()}
-                                                    <select
-                                                        value={countryCode || seller?.countryCitizenshipId}
-                                                        onChange={e => {
-                                                            const val = Number(e.target.value);
-                                                            setCountryCode(val);
-                                                        }}
-                                                        required
-                                                        className="border rounded px-2 py-1"
-                                                    >
+                                                    <select value={countryCode ?? seller?.countryCitizenshipId ?? ""} onChange={(e) => setCountryCode(Number(e.target.value))} required className="border rounded px-2 py-1">
                                                         <option value="">Select country</option>
                                                         {countries.map((country) => (
                                                             <option key={country.id} value={country.id}>
@@ -373,116 +383,72 @@ export default function ProfileSeller() {
                                                 </div>
                                             )}
                                         </div>
+
                                         <div className="mb-3">
-                                            <label className="block text-sm font-medium mb-1">Passport Number</label>
-                                            <Input
-                                                name="passportNumber"
-                                                value={seller?.passportNumber}
-                                                disabled
-                                            />
+                                            <Label className="mt-3">Passport Number</Label>
+                                            <Input value={seller?.passportNumber ?? ""} disabled />
                                         </div>
                                     </div>
-                                    {/* Shop Info */}
+
                                     <div className="w-full md:flex-1 min-w-[220px] order-2 md:order-none">
                                         <h3 className="text-lg font-semibold mb-3 border-b pb-1">Shop Info</h3>
+
                                         <div className="mb-3">
-                                            <label className="block text-sm font-medium mb-1">Shop Name</label>
-                                            <Input
-                                                name="storeName"
-                                                value={editMode ? editValues.storeName : seller?.storeName}
-                                                onChange={handleChange}
-                                                disabled={!editMode}
-                                            />
+                                            <Label className="mb-2">Shop Name</Label>
+                                            {!editMode ? <Input value={seller?.storeName ?? ""} disabled /> : <Input value={seller?.editedStoreName ?? seller?.storeName ?? ""} onChange={(e) => setSeller({ ...seller, editedStoreName: e.target.value })} />}
                                         </div>
+
                                         <div className="mb-3">
-                                            <label className="block text-sm font-medium mb-1">Store Contact Phone</label>
-                                            <Input
-                                                name="storeContactPhone"
-                                                value={editMode ? editValues.storeContactPhone : seller?.storeContactPhone}
-                                                onChange={handleChange}
-                                                disabled={!editMode}
-                                                placeholder="e.g. +1 555-987-6543"
-                                            />
+                                            <Label className="mb-2">Store Contact Phone</Label>
+                                            {!editMode ? <Input value={seller?.storeContactPhone ?? ""} disabled /> : <Input value={seller?.editedStoreContactPhone ?? seller?.storeContactPhone ?? ""} onChange={(e) => setSeller({ ...seller, editedStoreContactPhone: e.target.value })} />}
                                         </div>
+
                                         <div className="mb-3">
-                                            <label className="block text-sm font-medium mb-1">Store Contact Email</label>
-                                            <Input
-                                                name="storeContactEmail"
-                                                value={editMode ? editValues.storeContactEmail : seller?.storeContactEmail}
-                                                onChange={handleChange}
-                                                disabled={!editMode}
-                                                placeholder="e.g. seller@example.com"
-                                            />
+                                            <Label className="mb-2">Store Contact Email</Label>
+                                            {!editMode ? <Input type="email" value={seller?.storeContactEmail ?? ""} disabled /> : <Input type="email" value={seller?.editedStoreContactEmail ?? seller?.storeContactEmail ?? ""} onChange={(e) => setSeller({ ...seller, editedStoreContactEmail: e.target.value })} />}
                                         </div>
+
                                         <div className="mb-3">
-                                            <label className="block text-sm font-medium mb-1">Store Description</label>
-                                            <textarea
-                                                name="storeDescription"
-                                                value={editMode ? editValues.storeDescription : seller?.storeDescription}
-                                                onChange={handleChange}
-                                                disabled={!editMode}
-                                                className="w-full border rounded p-2 resize-none max-h-[100px] "
-                                                placeholder="Describe your store"
-                                            />
+                                            <Label className="mb-2">Store Description</Label>
+                                            {!editMode ? <textarea value={seller?.storeDescription ?? ""} disabled className="w-full border rounded p-2 resize-none max-h-[100px]" /> : <textarea value={seller?.editedStoreDescription ?? seller?.storeDescription ?? ""} onChange={(e) => setSeller({ ...seller, editedStoreDescription: e.target.value })} className="w-full border rounded p-2 resize-none max-h-[100px]" />}
                                         </div>
+
                                         <div className="mb-3">
                                             <h3 className="text-lg font-semibold mb-3 border-b pb-1">Shop Address Info</h3>
-                                            <label className="block text-sm font-medium mb-1">Street</label>
-                                            <Input
-                                                name="address.street"
-                                                value={editMode ? editValues.street : seller?.street}
-                                                onChange={handleChange}
-                                                disabled={!editMode}
-                                                placeholder="e.g. 123 Market St"
-                                            />
+                                            <Label className="mb-2">Street</Label>
+                                            {!editMode ? <Input value={seller?.street ?? ""} disabled /> : <Input value={seller?.editedStreet ?? seller?.street ?? ""} onChange={(e) => setSeller({ ...seller, editedStreet: e.target.value })} />}
                                         </div>
+
                                         <div className="mb-3">
-                                            <label className="block text-sm font-medium mb-1">City</label>
-                                            <Input
-                                                name="address.city"
-                                                value={editMode ? editValues.city : seller?.city}
-                                                onChange={handleChange}
-                                                disabled={!editMode}
-                                                placeholder="e.g. Cityville"
-                                            />
+                                            <Label className="mb-2">City</Label>
+                                            {!editMode ? <Input value={seller?.city ?? ""} disabled /> : <Input value={seller?.editedCity ?? seller?.city ?? ""} onChange={(e) => setSeller({ ...seller, editedCity: e.target.value })} />}
                                         </div>
+
                                         <div className="mb-3">
-                                            <label className="block text-sm font-medium mb-1">State</label>
-                                            <Input
-                                                name="address.state"
-                                                value={editMode ? editValues.state : seller?.state}
-                                                onChange={handleChange}
-                                                disabled={!editMode}
-                                                placeholder="e.g. State/Region"
-                                            />
+                                            <Label className="mb-2">State</Label>
+                                            {!editMode ? <Input value={seller?.state ?? ""} disabled /> : <Input value={seller?.editedState ?? seller?.state ?? ""} onChange={(e) => setSeller({ ...seller, editedState: e.target.value })} />}
                                         </div>
+
                                         <div className="mb-3">
-                                            <label className="block text-sm font-medium mb-1">Postal Code</label>
-                                            <Input
-                                                name="address.postalCode"
-                                                value={editMode ? editValues.postalCode : seller?.postalCode}
-                                                onChange={handleChange}
-                                                disabled={!editMode}
-                                                placeholder="e.g. 12345"
-                                            />
+                                            <Label className="mb-2">Postal Code</Label>
+                                            {!editMode ? <Input value={seller?.postalCode ?? ""} disabled /> : <Input value={seller?.editedPostalCode ?? seller?.postalCode ?? ""} onChange={(e) => setSeller({ ...seller, editedPostalCode: e.target.value })} />}
                                         </div>
+
                                         <div className="col-span-2">
-                                            <Label>Store Address Country</Label>
+                                            <Label className="mb-2">Store Address Country</Label>
                                             {!editMode ? (
                                                 <Label className="text-lg">
                                                     <div className="flex flex-cols items-center gap-2">
                                                         {(() => {
-                                                            const country = countries.find(c => c.id === seller.storeCountryCodeId);
-                                                            const flagUrl = country?.code
-                                                                ? `https://flagsapi.com/${country.code}/flat/24.png`
-                                                                : "https://flagsapi.com/UN/flat/24.png";
+                                                            const country = countries.find((c) => String(c.id) === String(seller?.storeCountryCodeId));
+                                                            const flagUrl = country?.code ? `https://flagsapi.com/${country.code}/flat/24.png` : "https://flagsapi.com/UN/flat/24.png";
                                                             return country ? (
                                                                 <>
                                                                     <img src={flagUrl} alt={`${country.name} flag`} />
                                                                     {country.name}
                                                                 </>
                                                             ) : (
-                                                                <span>"Country not found"</span>
+                                                                <span>{"Country not found"}</span>
                                                             );
                                                         })()}
                                                     </div>
@@ -490,28 +456,11 @@ export default function ProfileSeller() {
                                             ) : (
                                                 <div className="flex items-center gap-2">
                                                     {(() => {
-                                                        const selectedCountry = countries.find(
-                                                            c => c.id === (storeCountryCode || seller?.storeCountryCodeId)
-                                                        );
-                                                        const flagUrl = selectedCountry?.code
-                                                            ? `https://flagsapi.com/${selectedCountry.code}/flat/24.png`
-                                                            : "https://flagsapi.com/UN/flat/24.png";
-                                                        return (
-                                                            <img
-                                                                src={flagUrl}
-                                                                alt={selectedCountry ? `${selectedCountry.name} flag` : "No flag"}
-                                                            />
-                                                        );
+                                                        const selectedCountry = countries.find((c) => c.id === (storeCountryCodeId || seller?.storeCountryCodeId));
+                                                        const flagUrl = selectedCountry?.code ? `https://flagsapi.com/${selectedCountry.code}/flat/24.png` : "https://flagsapi.com/UN/flat/24.png";
+                                                        return <img src={flagUrl} alt={selectedCountry ? `${selectedCountry.name} flag` : "No flag"} />;
                                                     })()}
-                                                    <select
-                                                        value={storeCountryCode || seller?.storeCountryCodeId}
-                                                        onChange={e => {
-                                                            const val = Number(e.target.value);
-                                                            setStoreCountryCode(val);
-                                                        }}
-                                                        required
-                                                        className="border rounded px-2 py-1"
-                                                    >
+                                                    <select value={storeCountryCodeId ?? seller?.storeCountryCodeId ?? ""} onChange={(e) => setStoreCountryCodeId(Number(e.target.value))} required className="border rounded px-2 py-1">
                                                         <option value="">Select country</option>
                                                         {countries.map((country) => (
                                                             <option key={country.id} value={country.id}>
@@ -522,99 +471,75 @@ export default function ProfileSeller() {
                                                 </div>
                                             )}
                                         </div>
+
                                         <div className="mb-3 mt-5">
                                             <h3 className="text-lg font-semibold mb-3 border-b pb-1">Tax ID Type</h3>
-
                                             <label className="block text-sm font-medium mb-1">Tax ID Type</label>
                                             {editMode ? (
-                                                <select
-                                                    name="taxes"
-                                                    value={editValues.taxId}
-                                                    onChange={handleChange}
-                                                    className="border rounded px-2 py-1 w-full"
-                                                >
-                                                    {taxes.map((type) => (
-                                                        <option key={type.id} value={type.id}>{type.name}</option>
+                                                <select value={editedTaxId !== "" ? editedTaxId : seller?.taxId ?? ""} onChange={(e) => setEditedTaxId(Number(e.target.value))} className="border rounded px-2 py-1 w-full">
+                                                    <option value="">Select tax type</option>
+                                                    {taxes.map((tax) => (
+                                                        <option key={tax.id} value={tax.id}>{tax.name}</option>
                                                     ))}
                                                 </select>
                                             ) : (
                                                 <Label className="text-lg">
                                                     <div className="flex items-center gap-2">
-                                                        {(() => {
-                                                            const tax = taxes.find((tax) => String(tax.id) === String(seller?.taxId));
-                                                            return tax ? (
-                                                                <>{tax.name}</>
-                                                            ) : (
-                                                                <span style={{ color: 'gray' }}>{seller?.taxId ? seller.taxId : "Tax type not found"}</span>
-                                                            );
-                                                        })()}
+                                                        <span>{seller?.taxId ? (taxes.find(t => t.id === seller.taxId)?.name || seller.taxId) : "Tax type not found"}</span>
                                                     </div>
                                                 </Label>
                                             )}
                                         </div>
+
                                         <div className="mb-3">
                                             <label className="block text-sm font-medium mb-1">Tax Number</label>
-                                            <Input
-                                                name="taxNumber"
-                                                value={editMode ? editValues.taxNumber : seller?.taxNumber}
-                                                onChange={handleChange}
-                                                disabled={!editMode}
-                                                placeholder="e.g. TAX-2025-00123"
-                                            />
+                                            <Input value={editMode ? editedTaxNumber || seller?.taxNumber : seller?.taxNumber ?? ""} onChange={(e) => setEditedTaxNumber(e.target.value)} disabled={!editMode} placeholder="e.g. TAX-2025-00123" />
                                         </div>
-
 
                                         <div className="mb-3">
                                             <h3 className="text-lg font-semibold mb-3 border-b pb-1">Category Info</h3>
-                                            <label className="block text-sm font-medium mb-1">Category</label>
+                                            <label className="block text-sm font-medium mb-1">Category:</label>
                                             {editMode ? (
-                                                <select
-                                                    name="categoryId"
-                                                    value={editValues.categoryId ? String(editValues.categoryId) : ""}
-                                                    onChange={e => setEditValues((prev: any) => ({ ...prev, categoryId: e.target.value }))}
-                                                    className="border rounded px-2 py-1 w-full"
-                                                    disabled={categories.length === 0}
-                                                >
+                                                <select value={editedCategoryId || seller?.categoryId} onChange={(e) => setEditedCategoryId(e.target.value)} className="border rounded px-2 py-1 w-full" disabled={categories.length === 0}>
                                                     <option value="">Select a category</option>
-                                                    {categories.filter(cat => cat.parentCategoryId === null).map((cat) => (
-                                                        <option key={cat.id} value={cat.id}>{cat.categoryName || cat.name}</option>
+                                                    {categories.filter((cat) => cat.parentCategoryId === null).map((cat) => (
+                                                        <option key={cat.id} value={cat.id}>
+                                                            {cat.name}
+                                                        </option>
                                                     ))}
                                                 </select>
                                             ) : (
                                                 <Label className="text-lg">
                                                     <div className="flex items-center gap-2">
                                                         {(() => {
-                                                            const category = categories.filter(cat => cat.parentCategoryId === null).find((cat) => String(cat.id) === String(seller?.categoryId));
+                                                            const category = categories.filter((cat) => cat.parentCategoryId === null).find((cat) => String(cat.id) === String(seller?.categoryId));
                                                             return category ? (
-                                                                <>{category.categoryName || category.name}</>
+                                                                <span className="text-sm">{category.name}</span>
                                                             ) : (
-                                                                <span style={{ color: 'gray' }}>{seller?.categoryId ? seller.categoryId : "Category not found"}</span>
+                                                                <span>{"Category not found"}</span>
                                                             );
                                                         })()}
                                                     </div>
                                                 </Label>
                                             )}
                                         </div>
+
                                         <div className="mb-3 flex items-center gap-2">
                                             <label className="block text-sm font-medium mb-1">Is Verified: </label>
-                                            <span className={(seller?.isVerified ? "text-green-600" : "text-red-600") + " font-medium text-sm mb-1"}>
-                                                {seller?.isVerified ? "Verified" : "Unverified"}
-                                            </span>
+                                            <span className={(seller?.isVerified ? "text-green-600" : "text-red-600") + " font-medium text-sm mb-1"}>{seller?.isVerified ? "Verified" : "Unverified"}</span>
                                         </div>
                                     </div>
                                 </div>
+
                                 <div className="flex justify-between items-center mt-4">
                                     <div className="flex gap-2 mt-4">
                                         {!editMode ? (
-                                            <>
-                                                <Button type="button" onClick={() => setEditMode(true)}>
-                                                    Edit Profile
-                                                </Button>
-
-                                            </>
+                                            <Button type="button" onClick={() => setEditMode(true)}>
+                                                Edit Profile
+                                            </Button>
                                         ) : (
                                             <>
-                                                <Button type="button" onClick={handleSave}>
+                                                <Button type="button" onClick={handleSaveProfile}>
                                                     Save
                                                 </Button>
                                                 <Button type="button" onClick={handleOpenPasswordModal} variant="outline" className="ml-4">
@@ -627,74 +552,47 @@ export default function ProfileSeller() {
                                         )}
                                     </div>
                                     <div>
-                                        <span className="text-sm text-gray-500">Member since: {new Date(seller?.createdAt).toLocaleDateString()}</span>
+                                        <span className="text-sm text-gray-500">Member since: {new Date(seller?.createdAt ?? Date.now()).toLocaleDateString()}</span>
                                     </div>
                                 </div>
-                                {/* Change Password Modal */}
+
                                 {showPasswordModal && (
                                     <Dialog open={showPasswordModal} onOpenChange={setShowPasswordModal}>
                                         <DialogContent>
                                             <DialogHeader>
                                                 <DialogTitle>Change Password</DialogTitle>
                                             </DialogHeader>
-                                            <form onSubmit={handleChangePassword} className="space-y-4">
+                                            <form onSubmit={(e) => { e.preventDefault(); handleChangePassword(); }} className="space-y-4">
                                                 <div>
                                                     <label className="block text-sm font-medium mb-1">Current Password</label>
                                                     <div className="relative">
-                                                        <Input
-                                                            type={showCurrent ? "text" : "password"}
-                                                            value={currentPassword}
-                                                            onChange={e => setCurrentPassword(e.target.value)}
-                                                            required
-                                                        />
-                                                        <button
-                                                            type="button"
-                                                            className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500"
-                                                            onClick={() => setShowCurrent(v => !v)}
-                                                            tabIndex={-1}
-                                                        >
+                                                        <Input type={showCurrent ? "text" : "password"} value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required />
+                                                        <button type="button" className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500" onClick={() => setShowCurrent((v) => !v)} tabIndex={-1}>
                                                             {showCurrent ? <EyeOff /> : <Eye />}
                                                         </button>
                                                     </div>
                                                 </div>
+
                                                 <div>
                                                     <label className="block text-sm font-medium mb-1">New Password</label>
                                                     <div className="relative">
-                                                        <Input
-                                                            type={showNew ? "text" : "password"}
-                                                            value={newPassword}
-                                                            onChange={e => setNewPassword(e.target.value)}
-                                                            required
-                                                        />
-                                                        <button
-                                                            type="button"
-                                                            className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500"
-                                                            onClick={() => setShowNew(v => !v)}
-                                                            tabIndex={-1}
-                                                        >
+                                                        <Input type={showNew ? "text" : "password"} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
+                                                        <button type="button" className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500" onClick={() => setShowNew((v) => !v)} tabIndex={-1}>
                                                             {showNew ? <EyeOff /> : <Eye />}
                                                         </button>
                                                     </div>
                                                 </div>
+
                                                 <div>
                                                     <label className="block text-sm font-medium mb-1">Confirm New Password</label>
                                                     <div className="relative">
-                                                        <Input
-                                                            type={showConfirm ? "text" : "password"}
-                                                            value={confirmNewPassword}
-                                                            onChange={e => setConfirmNewPassword(e.target.value)}
-                                                            required
-                                                        />
-                                                        <button
-                                                            type="button"
-                                                            className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500"
-                                                            onClick={() => setShowConfirm(v => !v)}
-                                                            tabIndex={-1}
-                                                        >
+                                                        <Input type={showConfirm ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+                                                        <button type="button" className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500" onClick={() => setShowConfirm((v) => !v)} tabIndex={-1}>
                                                             {showConfirm ? <EyeOff /> : <Eye />}
                                                         </button>
                                                     </div>
                                                 </div>
+
                                                 <div className="flex gap-2 mt-2">
                                                     <Button type="submit">Change Password</Button>
                                                     <Button type="button" variant="outline" onClick={() => setShowPasswordModal(false)}>Cancel</Button>

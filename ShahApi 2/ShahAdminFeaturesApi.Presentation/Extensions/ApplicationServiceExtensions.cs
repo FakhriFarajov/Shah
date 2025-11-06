@@ -1,4 +1,6 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Reflection;
+using System.Security.Claims;
 using System.Text;
 using FluentValidation;
 using FluentValidation.AspNetCore;
@@ -26,14 +28,18 @@ public static class ApplicationServiceExtensions
         services.AddDbContext<ShahDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("Mac")));
 
-        services.AddScoped<IAddressService, AddressService>();
         services.AddScoped<IAdminService, AdminService>();
+        services.AddScoped<IAddressService, AddressService>();
         services.AddScoped<IFavoriteService, FavoriteService>();
+        services.AddScoped<IBuyerService, BuyerService>();
+        services.AddScoped<IWarehouseService, WarehouseService>();
+        services.AddScoped<ISellerService, SellerService>();
+        services.AddScoped<TaxService>();
         services.AddScoped<ImageService>();
         services.AddScoped<CountryCodeService>();
         services.AddScoped<CategoryService>();
-        services.AddScoped<IVariantService, VariantService>();
-        
+        services.AddScoped<IAttributeService, AttributeService>();
+        services.AddScoped<IAttributeValueService, AttributeValueService>();
         
         // register mapping profiles from Infrastructure and Application assemblies
         services.AddAutoMapper(ops => ops.AddProfile(typeof(MappingProfile)));
@@ -41,86 +47,126 @@ public static class ApplicationServiceExtensions
         services.AddSingleton<GlobalExceptionMiddleware>();
 
         services.AddAutoMapper(Assembly.GetExecutingAssembly());
-        
-        
         services
             .AddFluentValidationAutoValidation()
             .AddFluentValidationClientsideAdapters();
         // Register validators from Infrastructure assembly
         services.AddValidatorsFromAssemblyContaining<AdminEditRequestValidator>();
+        services.AddValidatorsFromAssemblyContaining<AddAdminRequestValidator>();
+        services.AddValidatorsFromAssemblyContaining<BuyerEditRequestValidator>();
+        services.AddValidatorsFromAssemblyContaining<SellerEditRequestValidator>();
+        
+        
 
         
+        // Authentication
         services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
             {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddJwtBearer(options =>
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = configuration["JWT:Issuer"],
+                ValidAudience = configuration["JWT:Audience"],
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:SecretKey"])),
+                RoleClaimType = "role",
+                ClockSkew = TimeSpan.Zero
+            };
+
+            options.Events = new JwtBearerEvents
             {
-                options.TokenValidationParameters = new TokenValidationParameters
+                OnAuthenticationFailed = async context =>
                 {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = configuration["JWT:Issuer"],
-                    ValidAudience = configuration["JWT:Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(configuration["JWT:SecretKey"]))
-                };
-                options.Events = new JwtBearerEvents
+                    // Explicitly fail: do not refresh inline; client must call refresh endpoint
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    await Task.CompletedTask;
+                },
+                OnTokenValidated = async context =>
                 {
-                    OnAuthenticationFailed = async context =>
+                    if (context.SecurityToken is not JwtSecurityToken token) return;
+
+                    var dbContext = context.HttpContext.RequestServices.GetRequiredService<ShahDbContext>();
+    
+                    // Cleanup expired blacklisted tokens
+                    await dbContext.BlacklistedTokens
+                        .Where(t => t.ExpiryTime <= DateTime.UtcNow)
+                        .ExecuteDeleteAsync();
+
+                    var isBlacklisted = await dbContext.BlacklistedTokens
+                        .AnyAsync(t => t.Token == token.RawData.Trim());
+
+                    if (isBlacklisted)
                     {
-                        var req = context.Request;
-                        var res = context.Response;
-
-                        if (req.Headers.TryGetValue("refreshToken", out var hdr) && !string.IsNullOrWhiteSpace(hdr))
-                        {
-                            var tokenManager = context.HttpContext.RequestServices.GetRequiredService<TokenManager>();
-                            var refreshToken = hdr.ToString();
-                            var refreshed = await tokenManager.RefreshTokenAsync(refreshToken, null);
-
-                            if (refreshed != null && refreshed.IsSuccess && refreshed.Data != null)
-                            {
-                                var data = refreshed.Data;
-                                var accessTokenProp = data.GetType().GetProperty("AccessToken");
-                                var refreshTokenProp = data.GetType().GetProperty("RefreshToken");
-
-                                var accessToken = accessTokenProp?.GetValue(data)?.ToString();
-                                var refreshTokenNew = refreshTokenProp?.GetValue(data)?.ToString();
-
-                                if (!string.IsNullOrEmpty(accessToken) && !string.IsNullOrEmpty(refreshTokenNew))
-                                {
-                                    res.Headers["accessToken"] = accessToken;
-                                    res.Headers["refreshToken"] = refreshTokenNew;
-                                    res.StatusCode = StatusCodes.Status200OK;
-                                    return;
-                                }
-                            }
-                        }
-
-                        res.StatusCode = StatusCodes.Status401Unauthorized;
+                        context.Fail("This token has been revoked");
                     }
-                };
+                }
+            };
+        });
+        
+        // Authorization (single source of truth)
+        services.AddAuthorization(options =>
+        {
+            options.AddPolicy("AdminPolicy", policy =>
+            {
+                policy.RequireAuthenticatedUser();
+                policy.RequireAssertion(ctx =>
+                {
+                    // Built-in role check (uses RoleClaimType configured above)
+                    if (ctx.User.IsInRole("Admin")) return true;
+
+                    // Fallback: tolerate different claim type names or delimited formats
+                    var claims = ctx.User.Claims;
+                    var roleClaims = claims
+                        .Where(c => c.Type == "role" || c.Type == "roles" || c.Type == ClaimTypes.Role)
+                        .SelectMany(c => c.Value.Split(',', ' ', ';'))
+                        .Where(v => !string.IsNullOrWhiteSpace(v))
+                        .Select(v => v.Trim());
+
+                    return roleClaims.Any(v => string.Equals(v, "Admin", StringComparison.OrdinalIgnoreCase));
+                });
             });
+            
+            // New: AdminOrBuyer policy for endpoints accessible by Admin or Buyer
+            options.AddPolicy("AdminOrBuyer", policy =>
+            {
+                policy.RequireAuthenticatedUser();
+                policy.RequireAssertion(ctx =>
+                {
+                    // Quick path using built-in role checks
+                    if (ctx.User.IsInRole("Admin") || ctx.User.IsInRole("Buyer")) return true;
+                    
+                    // Fallback for different claim type names or delimited values
+                    var claims = ctx.User.Claims;
+                    var roleClaims = claims
+                        .Where(c => c.Type == "role" || c.Type == "roles" || c.Type == ClaimTypes.Role)
+                        .SelectMany(c => c.Value.Split(',', ' ', ';'))
+                        .Where(v => !string.IsNullOrWhiteSpace(v))
+                        .Select(v => v.Trim());
+
+                    return roleClaims.Any(v => string.Equals(v, "Admin", StringComparison.OrdinalIgnoreCase)
+                                            || string.Equals(v, "Buyer", StringComparison.OrdinalIgnoreCase));
+                });
+            });
+        });
         
         services.AddCors(options =>
         {
             options.AddPolicy("DefaultCors", builder =>
             {
-                builder.WithOrigins("http://localhost:5174")
+                builder.WithOrigins("http://localhost:5173")
                     .AllowAnyMethod()
                     .AllowAnyHeader()
                     .AllowCredentials();
             });
         });
 
-        services.AddAuthorization(ops =>
-        {
-            ops.AddPolicy("BuyerPolicy", builder => builder.RequireRole("Buyer"));
-            ops.AddPolicy("AdminPolicy", builder => builder.RequireRole("Admin"));
-        });
 
         return services;
     }

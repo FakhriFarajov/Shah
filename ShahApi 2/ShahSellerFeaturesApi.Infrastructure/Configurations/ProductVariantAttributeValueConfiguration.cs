@@ -14,7 +14,7 @@ namespace ShahSellerFeaturesApi.Infrastructure.Configurations
             builder.Property(pvav => pvav.ProductAttributeValueId).IsRequired().HasMaxLength(36);
 
             builder.HasOne(pvav => pvav.ProductVariant)
-                   .WithMany(pv => pv.ProductVariantAttributeValue)
+                   .WithMany(pv => pv.ProductVariantAttributeValues)
                    .HasForeignKey(pvav => pvav.ProductVariantId)
                    .OnDelete(DeleteBehavior.Cascade);
 

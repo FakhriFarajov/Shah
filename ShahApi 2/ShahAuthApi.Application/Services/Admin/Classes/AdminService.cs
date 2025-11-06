@@ -19,7 +19,7 @@ public class AdminService : IAdminService
 
         if (res == null)
         {
-            throw new Exception("Buyer not found");
+            throw new Exception("Admin not found");
         }
         return res.Id;
     }

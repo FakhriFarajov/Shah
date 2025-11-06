@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using ShahBuyerFeaturesApi.Contracts.DTOs.Response;
+using ShahBuyerFeaturesApi.Core.DTOs.Response;
 using ShahBuyerFeaturesApi.Infrastructure.Contexts;
 
 namespace ShahBuyerFeaturesApi.Application.Services.Classes;

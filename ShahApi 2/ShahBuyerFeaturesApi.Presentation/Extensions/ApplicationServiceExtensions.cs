@@ -36,8 +36,8 @@ public static class ApplicationServiceExtensions
         // Services
         services.AddScoped<IAddressService, AddressService>();
         services.AddScoped<IBuyerService, BuyerService>();
-        services.AddScoped<ICartService, CartService>();
-        services.AddScoped<IFavoriteService, FavoriteService>();
+        // services.AddScoped<ICartService, CartService>();
+        // services.AddScoped<IFavoriteService, FavoriteService>();
         services.AddScoped<ImageService>();
         services.AddScoped<CountryCodeService>();
         services.AddScoped<CategoryService>();
@@ -107,7 +107,6 @@ public static class ApplicationServiceExtensions
             };
         });
 
-        // Authorization
         services.AddAuthorization(options =>
         {
             options.AddPolicy("BuyerPolicy", policy =>
@@ -115,16 +114,13 @@ public static class ApplicationServiceExtensions
                 policy.RequireAuthenticatedUser();
                 policy.RequireAssertion(ctx =>
                 {
-                    // Built-in role check
                     if (ctx.User.IsInRole("Buyer")) return true;
-
                     var claims = ctx.User.Claims;
                     var roleClaims = claims
                         .Where(c => c.Type == "role" || c.Type == "roles" || c.Type == ClaimTypes.Role)
                         .SelectMany(c => c.Value.Split(',', ' ', ';'))
                         .Where(v => !string.IsNullOrWhiteSpace(v))
                         .Select(v => v.Trim());
-
                     return roleClaims.Any(v => string.Equals(v, "Buyer", StringComparison.OrdinalIgnoreCase));
                 });
             });

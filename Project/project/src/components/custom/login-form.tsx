@@ -20,7 +20,6 @@ export default function LoginForm({
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  // const { login, isLoading } = useAuthContext(); --- IGNORE ---
   const { login, isLoading } = useContext(AuthContext);
 
   const handleLogin = async (e: React.FormEvent) => {

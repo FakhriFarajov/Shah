@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using ShahBuyerFeaturesApi.Contracts.DTOs.Response;
+using ShahBuyerFeaturesApi.Core.DTOs.Response;
 
 namespace ShahBuyerFeaturesApi.Application.Services.Interfaces
 {

@@ -6,5 +6,4 @@ public class ProductVariantImage
     public string ImageUrl { get; set; } = null!;
     public string ProductVariantId { get; set; }
     public ProductVariant ProductVariant { get; set; } = null!;
-
 }

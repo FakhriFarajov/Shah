@@ -47,7 +47,7 @@ public class AuthController : ControllerBase
 
 
 
-    [Authorize(Policy = "BuyerPolicy")] // Require Bearer token
+    [Authorize(Policy = "SellerPolicy")] // Require Bearer token
     [HttpPost("Logout")]
     public async Task<IActionResult> Logout()
     {

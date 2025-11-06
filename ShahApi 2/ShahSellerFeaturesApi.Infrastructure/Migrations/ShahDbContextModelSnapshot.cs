@@ -144,13 +144,9 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                         .HasMaxLength(36)
                         .HasColumnType("nvarchar(36)");
 
-                    b.Property<string>("ProductId")
-                        .IsRequired()
-                        .HasMaxLength(36)
-                        .HasColumnType("nvarchar(36)");
-
                     b.Property<string>("ProductVariantId")
                         .IsRequired()
+                        .HasMaxLength(36)
                         .HasColumnType("nvarchar(36)");
 
                     b.Property<int>("Quantity")
@@ -159,8 +155,6 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("BuyerProfileId");
-
-                    b.HasIndex("ProductId");
 
                     b.HasIndex("ProductVariantId");
 
@@ -221,7 +215,7 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                         .HasMaxLength(36)
                         .HasColumnType("nvarchar(36)");
 
-                    b.Property<string>("ProductId")
+                    b.Property<string>("ProductVariantId")
                         .IsRequired()
                         .HasMaxLength(36)
                         .HasColumnType("nvarchar(36)");
@@ -230,7 +224,7 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
 
                     b.HasIndex("BuyerProfileId");
 
-                    b.HasIndex("ProductId");
+                    b.HasIndex("ProductVariantId");
 
                     b.ToTable("Favorites");
                 });
@@ -367,11 +361,6 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                         .HasMaxLength(36)
                         .HasColumnType("nvarchar(36)");
 
-                    b.Property<string>("ProductDetailsId")
-                        .IsRequired()
-                        .HasMaxLength(36)
-                        .HasColumnType("nvarchar(36)");
-
                     b.Property<string>("StoreInfoId")
                         .IsRequired()
                         .HasMaxLength(36)
@@ -380,9 +369,6 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
-
-                    b.HasIndex("ProductDetailsId")
-                        .IsUnique();
 
                     b.HasIndex("StoreInfoId");
 
@@ -433,7 +419,7 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                     b.ToTable("ProductAttributeValues");
                 });
 
-            modelBuilder.Entity("ShahSellerFeaturesApi.Core.Models.ProductDetails", b =>
+            modelBuilder.Entity("ShahSellerFeaturesApi.Core.Models.ProductVariant", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(36)
@@ -441,41 +427,7 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(4000)
-                        .HasColumnType("nvarchar(4000)");
-
-                    b.Property<int>("HeightInGrams")
-                        .HasColumnType("int");
-
-                    b.Property<int>("LengthInGrams")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ProductId")
-                        .IsRequired()
-                        .HasMaxLength(36)
-                        .HasColumnType("nvarchar(36)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<int>("WeightInGrams")
-                        .HasColumnType("int");
-
-                    b.Property<int>("WidthInGrams")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ProductDetails");
-                });
-
-            modelBuilder.Entity("ShahSellerFeaturesApi.Core.Models.ProductVariant", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasMaxLength(36)
-                        .HasColumnType("nvarchar(36)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
@@ -486,6 +438,13 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                         .HasColumnType("nvarchar(36)");
 
                     b.Property<int>("Stock")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("WeightInGrams")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -529,6 +488,9 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                     b.Property<string>("ImageUrl")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsMain")
+                        .HasColumnType("bit");
 
                     b.Property<string>("ProductVariantId")
                         .IsRequired()
@@ -591,7 +553,7 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ProductId")
+                    b.Property<string>("ProductVariantId")
                         .IsRequired()
                         .HasMaxLength(36)
                         .HasColumnType("nvarchar(36)");
@@ -603,7 +565,7 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
 
                     b.HasIndex("BuyerProfileId");
 
-                    b.HasIndex("ProductId");
+                    b.HasIndex("ProductVariantId");
 
                     b.ToTable("Reviews");
                 });
@@ -699,7 +661,7 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("StoreLogoUrl")
+                    b.Property<string>("StoreLogo")
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
@@ -827,6 +789,9 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                         .HasMaxLength(36)
                         .HasColumnType("nvarchar(36)");
 
+                    b.Property<int>("Capacity")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AddressId")
@@ -915,12 +880,6 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("ShahSellerFeaturesApi.Core.Models.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("ShahSellerFeaturesApi.Core.Models.ProductVariant", "ProductVariant")
                         .WithMany("CartItems")
                         .HasForeignKey("ProductVariantId")
@@ -928,8 +887,6 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("BuyerProfile");
-
-                    b.Navigation("Product");
 
                     b.Navigation("ProductVariant");
                 });
@@ -952,15 +909,15 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ShahSellerFeaturesApi.Core.Models.Product", "Product")
+                    b.HasOne("ShahSellerFeaturesApi.Core.Models.ProductVariant", "ProductVariant")
                         .WithMany("Favorites")
-                        .HasForeignKey("ProductId")
+                        .HasForeignKey("ProductVariantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("BuyerProfile");
 
-                    b.Navigation("Product");
+                    b.Navigation("ProductVariant");
                 });
 
             modelBuilder.Entity("ShahSellerFeaturesApi.Core.Models.Order", b =>
@@ -1020,12 +977,6 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ShahSellerFeaturesApi.Core.Models.ProductDetails", "ProductDetails")
-                        .WithOne("Product")
-                        .HasForeignKey("ShahSellerFeaturesApi.Core.Models.Product", "ProductDetailsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("ShahSellerFeaturesApi.Core.Models.StoreInfo", "StoreInfo")
                         .WithMany("Products")
                         .HasForeignKey("StoreInfoId")
@@ -1033,8 +984,6 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Category");
-
-                    b.Navigation("ProductDetails");
 
                     b.Navigation("StoreInfo");
                 });
@@ -1081,7 +1030,7 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                         .IsRequired();
 
                     b.HasOne("ShahSellerFeaturesApi.Core.Models.ProductVariant", "ProductVariant")
-                        .WithMany("ProductVariantAttributeValue")
+                        .WithMany("ProductVariantAttributeValues")
                         .HasForeignKey("ProductVariantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1121,15 +1070,15 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ShahSellerFeaturesApi.Core.Models.Product", "Product")
+                    b.HasOne("ShahSellerFeaturesApi.Core.Models.ProductVariant", "ProductVariant")
                         .WithMany("Reviews")
-                        .HasForeignKey("ProductId")
+                        .HasForeignKey("ProductVariantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("BuyerProfile");
 
-                    b.Navigation("Product");
+                    b.Navigation("ProductVariant");
                 });
 
             modelBuilder.Entity("ShahSellerFeaturesApi.Core.Models.SellerProfile", b =>
@@ -1280,11 +1229,7 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
 
             modelBuilder.Entity("ShahSellerFeaturesApi.Core.Models.Product", b =>
                 {
-                    b.Navigation("Favorites");
-
                     b.Navigation("ProductVariants");
-
-                    b.Navigation("Reviews");
                 });
 
             modelBuilder.Entity("ShahSellerFeaturesApi.Core.Models.ProductAttribute", b =>
@@ -1297,21 +1242,19 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                     b.Navigation("ProductVariantValues");
                 });
 
-            modelBuilder.Entity("ShahSellerFeaturesApi.Core.Models.ProductDetails", b =>
-                {
-                    b.Navigation("Product")
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("ShahSellerFeaturesApi.Core.Models.ProductVariant", b =>
                 {
                     b.Navigation("CartItems");
+
+                    b.Navigation("Favorites");
 
                     b.Navigation("Images");
 
                     b.Navigation("OrderItems");
 
-                    b.Navigation("ProductVariantAttributeValue");
+                    b.Navigation("ProductVariantAttributeValues");
+
+                    b.Navigation("Reviews");
                 });
 
             modelBuilder.Entity("ShahSellerFeaturesApi.Core.Models.SellerProfile", b =>

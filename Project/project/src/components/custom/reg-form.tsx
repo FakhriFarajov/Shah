@@ -12,7 +12,7 @@ import { useContext } from "react";
 import { AuthContext } from "@/features/auth/contexts/AuthProvider";
 import { useNavigate } from "react-router-dom"
 import { useEffect } from "react"
-import  Spinner  from "@/components/custom/loader";
+import  Spinner  from "@/components/custom/Spinner";
 
 export default function RegForm({
   className,
@@ -38,6 +38,7 @@ export default function RegForm({
     setLoading(true);
     async function fetchCountries() {
       try {
+        console.log("Fetching countries...");
         const result = await getCountries();
         console.log("Fetched countries:", result);
         setCountries(result.data || []); // Always set as array

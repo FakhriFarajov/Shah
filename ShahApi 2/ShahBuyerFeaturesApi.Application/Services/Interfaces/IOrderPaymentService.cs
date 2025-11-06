@@ -1,5 +1,5 @@
-using ShahBuyerFeaturesApi.Contracts.DTOs.Request;
-using ShahBuyerFeaturesApi.Contracts.DTOs.Response;
+using ShahBuyerFeaturesApi.Core.DTOs.Request;
+using ShahBuyerFeaturesApi.Core.DTOs.Response;
 
 namespace ShahBuyerFeaturesApi.Application.Services.Interfaces;
 

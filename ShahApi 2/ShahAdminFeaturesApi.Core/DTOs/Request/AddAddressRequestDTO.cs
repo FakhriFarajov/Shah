@@ -8,6 +8,5 @@ namespace ShahAdminFeaturesApi.Core.DTOs.Request
         public string State { get; set; }
         public string PostalCode { get; set; }
         public int CountryId { get; set; }
-        
     }
 }

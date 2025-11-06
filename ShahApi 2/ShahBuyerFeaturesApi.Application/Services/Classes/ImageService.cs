@@ -4,7 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Minio;
 using Minio.DataModel.Args;
 using ShahBuyerFeaturesApi.Application.Services.Interfaces;
-using ShahBuyerFeaturesApi.Contracts.DTOs.Response;
+using ShahBuyerFeaturesApi.Core.DTOs.Response;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Webp;
 

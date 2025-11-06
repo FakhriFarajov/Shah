@@ -9,7 +9,6 @@ import { ShoppingCart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 
-
 export default function ProductCard({ product }: { product: any }) {
   const dispatch = useDispatch();
   const favourites = useSelector((state: any) => state.favourites || []);

@@ -5,7 +5,7 @@ export interface DecodedUser {
     name: string;
     surname: string;
     email: string;
-    imageUrl?: string;
+    imageUrl?: string; 
 }
 
 export function decodeUserFromToken(token: string): DecodedUser | null {

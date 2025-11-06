@@ -2,5 +2,3 @@
 
 GET {{ShahAdminFeaturesApi.Presentation_HostAddress}}/weatherforecast/
 Accept: application/json
-
-###

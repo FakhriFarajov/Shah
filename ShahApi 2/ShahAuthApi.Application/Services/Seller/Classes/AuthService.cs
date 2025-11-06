@@ -4,8 +4,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 using ShahAuthApi.Application.Services.Seller.Interfaces;
 using ShahAuthApi.Application.Services.Utils;
-using ShahAuthApi.Core.DTOs.BuyerDtos.Response;
 using ShahAuthApi.Core.DTOs.SellerDtos.Request;
+using ShahAuthApi.Core.DTOs.SellerDtos.Response;
 using ShahAuthApi.Core.Models;
 using ShahAuthApi.Infrastructure.Contexts;
 using static BCrypt.Net.BCrypt;
@@ -33,9 +33,9 @@ public class AuthService : IAuthService
             throw new InvalidCredentialException("Invalid Credentials or no such user exists");
         }
         
-        if (string.IsNullOrEmpty(user.BuyerProfileId))
+        if (string.IsNullOrEmpty(user.SellerProfileId))
         {
-            return TypedResult<object>.Error("User is not a buyer.", 403);
+            return TypedResult<object>.Error("User is not a seller.", 403);
         }
 
         var accessToken = await _tokenService.CreateTokenAsync(user);

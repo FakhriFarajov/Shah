@@ -121,7 +121,7 @@ public static class ApplicationServiceExtensions
             {
                 options.AddPolicy("DefaultCors", builder =>
                 {
-                    builder.WithOrigins("http://localhost:5174" , "http://localhost:5175")
+                    builder.WithOrigins("http://localhost:5174" , "http://localhost:5175", "http://localhost:5173")
                            .AllowAnyMethod()
                            .AllowAnyHeader()
                            .AllowCredentials();

@@ -43,6 +43,14 @@ public class TokenManager
             claims.Add(new Claim("cart_count", cartCount.ToString()));
             claims.Add(new Claim("profile_image", user.BuyerProfile?.ImageProfile ?? string.Empty));
         }
+        else if (role == Core.Enums.Role.Seller)
+        {
+            claims.Add(new Claim("seller_profile_id", user.SellerProfileId ?? string.Empty));
+        }
+        else if (role == Core.Enums.Role.Admin)
+        {
+            claims.Add(new Claim("admin_profile_id", user.AdminProfileId ?? string.Empty));
+        }
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:SecretKey"]!));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

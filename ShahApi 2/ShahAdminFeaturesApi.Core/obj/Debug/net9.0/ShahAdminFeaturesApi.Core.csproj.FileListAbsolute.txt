@@ -10,3 +10,4 @@
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAdminFeaturesApi.Core/obj/Debug/net9.0/refint/ShahAdminFeaturesApi.Core.dll
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAdminFeaturesApi.Core/obj/Debug/net9.0/ShahAdminFeaturesApi.Core.pdb
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAdminFeaturesApi.Core/obj/Debug/net9.0/ref/ShahAdminFeaturesApi.Core.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAdminFeaturesApi.Core/obj/Debug/net9.0/ShahAdminFeaturesApi.Core.csproj.AssemblyReference.cache

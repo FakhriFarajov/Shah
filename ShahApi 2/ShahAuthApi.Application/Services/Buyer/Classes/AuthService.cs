@@ -97,9 +97,4 @@ public class AuthService : IAuthService
             refreshToken = result.Data.RefreshToken
         });
     }
-
-
-
-
-
 }

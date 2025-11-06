@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -6,24 +6,19 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Navbar from "../components/custom/Navbar/navbar";
 import { AppSidebar } from "../components/custom/sidebar";
+import { getAllCategoriesWithAttributesAndValuesAsync, getCategoriesTree, syncCategories, deleteCategoryAsync } from "@/features/profile/Category/category.service";
+import type { SyncCategoryItemDto, SyncAttributeItemDto, SyncAttributeValueItemDto } from "@/features/profile/DTOs/admin.interfaces";
+import { toast } from "sonner";
 
-// Mock category data
-const initialCategories = [
-    { id: "1", name: "Electronics", parentId: null },
-    { id: "2", name: "Phones", parentId: "1" },
-    { id: "3", name: "Laptops", parentId: "1" },
-    { id: "4", name: "Home", parentId: null },
-];
-
-function buildTree(categories) {
-    const map = new Map();
-    categories.forEach((c) => map.set(c.id, { ...c, children: [] }));
-    const roots = [];
+function buildTree(categories: SyncCategoryItemDto[]): any[] {
+    const map = new Map<string, any>();
+    categories.forEach((c) => map.set(c.id ?? '', { ...c, children: [] }));
+    const roots: any[] = [];
     for (const node of map.values()) {
-        if (!node.parentId) {
+        if (!node.parentCategoryId) {
             roots.push(node);
         } else {
-            const parent = map.get(node.parentId);
+            const parent = map.get(node.parentCategoryId);
             if (parent) parent.children.push(node);
             else roots.push(node); // parent not found -> treat as root
         }
@@ -31,14 +26,44 @@ function buildTree(categories) {
     return roots;
 }
 
+function isGuid(id: string) {
+    return /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(id);
+}
+
+// generate GUID helper
+function generateGuid() {
+    if (typeof crypto !== 'undefined' && typeof (crypto as any).randomUUID === 'function') {
+        return (crypto as any).randomUUID();
+    }
+    // fallback
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
 export default function CategoriesPage() {
-    const [categories, setCategories] = useState(initialCategories);
+
+    useEffect(() => {
+        async function fetchCategories() {
+            const categories = await getCategoriesTree();
+            console.log("Categories fetched in page:", categories);
+            setCategories(categories);
+        }
+
+
+        fetchCategories();
+    }, []);
+
+
+
+    const [categories, setCategories] = useState<SyncCategoryItemDto[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     const [name, setName] = useState("");
     const [parentId, setParentId] = useState<string | null>(null);
 
     // Attribute state
-    const [attributes, setAttributes] = useState<{ name: string; values: string[] }[]>([]);
+    const [attributes, setAttributes] = useState<SyncAttributeItemDto[]>([]);
     const [attrName, setAttrName] = useState("");
     const [attrValue, setAttrValue] = useState("");
     const [attrValues, setAttrValues] = useState<string[]>([]);
@@ -46,40 +71,48 @@ export default function CategoriesPage() {
     // Add editing state for modal
     const [editingCategory, setEditingCategory] = useState<{ id: string; name: string; parentId: string | null; attributes: { name: string; values: string[] }[] } | null>(null);
 
-    function openModal(category?: typeof editingCategory) {
+    // Track new/updated/deleted attributes/values
+    const [newAttributes, setNewAttributes] = useState<any[]>([]);
+    const [deletedAttributeIds, setDeletedAttributeIds] = useState<string[]>([]);
+    const [newValues, setNewValues] = useState<{ attributeId: string; value: string }[]>([]);
+    const [deletedValueIds, setDeletedValueIds] = useState<string[]>([]);
+
+    async function getAttributesWithValues() {
+        const categoriesWithAttributes = await getAllCategoriesWithAttributesAndValuesAsync();
+        setCategories(categoriesWithAttributes);
+        console.log("Categories with attributes and values:", categoriesWithAttributes);
+    }
+
+    useEffect(() => {
+        getAttributesWithValues();
+    }, []);
+
+    // When opening the modal, use the selected category's attributes for display
+    async function openModal(category?: SyncCategoryItemDto) {
         if (category) {
-            setName(category.name);
-            setParentId(category.parentId);
-            setAttributes(category.attributes || []);
+            setName(category.categoryName || "");
+            setParentId(category.parentCategoryId || null);
             setEditingCategory(category);
+            setAttributes(category.attributes || []);
         } else {
             setName("");
             setParentId(null);
-            setAttributes([]);
             setEditingCategory(null);
+            setAttributes([]);
         }
         setIsOpen(true);
     }
-
-    function addCategory() {
-        if (!name.trim()) return;
-        if (editingCategory) {
-            setCategories(categories.map(cat => cat.id === editingCategory.id ? { ...cat, name, parentId, attributes } : cat));
-        } else {
-            const newCategory = {
-                id: (Math.random() * 1000000).toFixed(0),
-                name: name.trim(),
-                parentId: parentId || null,
-                attributes,
-            };
-            setCategories([...categories, newCategory]);
-        }
-        setIsOpen(false);
-    }
-
+    // Add attribute
     function addAttribute() {
         if (!attrName.trim() || attrValues.length === 0) return;
-        setAttributes([...attributes, { name: attrName.trim(), values: attrValues }]);
+        const newAttr: SyncAttributeItemDto = {
+            id: generateGuid(),
+            name: attrName.trim(),
+            values: attrValues.map(v => ({ id: generateGuid(), value: v }))
+        };
+
+        setAttributes([...(Array.isArray(attributes) ? attributes : []), newAttr]);
+        setNewAttributes([...newAttributes, newAttr]);
         setAttrName("");
         setAttrValues([]);
     }
@@ -89,23 +122,105 @@ export default function CategoriesPage() {
         setAttrValue("");
     }
     function removeAttribute(idx: number) {
+        const attr = attributes[idx];
         setAttributes(attributes.filter((_, i) => i !== idx));
+        if (!newAttributes.find(a => a.id === attr.id)) {
+            setDeletedAttributeIds([...deletedAttributeIds, attr.id]);
+        } else {
+            setNewAttributes(newAttributes.filter(a => a.id !== attr.id));
+        }
     }
     function removeAttrValue(idx: number) {
-        setAttrValues(attrValues.filter((_, i) => i !== idx));
+        const attr = attributes[idx];
+        const val = attr.values[idx];
+        const newVals = attr.values.filter((_, i) => i !== idx);
+        const newAttrs = [...attributes];
+        newAttrs[idx] = { ...attr, values: newVals };
+        setAttributes(newAttrs);
+        if (!newValues.find(v => v.id === val.id)) {
+            setDeletedValueIds([...deletedValueIds, val.id]);
+        } else {
+            setNewValues(newValues.filter(v => v.id !== val.id));
+        }
+    }
+    function removeValue(attrIdx: number, valIdx: number) {
+        const attr = attributes[attrIdx];
+        const val = attr.values[valIdx];
+        const newVals = attr.values.filter((_, i) => i !== valIdx);
+        const newAttrs = [...attributes];
+        newAttrs[attrIdx] = { ...attr, values: newVals };
+        setAttributes(newAttrs);
+        if (val.id && isGuid(val.id)) {
+            setDeletedValueIds([...deletedValueIds, val.id]);
+        } else {
+            setNewValues(newValues.filter(v => v.id !== val.id));
+        }
     }
 
     const tree = buildTree(categories);
 
-    function renderTree(nodes: { id: string; name: string; parentId: string | null; attributes?: { name: string; values: string[] }[]; children?: any[] }[], depth = 0) {
+    function renderTree(nodes: SyncCategoryItemDto[], depth = 0): JSX.Element[] {
         return nodes.map((node) => (
             <div key={node.id} style={{ marginLeft: depth * 24 }} className="mb-2">
-                <div className="font-semibold cursor-pointer" onClick={() => openModal(node)}>{node.name}</div>
-                {node.children && node.children.length > 0 && (
-                    <div>{renderTree(node.children, depth + 1)}</div>
+                <div className="font-semibold cursor-pointer" onClick={() => openModal(node)}>
+                    {node.categoryName}
+                </div>
+                {Array.isArray((node as any).children) && (node as any).children.length > 0 && (
+                    <div>{renderTree((node as any).children, depth + 1)}</div>
                 )}
             </div>
         ));
+    }
+
+    // Save handler
+    async function handleSaveCategory() {
+        try {
+            function isGuid(id: string | undefined): boolean {
+                return !!id && /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(id);
+            }
+            const payload: SyncCategoryItemDto[] = [
+                {
+                    id: editingCategory?.id,
+                    categoryName: name,
+                    parentCategoryId: parentId ?? undefined,
+                    attributes: attributes.map(attr => {
+                        const attrId = isGuid(attr.id) ? attr.id! : generateGuid();
+                        return {
+                            id: attrId,
+                            name: attr.name,
+                            values: (attr.values || []).map(val => ({
+                                id: isGuid(val.id) ? val.id! : generateGuid(),
+                                value: val.value
+                            }))
+                        };
+                    })
+                }
+            ];
+            console.log("Sync payload:", payload);
+            await syncCategories(payload);
+            setIsOpen(false);
+            toast.success("Category saved successfully");
+            getAttributesWithValues();
+
+        } catch (error) {
+            toast.error("Failed to save category");
+            console.error("Sync failed:", error);
+
+        }
+    }
+
+    async function handleDeleteCategory() {
+        if (!editingCategory || !editingCategory.id) return;
+        try {
+            await deleteCategoryAsync(editingCategory.id);
+            toast.success("Category deleted successfully");
+            setIsOpen(false);
+            // Refresh categories
+            getAttributesWithValues();
+        } catch (error) {
+            toast.error("Failed to delete category");
+            console.error("Delete failed:", error);
+        }
     }
 
     return (
@@ -120,21 +235,18 @@ export default function CategoriesPage() {
                         <Button onClick={openModal}>Add Category</Button>
                     </div>
                     <div className="mt-8">
-                        {tree.map((node) => (
-                            <div key={node.id} style={{ marginLeft: 0 }} className="mb-2">
-                                <div className="font-semibold cursor-pointer" onClick={() => openModal(node)}>{node.name}</div>
-                                {node.children && node.children.length > 0 && (
-                                    <div>{renderTree(node.children, 1)}</div>
-                                )}
-                            </div>
-                        ))}
+                        {categories.length === 0 ? (
+                            <div className="text-gray-500">No categories found.</div>
+                        ) : (
+                            renderTree(buildTree(categories), 0)
+                        )}
                     </div>
                     <Dialog open={isOpen} onOpenChange={setIsOpen}>
                         <DialogContent>
                             <DialogHeader>
                                 <DialogTitle>{editingCategory ? "Edit Category" : "Add Category"}</DialogTitle>
                             </DialogHeader>
-                            <div className="grid gap-4 py-2">
+                            <div className="grid gap-4 py-2" style={{ maxHeight: '500px', overflowY: 'auto' }}>
                                 <div>
                                     <Label>Name</Label>
                                     <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Category name" />
@@ -148,7 +260,7 @@ export default function CategoriesPage() {
                                         <SelectContent>
                                             <SelectItem value="none">None</SelectItem>
                                             {categories.map((c) => (
-                                                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                                <SelectItem key={c.id} value={c.id}>{c.categoryName || c.name}</SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
@@ -174,16 +286,57 @@ export default function CategoriesPage() {
                                         <Button type="button" onClick={addAttribute} disabled={!attrName || attrValues.length === 0}>Add Attribute</Button>
                                     </div>
                                     <div className="mt-2">
-                                        {attributes.map((attr, i) => (
-                                            <div key={i} className="mb-2 p-2 border rounded">
+                                        {(Array.isArray(attributes) ? attributes : []).map((attr, attrIdx) => (
+                                            <div key={attr.id} className="mb-2 p-2 border rounded">
                                                 <div className="font-semibold flex justify-between items-center">
-                                                    {attr.name}
-                                                    <button type="button" className="text-red-500" onClick={() => removeAttribute(i)}>Delete</button>
+                                                    <Input
+                                                        value={attr.name}
+                                                        onChange={e => {
+                                                            const newAttrs = [...attributes];
+                                                            newAttrs[attrIdx] = { ...attr, name: e.target.value };
+                                                            setAttributes(newAttrs);
+                                                        }}
+                                                        className="w-1/2"
+                                                    />
+                                                    <Button type="button" className="ml-2 rounded-xl bg-indigo-500" onClick={() => removeAttribute(attrIdx)}>Delete</Button>
                                                 </div>
                                                 <div className="flex flex-wrap gap-2 mt-1">
-                                                    {attr.values.map((v, j) => (
-                                                        <span key={j} className="px-2 py-1 bg-indigo-100 rounded text-xs">{v}</span>
+                                                    {(Array.isArray(attr.values) ? attr.values : []).map((val, valIdx) => (
+                                                        <span key={val.id} className="flex items-center gap-1">
+                                                            <Input
+                                                                value={val.value}
+                                                                onChange={e => {
+                                                                    const newAttrs = [...attributes];
+                                                                    const newVals = [...(attr.values || [])];
+                                                                    newVals[valIdx] = { ...val, value: e.target.value };
+                                                                    newAttrs[attrIdx] = { ...attr, values: newVals };
+                                                                    setAttributes(newAttrs);
+                                                                }}
+                                                                className="w-24 px-2 py-1 text-xs bg-indigo-100 rounded"
+                                                            />
+                                                            <button type="button" className="ml-1 text-red-500" onClick={() => removeValue(attrIdx, valIdx)}>×</button>
+                                                        </span>
                                                     ))}
+                                                    {/* Add new value input for each attribute, tracked locally */}
+                                                    <span className="flex items-center gap-2 mt-1">
+                                                        <Input
+                                                            value={attr.newValue || ""}
+                                                            onChange={e => {
+                                                                const newAttrs = [...attributes];
+                                                                newAttrs[attrIdx] = { ...attr, newValue: e.target.value };
+                                                                setAttributes(newAttrs);
+                                                            }}
+                                                            className="w-24 px-2 text-xs bg-indigo-100 rounded"
+                                                            placeholder="New value"
+                                                        />
+                                                        <Button type="button" variant="outline" onClick={() => {
+                                                            if (!attr.newValue || !attr.newValue.trim()) return;
+                                                            const newAttrs = [...attributes];
+                                                            const newVals = [...(attr.values || []), { id: generateGuid(), value: attr.newValue.trim() }];
+                                                            newAttrs[attrIdx] = { ...attr, values: newVals, newValue: "" };
+                                                            setAttributes(newAttrs);
+                                                        }}>+</Button>
+                                                    </span>
                                                 </div>
                                             </div>
                                         ))}
@@ -193,15 +346,18 @@ export default function CategoriesPage() {
                                     <Button variant="ghost" onClick={() => setIsOpen(false)}>
                                         Cancel
                                     </Button>
-                                    <Button onClick={addCategory}>{editingCategory ? "Save" : "Add"}</Button>
+                                    <Button variant="destructive" onClick={handleDeleteCategory}>
+                                        Delete Category
+                                    </Button>
+                                    <Button onClick={handleSaveCategory}>
+                                        Save All Changes
+                                    </Button>
                                 </div>
                             </div>
                         </DialogContent>
                     </Dialog>
                 </div>
             </div>
-
         </>
-
     );
 }

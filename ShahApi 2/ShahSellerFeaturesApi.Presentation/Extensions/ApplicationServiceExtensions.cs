@@ -28,11 +28,12 @@ public static class ApplicationServiceExtensions
             options.UseSqlServer(configuration.GetConnectionString("Mac")));
 
         services.AddScoped<ISellerService, SellerService>();
+        services.AddScoped<IProductService, ProductService>();
         services.AddScoped<CountryCodeService>();
         services.AddScoped<CategoryService>();
         services.AddScoped<TaxService>();
-        services.AddScoped<IImageService, ImageService>();
         services.AddScoped<ImageService>();
+        
         
         services.AddAutoMapper(ops => ops.AddProfile(typeof(MappingSeller)), Assembly.GetExecutingAssembly());
         services.AddSingleton<GlobalExceptionMiddleware>();
@@ -59,58 +60,34 @@ public static class ApplicationServiceExtensions
                 ValidateIssuerSigningKey = true,
                 ValidIssuer = configuration["JWT:Issuer"],
                 ValidAudience = configuration["JWT:Audience"],
-                IssuerSigningKey = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(configuration["JWT:SecretKey"])),
-                // Ensure role-based policies read the "role" claim from JWT
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:SecretKey"])),
                 RoleClaimType = "role",
                 ClockSkew = TimeSpan.Zero
             };
+
             options.Events = new JwtBearerEvents
             {
                 OnAuthenticationFailed = async context =>
                 {
-                    var req = context.Request;
-                    var res = context.Response;
-
-                    if (req.Headers.TryGetValue("refreshToken", out var hdr) && !string.IsNullOrWhiteSpace(hdr))
-                    {
-                        var tokenManager = context.HttpContext.RequestServices.GetRequiredService<TokenManager>();
-                        var refreshToken = hdr.ToString();
-                        var oldAccessToken = req.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                        var refreshed = await tokenManager.RefreshTokenAsync(refreshToken, oldAccessToken);
-
-                        if (refreshed != null && refreshed.IsSuccess && refreshed.Data != null)
-                        {
-                            var data = refreshed.Data;
-                            var accessTokenProp = data.GetType().GetProperty("AccessToken");
-                            var refreshTokenProp = data.GetType().GetProperty("RefreshToken");
-
-                            var accessToken = accessTokenProp?.GetValue(data)?.ToString();
-                            var refreshTokenNew = refreshTokenProp?.GetValue(data)?.ToString();
-
-                            if (!string.IsNullOrEmpty(accessToken) && !string.IsNullOrEmpty(refreshTokenNew))
-                            {
-                                res.Headers["accessToken"] = accessToken;
-                                res.Headers["refreshToken"] = refreshTokenNew;
-                                res.StatusCode = StatusCodes.Status200OK;
-                                return;
-                            }
-                        }
-                    }
-
-                    res.StatusCode = StatusCodes.Status401Unauthorized;
+                    // Explicitly fail: do not refresh inline; client must call refresh endpoint
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    await Task.CompletedTask;
                 },
-
                 OnTokenValidated = async context =>
                 {
-                    var token = context.SecurityToken as JwtSecurityToken;
-                    if (token == null) return;
+                    if (context.SecurityToken is not JwtSecurityToken token) return;
 
                     var dbContext = context.HttpContext.RequestServices.GetRequiredService<ShahDbContext>();
-                    var blacklisted = await dbContext.BlacklistedTokens
-                        .AnyAsync(t => t.Token == token.RawData);
+    
+                    // Cleanup expired blacklisted tokens
+                    await dbContext.BlacklistedTokens
+                        .Where(t => t.ExpiryTime <= DateTime.UtcNow)
+                        .ExecuteDeleteAsync();
 
-                    if (blacklisted)
+                    var isBlacklisted = await dbContext.BlacklistedTokens
+                        .AnyAsync(t => t.Token == token.RawData.Trim());
+
+                    if (isBlacklisted)
                     {
                         context.Fail("This token has been revoked");
                     }

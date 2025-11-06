@@ -5,7 +5,6 @@ namespace ShahSellerFeaturesApi.Core.Models
         public string Id { get; set; } = Guid.NewGuid().ToString();
         public string StoreName { get; set; } = null!;
         public string StoreDescription { get; set; } = null!;
-        
         public string? StoreLogo { get; set; } = null;
         public string StoreEmail { get; set; } = null!;
         public string StorePhone { get; set; } = null!;

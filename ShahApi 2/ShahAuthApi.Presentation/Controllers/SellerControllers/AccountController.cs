@@ -24,7 +24,6 @@ public class AccountController : ControllerBase
     [HttpPost("Register")]
     public async Task<IActionResult> RegisterAsync([FromBody] SellerRegisterRequestDTO requestDto)
     {
-        // Remove normalization, use email as provided
         var res = await _accountService.RegisterSellerAsync(requestDto);
         return Ok(res);
     }

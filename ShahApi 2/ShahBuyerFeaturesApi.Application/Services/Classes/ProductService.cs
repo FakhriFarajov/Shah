@@ -1,9 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using ShahBuyerFeaturesApi.Application.Services.Interfaces;
-using ShahBuyerFeaturesApi.Contracts.DTOs.Response;
+using ShahBuyerFeaturesApi.Application.Utils.GetChain;
+using ShahBuyerFeaturesApi.Core.DTOs.Response;
 using ShahBuyerFeaturesApi.Core.Models;
 using ShahBuyerFeaturesApi.Infrastructure.Contexts;
-using ShahBuyerFeaturesApi.Application.Utils.GetChain;
+
 namespace ShahBuyerFeaturesApi.Application.Services.Classes;
 
 public class ProductService : IProductService
@@ -14,98 +15,163 @@ public class ProductService : IProductService
     {
         _context = context;
     }
-
-    public async Task<TypedResult<object>> GetProductDetailsByIdAsync(string productId) //Correct 
+    public async Task<PaginatedResult<object>> GetAllPaginatedProductAsync(string? storeId = null, int page = 1, int pageSize = 5,
+        string? categoryId = null, bool includeChildCategories = true)
     {
-        var product = await _context.Products
-            .Include(p => p.ProductDetails)
+        if (page <= 0) page = 1;
+        if (pageSize <= 0) pageSize = 15;
+
+        // Build a base query with filters only (no Includes) for accurate counting
+        var baseQuery = _context.Products.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(storeId))
+            baseQuery = baseQuery.Where(p => p.StoreInfoId == storeId);
+
+        if (!string.IsNullOrWhiteSpace(categoryId))
+        {
+            var categoryIds = new HashSet<string> { categoryId! };
+            if (includeChildCategories)
+            {
+                var all = await _context.Categories
+                    .AsNoTracking()
+                    .Select(c => new { c.Id, c.ParentCategoryId })
+                    .ToListAsync();
+                foreach (var id in GetDescendantIds(categoryId!, all))
+                    categoryIds.Add(id);
+            }
+            baseQuery = baseQuery.Where(p => categoryIds.Contains(p.CategoryId));
+        }
+
+
+        // Accurate total count after filters
+        var total = await baseQuery.CountAsync();
+
+        // Now build the data query with needed Includes
+        var query = baseQuery
             .Include(p => p.ProductVariants)
-                .ThenInclude(v => v.Images)
+                .ThenInclude(v => v.Reviews)
             .Include(p => p.StoreInfo)
-            .Include(p => p.Category)
-            .Include(p => p.Reviews)
-                .ThenInclude(r => r.BuyerProfile)
-            .FirstOrDefaultAsync(p => p.Id == productId);
-        if (product == null)
-            return TypedResult<object>.Error("Product not found", 404);
+            .Include(p => p.Category).ThenInclude(c => c.ParentCategory);
 
-        var result = new
-        {
-            product.Id,
-            Title = product.ProductDetails.Title,
-            Description = product.ProductDetails.Description,
-            StoreName = product.StoreInfo?.StoreName,
-            CategoryName = product.Category?.CategoryName,
-            ProductDetails = new
-            {
-                product.ProductDetails.Id,
-                product.ProductDetails.Title,
-                product.ProductDetails.Description,
-            },
-            Variants = product.ProductVariants.Select(v => new
-            {
-                v.Id,
-                v.Stock,
-                v.Price,
-                Images = v.Images.Select(img => img.ImageUrl).ToList()
-            }),
-            Reviews = product.Reviews.Select(r => new
-            {
-                r.Id,
-                r.Rating,
-                r.Comment,
-                r.CreatedAt,
-                Reviewer = new
-                {
-                    r.BuyerProfileId,
-                    // Add more reviewer info if needed
-                }
-            })
-        };
-        return TypedResult<object>.Success(result);
-    }
-    
-    public async Task<TypedResult<List<object>>> GetRandomProductsAsync(int count = 45)
-    {
-        var totalItems = await _context.Products.CountAsync();
-        if (totalItems <= count)
-        {
-            var products = await _context.Products
-                .Include(p => p.ProductVariants)
-                .Include(p => p.StoreInfo)
-                .Include(p => p.Category).ThenInclude(c => c.ParentCategory)
-                .Include(p => p.Reviews)
-                .ToListAsync();
-            var random = new Random();
-            var shuffled = products.OrderBy(x => random.Next()).Take(count);
-            var result = shuffled.Select(p => new
+        var pageRows = await query
+            .OrderBy(p => p.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(p => new
             {
                 p.Id,
-                StoreName = p.StoreInfo?.StoreName,
-                Price = p.ProductVariants.FirstOrDefault()?.Price ?? 0,
-                CategoryName = p.Category?.CategoryName,
+                ProductTitle = p.ProductVariants.Select(v => v.Title).FirstOrDefault(),
+                StoreName = p.StoreInfo.StoreName,
+                Price = p.ProductVariants.Select(v => (decimal?)v.Price).Min() ?? 0m,
+                Category = p.Category,
+                ReviewsCount = p.ProductVariants.Sum(v => v.Reviews.Count)
+            })
+            .ToListAsync();
+
+        // Fetch main images for these products in one go
+        var productIds = pageRows.Select(r => r.Id).ToList();
+        var mains = await _context.ProductVariantImages
+            .Where(img => img.IsMain && productIds.Contains(img.ProductVariant.ProductId))
+            .Select(img => new { img.ProductVariant.ProductId, img.ImageUrl })
+            .ToListAsync();
+        var mainLookup = mains
+            .GroupBy(x => x.ProductId)
+            .ToDictionary(g => g.Key, g => g.Select(x => x.ImageUrl).FirstOrDefault());
+
+        var items = pageRows
+            .Select(p => new
+            {
+                p.Id,
+                p.ProductTitle,
+                MainImage = mainLookup.TryGetValue(p.Id, out var url) ? url : null,
+                p.StoreName,
+                p.Price,
+                CategoryName = p.Category.CategoryName,
                 CategoryChain = CategoryUtils.GetCategoryChain(p.Category),
-                ReviewsCount = p.Reviews.Count
-            }).ToList<object>();
-            return TypedResult<List<object>>.Success(result);
+                p.ReviewsCount
+            })
+            .Cast<object>()
+            .ToList();
+
+        return PaginatedResult<object>.Success(items, total, page, pageSize);
+    }
+
+    public async Task<PaginatedResult<object>> GetRandomProductsAsync(int page = 1, int pageSize = 45)
+    {
+        if (page <= 0) page = 1;
+        if (pageSize <= 0) pageSize = 15;
+
+        var totalItems = await _context.Products.CountAsync();
+        if (totalItems == 0)
+        {
+            return PaginatedResult<object>.Success(Enumerable.Empty<object>(), 0, page, pageSize);
         }
-        var randomProducts = await _context.Products
+
+        var randomPageRows = await _context.Products
             .Include(p => p.ProductVariants)
+                .ThenInclude(v => v.Reviews)
             .Include(p => p.StoreInfo)
             .Include(p => p.Category).ThenInclude(c => c.ParentCategory)
-            .Include(p => p.Reviews)
             .OrderBy(p => Guid.NewGuid())
-            .Take(count)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(p => new
+            {
+                p.Id,
+                ProductTitle = p.ProductVariants.Select(v => v.Title).FirstOrDefault(),
+                StoreName = p.StoreInfo.StoreName,
+                Price = p.ProductVariants.Select(v => (decimal?)v.Price).Min() ?? 0m,
+                Category = p.Category,
+                ReviewsCount = p.ProductVariants.Sum(v => v.Reviews.Count)
+            })
             .ToListAsync();
-        var randomResult = randomProducts.Select(p => new
+
+        var productIds = randomPageRows.Select(r => r.Id).ToList();
+        var mains = await _context.ProductVariantImages
+            .Where(img => img.IsMain && productIds.Contains(img.ProductVariant.ProductId))
+            .Select(img => new { img.ProductVariant.ProductId, img.ImageUrl })
+            .ToListAsync();
+        var mainLookup = mains
+            .GroupBy(x => x.ProductId)
+            .ToDictionary(g => g.Key, g => g.Select(x => x.ImageUrl).FirstOrDefault());
+
+        var items = randomPageRows
+            .Select(p => new
+            {
+                p.Id,
+                p.ProductTitle,
+                MainImage = mainLookup.TryGetValue(p.Id, out var url) ? url : null,
+                p.StoreName,
+                p.Price,
+                CategoryName = p.Category.CategoryName,
+                CategoryChain = CategoryUtils.GetCategoryChain(p.Category),
+                p.ReviewsCount
+            })
+            .Cast<object>()
+            .ToList();
+
+        return PaginatedResult<object>.Success(items, totalItems, page, pageSize);
+    }
+    
+    private static IEnumerable<string> GetDescendantIds(string rootId, IEnumerable<dynamic> flat)
+    {
+        var lookup = flat
+            .Where(x => !string.IsNullOrWhiteSpace((string?)x.ParentCategoryId))
+            .GroupBy(x => (string)x.ParentCategoryId)
+            .ToDictionary(g => g.Key, g => g.Select(i => (string)i.Id).ToList());
+
+        var stack = new Stack<string>();
+        stack.Push(rootId);
+        while (stack.Count > 0)
         {
-            p.Id,
-            StoreName = p.StoreInfo?.StoreName,
-            Price = p.ProductVariants.FirstOrDefault()?.Price ?? 0,
-            CategoryName = p.Category?.CategoryName,
-            CategoryChain = CategoryUtils.GetCategoryChain(p.Category),
-            ReviewsCount = p.Reviews.Count
-        }).ToList<object>();
-        return TypedResult<List<object>>.Success(randomResult);
+            var current = stack.Pop();
+            if (!lookup.TryGetValue(current, out var children))
+                continue;
+            foreach (var child in children)
+            {
+                yield return child;
+                stack.Push(child);
+            }
+        }
     }
 }

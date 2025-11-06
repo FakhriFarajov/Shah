@@ -5,6 +5,7 @@ using ShahAdminFeaturesApi.Core.DTOs.Request;
 using ShahAdminFeaturesApi.Core.DTOs.Response;
 using ShahAdminFeaturesApi.Core.Models;
 using ShahAdminFeaturesApi.Infrastructure.Contexts;
+using static BCrypt.Net.BCrypt;
 
 namespace ShahAdminFeaturesApi.Application.Services.Classes;
 
@@ -30,6 +31,44 @@ public class AdminService : IAdminService
         return res.Id;
     }
     
+    public async Task<PaginatedResult<object>> GetAllAdminsAsync(int pageNumber, int pageSize)
+    {
+        // Guard against invalid paging inputs
+        if (pageNumber < 1) pageNumber = 1;
+        if (pageSize <= 0) pageSize = 5;
+        
+        var query = _context.AdminProfiles
+            .Include(ap => ap.User)
+            .AsNoTracking()
+            .Where(ap => ap.User != null);
+
+        var totalItems = await query.CountAsync();
+
+        var admins = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .Select(ap => new
+            {
+                ap.Id,
+                ap.UserId,
+                Name = ap.User!.Name,
+                Surname = ap.User!.Surname,
+                Email = ap.User!.Email,
+                Phone = ap.User!.Phone,
+                CountryCitizenshipId = ap.User!.CountryCitizenshipId,
+                CreatedAt = ap.User!.CreatedAt
+            })
+            .ToListAsync();
+
+        return PaginatedResult<object>.Success(
+            admins,
+            totalItems,
+            pageNumber,
+            pageSize,
+            message: "Admins retrieved successfully"
+        );
+    }
+    
     public async Task<TypedResult<object>> GetAdminByIdAsync(string adminId)
     {
         var profile = await _context.AdminProfiles
@@ -50,13 +89,20 @@ public class AdminService : IAdminService
             profile.User.Email,
             profile.User.Phone,
             profile.User.CountryCitizenshipId,
-            profile.User.CreatedAt
+            profile.User.CreatedAt,
         }, "Admin profile retrieved successfully");
     }
     
     public async Task<Result> AddAdminAsync(AddAdminRequestDTO dto)
     {
         var admin = _mapper.Map<User>(dto);
+        
+        // Check for existing email
+        var exists = await _context.Users.AnyAsync(u => u.Email == dto.Email);
+        if (exists) return Result.Error("Email is already in use");
+        
+        // Hash the password before saving
+        admin.Password = HashPassword(dto.Password);
         
         var adminProfile = _mapper.Map<AdminProfile>(dto);
         adminProfile.UserId = admin.Id;

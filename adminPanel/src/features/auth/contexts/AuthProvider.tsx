@@ -45,7 +45,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const accessToken = tokenStorage.get();
-    const refreshToken = localStorage.getItem("refresh_token");
+    const refreshToken = tokenStorage.getRefresh();
 
     if (!accessToken || !refreshToken) {
       tokenStorage.clear();
@@ -61,7 +61,6 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
         name: decoded.name ?? "",
         surname: decoded.surname ?? "",
         email: decoded.email ?? "",
-        imageUrl: decoded.imageUrl,
       };
       setUser(mappedUser);
     }
@@ -82,7 +81,6 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
               name: decoded.name ?? "",
               surname: decoded.surname ?? "",
               email: decoded.email ?? "",
-              imageUrl: decoded.imageUrl ?? undefined
             };
             setUser(mappedUser);
           }

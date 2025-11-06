@@ -3,14 +3,14 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Minio;
 using Minio.DataModel.Args;
-using ShahSellerFeaturesApi.Application.Services.Interfaces;
 using ShahSellerFeaturesApi.Core.DTOs.Response;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Webp;
 
+
 namespace ShahSellerFeaturesApi.Application.Services.Classes
 {
-    public class ImageService : IImageService
+    public class ImageService
     {
         private readonly IMinioClient _minioClient;
         private readonly string _bucketName;

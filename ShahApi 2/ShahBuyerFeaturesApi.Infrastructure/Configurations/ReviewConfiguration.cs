@@ -11,16 +11,16 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Configurations
             builder.HasKey(r => r.Id);
             builder.Property(r => r.Id).IsRequired().HasMaxLength(36);
             builder.Property(r => r.BuyerProfileId).IsRequired().HasMaxLength(36);
-            builder.Property(r => r.ProductId).IsRequired().HasMaxLength(36);
+            builder.Property(r => r.ProductVariantId).IsRequired().HasMaxLength(36);
 
             builder.HasOne(r => r.BuyerProfile)
                    .WithMany(bp => bp.Reviews)
                    .HasForeignKey(r => r.BuyerProfileId)
                    .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasOne(r => r.Product)
+            builder.HasOne(r => r.ProductVariant)
                    .WithMany(p => p.Reviews)
-                   .HasForeignKey(r => r.ProductId)
+                   .HasForeignKey(r => r.ProductVariantId)
                    .OnDelete(DeleteBehavior.Cascade);
         }
     }

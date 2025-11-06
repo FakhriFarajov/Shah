@@ -11,37 +11,47 @@ import ReviewsPage from './pages/reviews';
 import ProductsPage from './pages/products';
 import WarehousesPage from './pages/warehouses';
 import CategoryManager from './pages/categoriesPage';
-
-
-
 import OrdersPage from './pages/orders';
-import AdminProfilesPage from './pages/AdminProfileAdd';
+import AdminProfilesPage from './pages/admins';
+import AuthProvider from './features/auth/contexts/AuthProvider';
+import WarehousesOrdersPage from './pages/warehousesOrders';
+import { Toaster } from 'sonner';
 function App() {
 
   return (
     <>
-      <BrowserRouter>
-        <Routes>
-          <Route path='/login' element={<Login />} />
-          <Route path='/' element={<Home />} />
-          <Route path='/home' element={<Home />} />
-          <Route path='/warehouses' element={<WarehousesPage />} />
-          <Route path='/buyers' element={<BuyersPage />} />
-          <Route path='/buyer-details' element={<ProfileBuyer />} /> // Will pass userId as prop later
-          <Route path='/sellers' element={<SellersPage />} />
-          <Route path='/seller-profile' element={<ProfileSeller />} />
-          <Route path='/orders-buyer' element={<OrdersPage />} />//by id 
-          <Route path='/orders-seller' element={<OrdersPage />} />//By id
-          <Route path='/orders' element={<OrdersPage />} />//All of them with filter 
-          <Route path='/reviews' element={<ReviewsPage />} />
-          <Route path='/reviews-buyer' element={<ReviewsPage />} />//by id
-          <Route path='/products' element={<ProductsPage />} />//by id
-          <Route path='/categories' element={<CategoryManager />} />
-          <Route path='/admin-profiles' element={<AdminProfilesPage />} />
-          <Route path='*' element={<Login />} />
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path='/login' element={<Login />} />
+            <Route path='/' element={<Home />} />
+            <Route path='/home' element={<Home />} />
+            <Route path='/warehouses' element={<WarehousesPage />} />
+            <Route path='/warehouse-orders' element={<WarehousesOrdersPage />} />
+            <Route path='/buyers' element={<BuyersPage />} />
+            <Route path='/buyer-profile' element={<ProfileBuyer />} />
+            <Route path='/sellers' element={<SellersPage />} />
+            <Route path='/seller-profile' element={<ProfileSeller />} />
+            <Route path='/orders-buyer' element={<OrdersPage />} />//by id
+            <Route path='/orders-seller' element={<OrdersPage />} />//By id
+            <Route path='/orders' element={<OrdersPage />} />//All of them with filter
+            <Route path='/reviews' element={<ReviewsPage />} />
+            <Route path='/reviews-buyer' element={<ReviewsPage />} />//by id
+            <Route path='/products' element={<ProductsPage />} />//by id
+            <Route path='/categories' element={<CategoryManager />} />
+            <Route path='/admins' element={<AdminProfilesPage />} />
+            <Route path='*' element={<Login />} />
+          </Routes>
+        </BrowserRouter>
+        <Toaster
+          position="top-right"
+          richColors
+          toastOptions={{
+            duration: 4000,
+          }}
+        />
+      </AuthProvider>
 
-        </Routes>
-      </BrowserRouter>
     </>
   )
 }

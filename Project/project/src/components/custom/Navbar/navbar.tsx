@@ -60,9 +60,10 @@ export default function Navbar() {
 
         const fetchCountries = async () => {
             const fetchedCountries = await getCountries();
-            let arr = Array.isArray(fetchedCountries)
-                ? fetchedCountries
-                : (fetchedCountries && Array.isArray(fetchedCountries.data) ? fetchedCountries.data : []);
+            const anyFetched: any = fetchedCountries;
+            let arr = Array.isArray(anyFetched)
+                ? anyFetched
+                : (anyFetched && Array.isArray(anyFetched.data) ? anyFetched.data : []);
             setCountries(arr);
             // Always read the flag from localStorage on mount
             const storedFlag = localStorage.getItem('flag');
@@ -82,9 +83,18 @@ export default function Navbar() {
 
 
         const fetchCategories = async () => {
-            const result = await getCategories();
-            setCategories(result);
-        }
+            try {
+                const result = await getCategories();
+                console.log('Fetched categories:', result);
+                const arr = Array.isArray(result)
+                    ? result
+                    : (result && Array.isArray((result as any).data) ? (result as any).data : []);
+                setCategories(arr);
+            } catch (err) {
+                console.error('Failed to fetch categories', err);
+                setCategories([]);
+            }
+        };
 
         fetchCountries();
         fetchCategories();
@@ -99,7 +109,8 @@ export default function Navbar() {
     const handleLanguageChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
         const selectedLanguage = event.target.value;
         // Defensive: ensure countries is always an array
-        const arr = Array.isArray(countries) ? countries : (countries?.data || []);
+    const anyCountries: any = countries;
+    const arr = Array.isArray(anyCountries) ? anyCountries : (anyCountries?.data || []);
         const selected = arr.find((c: any) => c.code === selectedLanguage);
         const flagUrl = selected?.code
             ? `https://flagsapi.com/${selected.code.toUpperCase()}/flat/64.png`
@@ -264,12 +275,19 @@ export default function Navbar() {
             <div>
                 <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-2">
                     <CategorySideBar categories={
-                        Array.isArray(categories)
-                            ? Object.fromEntries(categories
-                                .filter((cat: any) => cat.parentId == null)
-                                .map((cat: any) => [cat.id, cat])
-                            )
-                            : categories
+                        (() => {
+                            // If API returned a nested tree, flatten it into a map keyed by id
+                            const tree = Array.isArray(categories) ? categories : (categories as any || []);
+                            const map: Record<string, any> = {};
+                            const walk = (node: any, parentId: string | null) => {
+                                map[node.id] = { ...node, parentCategoryId: parentId };
+                                if (Array.isArray(node.children)) {
+                                    node.children.forEach((c: any) => walk(c, node.id));
+                                }
+                            };
+                            tree.forEach((n: any) => walk(n, n.parentCategoryId ?? null));
+                            return map;
+                        })()
                     } />
                     <div className="flex items-center space-x-2 mt-2 sm:mt-0">
                         <img src={flag} alt={t('flag')} className='w-8 h-8' />

@@ -163,7 +163,6 @@ export default function RegForm({
     setLoading(false);
   };
   const [step, setStep] = useState(1);
-
   const handleNext = (e: React.FormEvent) => {
     e.preventDefault();
     if (!surname || !name || !passport || !email || !password || !confirmPassword) {

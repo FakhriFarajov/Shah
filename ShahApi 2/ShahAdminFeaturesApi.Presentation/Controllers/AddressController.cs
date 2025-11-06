@@ -1,5 +1,5 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using ShahAdminFeaturesApi.Application.Services.Interfaces;
 using ShahAdminFeaturesApi.Core.DTOs.Request;
 
@@ -16,25 +16,27 @@ namespace ShahAdminFeaturesApi.Presentation.Controllers
             _addressService = addressService;
         }
         
-
-        [Authorize(Policy = "AdminPolicy")]
+        [Authorize(Policy = "AdminOrBuyer")] //We need to send a Bearer token in the header to access this endpoint
         [HttpGet("{id}")]
         public async Task<IActionResult> GetAddressByIdAsync(string id) 
             => Ok(await _addressService.GetAddressByIdAsync(id));
         
-        [Authorize(Policy = "AdminPolicy")]
+        [Authorize(Policy = "AdminOrBuyer")] //We need to send a Bearer token in the header to access this endpoint
+        [HttpGet("Buyer/{buyerId}")]
+        public async Task<IActionResult> GetBuyerAddressAsync(string buyerId) 
+            => Ok(await _addressService.GetBuyerAddressAsync(buyerId));
+
+        [Authorize(Policy = "AdminOrBuyer")] //We need to send a Bearer token in the header to access this endpoint
         [HttpPost("Add")]
         public async Task<IActionResult> AddAddressAsync(AddAddressRequestDTO request)
             => Ok(await _addressService.AddAddressAsync(request));
         
-        
-        [Authorize(Policy = "AdminPolicy")]
+        [Authorize(Policy = "AdminOrBuyer")] //We need to send a Bearer token in the header to access this endpoint
         [HttpPut("Edit")]
         public async Task<IActionResult> EditAddressAsync(EditAddressRequestDTO request)
             => Ok(await _addressService.EditAddressAsync(request));
         
-        
-        [Authorize(Policy = "AdminPolicy")]
+        [Authorize(Policy = "AdminOrBuyer")] //We need to send a Bearer token in the header to access this endpoint
         [HttpDelete("Remove/{id}")]
         public async Task<IActionResult> DeleteAddressAsync(string id)
             => Ok(await _addressService.DeleteAddressAsync(id));

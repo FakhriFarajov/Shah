@@ -18,8 +18,6 @@ public class AddressService : IAddressService
         _context = context;
         _mapper = mapper;
     }
-    
-    
 
     public async Task<Result> DeleteAddressAsync(string addressId)
     {
@@ -51,6 +49,25 @@ public class AddressService : IAddressService
             address.Country?.Name,
             address.StoreInfoId,
             address.WarehouseId
+        });
+    }
+
+    public async Task<TypedResult<object>> GetBuyerAddressAsync(string buyerId)
+    {
+        var buyerProfile = await _context.BuyerProfiles.Include(bp => bp.Address).FirstOrDefaultAsync(bp => bp.Id == buyerId);
+        if (buyerProfile?.Address == null)
+            return TypedResult<object>.Error("Address not found", 404);
+
+        var address = buyerProfile.Address;
+        return TypedResult<object>.Success(new
+        {
+            address.Id,
+            address.Street,
+            address.City,
+            address.State,
+            address.PostalCode,
+            CountryId = address.CountryId,
+            CountryName = address.Country?.Name
         });
     }
 

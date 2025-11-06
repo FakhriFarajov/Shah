@@ -5,8 +5,8 @@ namespace ShahBuyerFeaturesApi.Core.Models
         public string Id { get; set; } = System.Guid.NewGuid().ToString();
         public string BuyerProfileId { get; set; } = null!;
         public BuyerProfile BuyerProfile { get; set; } = null!;
-        public string ProductId { get; set; } = null!;
-        public Product Product { get; set; } = null!;
+        public string ProductVariantId { get; set; } = null!;
+        public ProductVariant ProductVariant { get; set; } = null!;
         
         public List<string> Images { get; set; } = new List<string>();
         

@@ -11,7 +11,6 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Configurations
             builder.HasKey(ci => ci.Id);
             builder.Property(ci => ci.Id).IsRequired().HasMaxLength(36);
             builder.Property(ci => ci.BuyerProfileId).IsRequired().HasMaxLength(36);
-            builder.Property(ci => ci.ProductId).IsRequired().HasMaxLength(36);
 
             builder.HasOne(ci => ci.BuyerProfile)
                    .WithMany(bp => bp.CartItems)

@@ -1,5 +1,5 @@
-using ShahAuthApi.Core.DTOs.BuyerDtos.Response;
 using ShahAuthApi.Core.DTOs.SellerDtos.Request;
+using ShahAuthApi.Core.DTOs.SellerDtos.Response;
 
 namespace ShahAuthApi.Application.Services.Seller.Interfaces;
 

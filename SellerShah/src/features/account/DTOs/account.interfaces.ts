@@ -42,3 +42,27 @@ export interface Tax {
   name: string;
   RegexPattern: string;
 }
+
+
+export interface EditValuesType {
+    name?: string;
+    surname?: string;
+    email?: string;
+    phone?: string;
+    passportNumber?: string;
+    countryCitizenshipId?: number | string;
+    storeLogo?: string;
+    storeLogoUrl?: string;
+    storeName?: string;
+    storeDescription?: string;
+    storeContactPhone?: string;
+    storeContactEmail?: string;
+    taxId?: number | string;
+    taxNumber?: string;
+    storeCountryCodeId?: number | string;
+    categoryId?: string;
+    street?: string;
+    city?: string;
+    state?: string;
+    postalCode?: string;
+}

@@ -26,8 +26,7 @@ import { uploadProfileImage, getProfileImage } from "@/shared/utils/imagePost";
 import { confirmEmail, forgotPassword } from "@/features/account/services/register.service";
 import { faqs } from "@/static_data/faq"; //Import FAQ data
 import { getCountries } from "@/features/profile/Country/country.service";
-import { useNavigate } from "react-router-dom";
-import Spinner from "@/components/custom/loader";
+import Spinner from "@/components/custom/Spinner";
 import OrdersSection from "./OrdersSection";
 import { apiCallWithManualRefresh } from '@/shared/apiWithManualRefresh';
 
@@ -37,12 +36,10 @@ import { apiCallWithManualRefresh } from '@/shared/apiWithManualRefresh';
 const reviews = [
   { id: "1", comment: "Great product!", rating: 5, seller: { id: "s1", name: "Seller 1" } },
   { id: "2", comment: "Not bad", rating: 3, seller: { id: "s2", name: "Seller 2" } },
-  { id: "3", comment: "Terrible experience", rating: 1, seller: { id: "s3", name: "Seller 3" } },
+  { id: "3", comment: "Good experience", rating: 5, seller: { id: "s3", name: "Seller 3" } },
 ];
 
 export default function AccountPage() {
-  // Handler for email confirmation
-
   const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
   const [editedReview, setEditedReview] = useState<{ comment: string; rating: number }>({ comment: '', rating: 5 });
   const [countryCode, setCountryCode] = useState<number | "">("");
@@ -85,9 +82,6 @@ export default function AccountPage() {
   const [countries, setCountries] = useState<{ id: number; name: string; code: string }[]>([]);
   const [loading, setLoading] = useState(false);
 
-  useNavigate();
-
-
   const handleConfirmEmail = async () => {
     setLoading(true);
     if (buyer?.email) {
@@ -102,19 +96,18 @@ export default function AccountPage() {
   async function fetchCountries() {
     setLoading(true);
     try {
-  const countriesResult = await apiCallWithManualRefresh(() => getCountries());
-  setCountries(countriesResult);
-  console.log("Fetched countries:", countriesResult);
-     } catch (error) {
-       console.error("Failed to fetch countries:", error);
-     } finally {
-       setLoading(false);
-     }
-   }
+      const countriesResult = await apiCallWithManualRefresh(() => getCountries());
+      setCountries(countriesResult);
+      console.log("Fetched countries:", countriesResult);
+    } catch (error) {
+      console.error("Failed to fetch countries:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
     fetchCountries();
-    // Support access token from URL
     let token = tokenStorage.get();
     if (!token) {
       const params = new URLSearchParams(window.location.search);
@@ -145,12 +138,10 @@ export default function AccountPage() {
       setLoading(true);
       try {
         console.log("Fetching profile for ID:", buyerId);
-  const result = await apiCallWithManualRefresh(() => getBuyerProfile(buyerId));
-  console.log("Profile response:", result);
-  const buyerData = result;
-        setBuyer(buyerData);
-        // Check if email is confirmed
-        if (buyerData.isEmailConfirmed === false) {
+        const result = await apiCallWithManualRefresh(() => getBuyerProfile(buyerId));
+        console.log("Profile response:", result);
+        setBuyer(result);
+        if (result.isEmailConfirmed === false) {
           toast.info("Your email is not confirmed. Please check your inbox.");
         }
       } catch (error) {
@@ -158,11 +149,10 @@ export default function AccountPage() {
         extractApiErrors(error).forEach(msg => toast.error(msg));
       }
       try {
-  const addressResult = await apiCallWithManualRefresh(() => getBuyerAddress(buyerId));
-  const addressData = addressResult;
-  setAddress(addressData);
-  // Support different DTO shapes: countryId or country?.id
-  setAddressCountryCode((addressData as any).countryId || (addressData as any).country?.id || "");
+        const addressResult = await apiCallWithManualRefresh(() => getBuyerAddress(buyerId));
+        setAddress(addressResult);
+        // Support different DTO shapes: countryId or country?.id
+        setAddressCountryCode((addressResult as any).countryId || (addressResult as any).country?.id || "");
       } catch (error) {
         extractApiErrors(error).forEach(msg => toast.error(msg));
       } finally {
@@ -224,9 +214,6 @@ export default function AccountPage() {
       postalCode: address.postalCode,
       countryId: addressCountryCode || address.countryId,
     };
-
-
-    console.log("Edit Address payload:", payload);
     await editAddress(payload)
       .then(() => {
         toast.success("Address updated successfully");
@@ -284,10 +271,6 @@ export default function AccountPage() {
     setEditProfileMode(false);
   }
 
-
-
-
-
   const [orderStatusFilter, setOrderStatusFilter] = useState("");
   // Save handler for profile and addresses
   const handleSaveProfile = async () => {
@@ -306,11 +289,9 @@ export default function AccountPage() {
       if (buyer.ImageFile) {
         objectName = await uploadProfileImage(buyer.ImageFile);
         imageProfileUrl = await getProfileImage(objectName);
-        console.log("Uploaded image URL:", imageProfileUrl);
         payload.imageProfile = objectName;
       }
 
-      console.log("Profile update payload:", payload);
       const result = await apiCallWithManualRefresh(() => editBuyerProfile(buyer.id, payload));
       if (!result || !result.isSuccess) {
         toast.error(result.message || 'Profile update failed. Please check your details.');
@@ -339,10 +320,8 @@ export default function AccountPage() {
         if (typeof data === "string") {
           toast.error(data);
         }
-        console.error("Profile update error:", data);
       } else {
         toast.error('Profile update failed. Please try again.');
-        console.error("Profile update error:", error);
       }
     }
     setLoading(false);
@@ -352,7 +331,7 @@ export default function AccountPage() {
     const response = await fetch(croppedImageUrl);
     const blob = await response.blob();
     const file = new File([blob], "profile.png", { type: blob.type });
-  setBuyer((prev: any) => ({ ...prev, ImageFile: file, ImageUrl: croppedImageUrl }));
+    setBuyer((prev: any) => ({ ...prev, ImageFile: file, ImageUrl: croppedImageUrl }));
     setCropperOpen(false);
     toast.success("Cropped image ready to save. Click Save to upload.");
   };
@@ -449,9 +428,6 @@ export default function AccountPage() {
     { id: "h2", action: "Password changed", date: "2025-08-25" },
     { id: "h3", action: "Address added", date: "2025-08-20" },
   ];
-  // Order status filter for history page
-
-
   return (
     <>
       {loading && (
@@ -510,14 +486,10 @@ export default function AccountPage() {
                 <CardTitle>Profile & Addresses</CardTitle>
               </CardHeader>
               <CardContent>
-                {/* Profile Section */}
-                {/* Null check for buyer */}
                 {!buyer ? (
                   <div className="text-center py-8 text-gray-500">Loading profile...</div>
                 ) : (
                   <>
-                    {/* Email Confirmation Status */}
-
                     <div className="flex flex-col items-center mb-6">
                       {editProfileMode ? (
                         buyer.ImageUrl ? (

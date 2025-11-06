@@ -10,3 +10,9 @@
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAdminFeaturesApi.Application/obj/Debug/net9.0/refint/ShahAdminFeaturesApi.Application.dll
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAdminFeaturesApi.Application/obj/Debug/net9.0/ShahAdminFeaturesApi.Application.pdb
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAdminFeaturesApi.Application/obj/Debug/net9.0/ref/ShahAdminFeaturesApi.Application.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAdminFeaturesApi.Application/bin/Debug/net9.0/ShahAdminFeaturesApi.Core.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAdminFeaturesApi.Application/bin/Debug/net9.0/ShahAdminFeaturesApi.Infrastructure.dll
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAdminFeaturesApi.Application/bin/Debug/net9.0/ShahAdminFeaturesApi.Core.pdb
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAdminFeaturesApi.Application/bin/Debug/net9.0/ShahAdminFeaturesApi.Infrastructure.pdb
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAdminFeaturesApi.Application/obj/Debug/net9.0/ShahAdminFeaturesApi.Application.csproj.AssemblyReference.cache
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAdminFeaturesApi.Application/obj/Debug/net9.0/ShahAdmi.3CE3983B.Up2Date

@@ -20,7 +20,6 @@ public class ShahDbContext : DbContext
     public DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<OrderPayment> OrderPayments { get; set; }
     public DbSet<Product> Products { get; set; }
-    public DbSet<ProductDetails> ProductDetails { get; set; }
     public DbSet<ProductVariant> ProductVariants { get; set; }
     public DbSet<ProductVariantAttributeValue> ProductVariantAttributeValues { get; set; }
     public DbSet<ProductVariantImage> ProductVariantImages { get; set; }

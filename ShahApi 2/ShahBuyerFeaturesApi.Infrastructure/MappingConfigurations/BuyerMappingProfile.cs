@@ -1,5 +1,4 @@
 using AutoMapper;
-using ShahBuyerFeaturesApi.Contracts.DTOs.Request;
 using ShahBuyerFeaturesApi.Core.DTOs.Request;
 using ShahBuyerFeaturesApi.Core.DTOs.Response;
 using ShahBuyerFeaturesApi.Core.Enums;

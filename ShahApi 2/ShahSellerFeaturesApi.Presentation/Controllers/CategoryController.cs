@@ -23,5 +23,14 @@ public class CategoryController : ControllerBase
             return Ok(result.Data);
         return BadRequest(result.Message);
     }
+    
+    [HttpGet("all-with-attributes")]
+    public async Task<IActionResult> GetAllWithAttributesAndValues()
+    {
+        var result = await _categoryService.GetAllCategoriesWithAttributesAndValuesAsync();
+        if (result.IsSuccess)
+            return StatusCode(result.StatusCode, result.Data);
+        return StatusCode(result.StatusCode, new { message = result.Message });
+    }
 }
 

@@ -26,27 +26,47 @@ export default function SideBar({ categories }: { categories: Record<string, Cat
     const { t } = useTranslation();
     const navigate = useNavigate();
     // Find root categories
-    const rootCategories = Object.entries(categories).filter(([key, category]) => category.parentCategoryId == null);
+    const rootCategories = Object.entries(categories).filter(([_key, category]) => category.parentCategoryId == null);
 
 
-    // Recursive renderer for subcategories as a tree (list)
+    // Recursive renderer using Accordions; leaves are clickable spans
     const renderSubcategories = (parentId: string, level: number = 1) => {
-        const subs = Object.entries(categories).filter(([subKey, subCat]) => subCat.parentCategoryId === parentId);
+        const subs = Object.entries(categories).filter(([_subKey, subCat]) => subCat.parentCategoryId === parentId);
         if (subs.length === 0) return null;
+
         return (
-            <ul className={`pl-${level * 4} py-1`}>
-                {subs.map(([subKey, subCat]) => (
-                    <li key={subKey}>
-                        <span
-                            className="cursor-pointer hover:text-blue-400"
-                            onClick={() => navigate(`/category/${subKey}`)}
-                        >
-                            {t(subCat.categoryName)}
-                        </span>
-                        {renderSubcategories(subCat.id, level + 1)}
-                    </li>
-                ))}
-            </ul>
+            <div className={`pl-${level * 4} py-1 space-y-1`}>
+                {subs.map(([subKey, subCat]) => {
+                    const hasChildren = Object.values(categories).some((c: any) => c.parentCategoryId === subCat.id);
+                    if (hasChildren) {
+                        return (
+                            <Accordion type="single" collapsible key={subKey}>
+                                <AccordionItem value={subCat.id} className="text-white border-none">
+                                    <AccordionTrigger className="flex items-center justify-between text-white hover:no-underline p-2 rounded-md cursor-pointer">
+                                        <span className={`text-base font-medium ${level > 1 ? 'pl-2' : ''}`}>{t(subCat.categoryName)}</span>
+                                    </AccordionTrigger>
+                                    <AccordionContent>
+                                        {renderSubcategories(subCat.id, level + 1)}
+                                    </AccordionContent>
+                                </AccordionItem>
+                            </Accordion>
+                        );
+                    }
+
+                    return (
+                        <div key={subKey} className="p-1">
+
+                            <button
+                                type="button"
+                                className="flex items-center justify-between text-white hover:no-underline ms-10 rounded-md cursor-pointer"
+                                onClick={() => navigate(`/category/${subKey}`)}
+                            >
+                                {t(subCat.categoryName)}
+                            </button>
+                        </div>
+                    );
+                })}
+            </div>
         );
     };
 

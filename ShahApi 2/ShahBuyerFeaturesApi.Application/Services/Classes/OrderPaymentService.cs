@@ -1,8 +1,8 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using ShahBuyerFeaturesApi.Application.Services.Interfaces;
-using ShahBuyerFeaturesApi.Contracts.DTOs.Request;
-using ShahBuyerFeaturesApi.Contracts.DTOs.Response;
+using ShahBuyerFeaturesApi.Core.DTOs.Request;
+using ShahBuyerFeaturesApi.Core.DTOs.Response;
 using ShahBuyerFeaturesApi.Core.Models;
 using ShahBuyerFeaturesApi.Infrastructure.Contexts;
 

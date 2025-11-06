@@ -15,52 +15,47 @@ public class ProductService : IProductService
         _context = context;
     }
 
-    public async Task<TypedResult<object>> GetProductDetailsByIdAsync(string productId) //Correct 
+    public async Task<TypedResult<object>> GetProductDetailsByIdAsync(string productId)
     {
         var product = await _context.Products
-            .Include(p => p.ProductDetails)
             .Include(p => p.ProductVariants)
                 .ThenInclude(v => v.Images)
+            .Include(p => p.ProductVariants)
+                .ThenInclude(v => v.Reviews)
             .Include(p => p.StoreInfo)
             .Include(p => p.Category)
-            .Include(p => p.Reviews)
-                .ThenInclude(r => r.BuyerProfile)
             .FirstOrDefaultAsync(p => p.Id == productId);
+
         if (product == null)
             return TypedResult<object>.Error("Product not found", 404);
 
         var result = new
         {
             product.Id,
-            Title = product.ProductDetails.Title,
-            Description = product.ProductDetails.Description,
-            StoreName = product.StoreInfo?.StoreName,
-            CategoryName = product.Category?.CategoryName,
-            ProductDetails = new
-            {
-                product.ProductDetails.Id,
-                product.ProductDetails.Title,
-                product.ProductDetails.Description,
-            },
+            StoreName = product.StoreInfo.StoreName,
+            CategoryName = product.Category.CategoryName,
             Variants = product.ProductVariants.Select(v => new
             {
                 v.Id,
+                v.Title,
+                v.Description,
                 v.Stock,
                 v.Price,
                 Images = v.Images.Select(img => img.ImageUrl).ToList()
             }),
-            Reviews = product.Reviews.Select(r => new
-            {
-                r.Id,
-                r.Rating,
-                r.Comment,
-                r.CreatedAt,
-                Reviewer = new
+            Reviews = product.ProductVariants
+                .SelectMany(v => v.Reviews)
+                .Select(r => new
                 {
-                    r.BuyerProfileId,
-                    // Add more reviewer info if needed
-                }
-            })
+                    r.Id,
+                    r.Rating,
+                    r.Comment,
+                    r.CreatedAt,
+                    Reviewer = new
+                    {
+                        r.BuyerProfileId,
+                    }
+                })
         };
         return TypedResult<object>.Success(result);
     }
@@ -72,39 +67,39 @@ public class ProductService : IProductService
         {
             var products = await _context.Products
                 .Include(p => p.ProductVariants)
+                    .ThenInclude(v => v.Reviews)
                 .Include(p => p.StoreInfo)
                 .Include(p => p.Category).ThenInclude(c => c.ParentCategory)
-                .Include(p => p.Reviews)
                 .ToListAsync();
             var random = new Random();
-            var shuffled = products.OrderBy(x => random.Next()).Take(count);
+            var shuffled = products.OrderBy(_ => random.Next()).Take(count);
             var result = shuffled.Select(p => new
             {
                 p.Id,
-                StoreName = p.StoreInfo?.StoreName,
+                StoreName = p.StoreInfo.StoreName,
                 Price = p.ProductVariants.FirstOrDefault()?.Price ?? 0,
-                CategoryName = p.Category?.CategoryName,
+                CategoryName = p.Category.CategoryName,
                 CategoryChain = CategoryUtils.GetCategoryChain(p.Category),
-                ReviewsCount = p.Reviews.Count
+                ReviewsCount = p.ProductVariants.Sum(v => v.Reviews.Count)
             }).ToList<object>();
             return TypedResult<List<object>>.Success(result);
         }
         var randomProducts = await _context.Products
             .Include(p => p.ProductVariants)
+                .ThenInclude(v => v.Reviews)
             .Include(p => p.StoreInfo)
             .Include(p => p.Category).ThenInclude(c => c.ParentCategory)
-            .Include(p => p.Reviews)
             .OrderBy(p => Guid.NewGuid())
             .Take(count)
             .ToListAsync();
         var randomResult = randomProducts.Select(p => new
         {
             p.Id,
-            StoreName = p.StoreInfo?.StoreName,
+            StoreName = p.StoreInfo.StoreName,
             Price = p.ProductVariants.FirstOrDefault()?.Price ?? 0,
-            CategoryName = p.Category?.CategoryName,
+            CategoryName = p.Category.CategoryName,
             CategoryChain = CategoryUtils.GetCategoryChain(p.Category),
-            ReviewsCount = p.Reviews.Count
+            ReviewsCount = p.ProductVariants.Sum(v => v.Reviews.Count)
         }).ToList<object>();
         return TypedResult<List<object>>.Success(randomResult);
     }

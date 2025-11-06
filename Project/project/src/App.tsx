@@ -63,7 +63,7 @@ function App() {
             </Routes>
           </BrowserRouter>
         </PersistGate>
-        <Toaster 
+        <Toaster
           position="top-right"
           richColors
           toastOptions={{

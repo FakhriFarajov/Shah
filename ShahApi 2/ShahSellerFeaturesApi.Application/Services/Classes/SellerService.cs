@@ -101,14 +101,6 @@ public class SellerService : ISellerService
         }
 
         _mapper.Map(dto, user);
-        
-        
-        // Removed: passport updates are managed by Admin API
-        // if (!string.IsNullOrWhiteSpace(dto.PassportNumber))
-        // {
-        //     profile.Passport = dto.PassportNumber;
-        // }
-
         var storeInfo = profile.StoreInfo;
         var taxInfo = profile.SellerTaxInfo;
         var address = profile.StoreInfo.Address;
@@ -116,29 +108,7 @@ public class SellerService : ISellerService
         // Handle StoreLogo: persist object name only. If a full URL is provided, extract the object name from it.
         if (!string.IsNullOrWhiteSpace(dto.StoreLogo))
         {
-            string ExtractObjectName(string input)
-            {
-                // If already looks like an object name (no scheme), return as-is
-                if (!Uri.IsWellFormedUriString(input, UriKind.Absolute)) return input.Trim();
-                try
-                {
-                    var uri = new Uri(input);
-                    // uri.AbsolutePath is like /bucket/object or /bucket/path/to/object
-                    var path = uri.AbsolutePath.Trim('/');
-                    // If bucket is configured, strip it if present at the start
-                    // We can't access configuration here, so heuristically remove the first segment
-                    var segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
-                    if (segments.Length == 0) return input;
-                    // If path starts with a bucket name, object name is the rest
-                    return segments.Length == 1 ? segments[0] : string.Join('/', segments.Skip(1));
-                }
-                catch
-                {
-                    return input.Trim();
-                }
-            }
-            var objectName = ExtractObjectName(dto.StoreLogo);
-            storeInfo.StoreLogo = objectName;
+            storeInfo.StoreLogo = dto.StoreLogo;
         }
 
         // Attach entities if they were newly created

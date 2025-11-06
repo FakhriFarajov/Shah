@@ -22,7 +22,7 @@ public class SellerService : ISellerService
 
         if (res == null)
         {
-            throw new Exception("Buyer not found");
+            throw new Exception("Seller not found");
         }
         return res.Id;
     }

@@ -1,5 +1,4 @@
 using AutoMapper;
-using ShahBuyerFeaturesApi.Contracts.DTOs.Request;
 using ShahBuyerFeaturesApi.Core.DTOs.Request;
 using ShahBuyerFeaturesApi.Core.DTOs.Response;
 using ShahBuyerFeaturesApi.Core.Enums;
@@ -47,6 +46,9 @@ namespace ShahBuyerFeaturesApi.Infrastructure.MappingConfigurations
                 .ForMember(d => d.Phone, o => o.MapFrom(s => s.User == null ? null : s.User.Phone))
                 .ForMember(d => d.CountryCitizenshipId, o => o.MapFrom(s => s.User == null ? (int?)null : s.User.CountryCitizenshipId))
                 .ForMember(d => d.createdAt, o => o.MapFrom(s => s.User == null ? default(DateTime) : s.User.CreatedAt));
+            
+            
+            
         
         }
     }

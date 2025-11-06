@@ -1,0 +1,272 @@
+using Microsoft.EntityFrameworkCore;
+using ShahAdminFeaturesApi.Application.Services.Interfaces;
+using ShahAdminFeaturesApi.Core.DTOs.Request;
+using ShahAdminFeaturesApi.Core.DTOs.Response;
+using ShahAdminFeaturesApi.Infrastructure.Contexts;
+using Address = ShahAdminFeaturesApi.Core.Models.Address;
+using Warehouse = ShahAdminFeaturesApi.Core.Models.Warehouse;
+
+namespace ShahAdminFeaturesApi.Application.Services.Classes;
+
+public class WarehouseService : IWarehouseService
+{
+    private readonly ShahDbContext _context;
+
+    public WarehouseService(ShahDbContext context)
+    {
+        _context = context;
+    }
+    
+    public async Task<TypedResult<object>> GetWarehouseByIdAsync(string warehouseId)
+    {
+        var warehouse = await _context.Warehouses
+            .Include(w => w.Address)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(w => w.Id == warehouseId);
+
+        if (warehouse == null)
+            return TypedResult<object>.Error("Warehouse not found", 404);
+
+        // current number of orders assigned to this warehouse
+        var curCapacity = await _context.WarehouseOrders
+            .AsNoTracking()
+            .CountAsync(wo => wo.WarehouseId == warehouse.Id);
+
+        var dto = new
+        {
+            warehouse.Id,
+            AddressId = warehouse.AddressId,
+            warehouse.Capacity,
+            CurOrderCapacity = curCapacity,
+            Address = warehouse.Address == null ? null : new
+            {
+                warehouse.Address.Id,
+                warehouse.Address.Street,
+                warehouse.Address.City,
+                warehouse.Address.State,
+                warehouse.Address.PostalCode,
+                warehouse.Address.CountryId
+            }
+        };
+
+        return TypedResult<object>.Success(dto, "Warehouse retrieved successfully");
+    }
+
+    public async Task<PaginatedResult<object>> GetAllWarehousesAsync(int pageNumber, int pageSize)
+    {
+        if (pageNumber < 1) pageNumber = 1;
+        if (pageSize <= 0) pageSize = 15;
+        
+        var query = _context.Warehouses
+            .Include(w => w.Address)
+            .AsNoTracking();
+
+        var totalItems = await query.CountAsync();
+
+        var items = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .Select(w => new
+            {
+                w.Id,
+                AddressId = w.AddressId,
+                w.Capacity,
+                CurCapacity = _context.WarehouseOrders.Count(wo => wo.WarehouseId == w.Id),
+                Address = w.Address == null ? null : new
+                {
+                    w.Address.Id,
+                    w.Address.Street,
+                    w.Address.City,
+                    w.Address.State,
+                    w.Address.PostalCode,
+                    w.Address.CountryId
+                }
+            })
+            .ToListAsync();
+
+        return PaginatedResult<object>.Success(
+            items,
+            totalItems,
+            pageNumber,
+            pageSize,
+            message: "Warehouses retrieved successfully"
+        );
+    }
+
+    public async Task<TypedResult<object>> CreateWarehouseAsync(CreateWarehouseRequestDTO dto)
+    {
+        if (dto.Capacity < 0)
+            return TypedResult<object>.Error("Capacity cannot be negative", 400);
+        // Case 3: No address
+        var wh = new Warehouse
+        {
+            AddressId = null,
+            Capacity = dto.Capacity
+        };
+        
+        
+        var address = new Address
+        {
+            Street = dto.Address?.Street,
+            City = dto.Address?.City,
+            State = dto.Address?.State,
+            PostalCode = dto.Address?.PostalCode,
+            CountryId = dto.Address?.CountryId ?? 0,
+            WarehouseId = wh.Id,
+        };
+        
+        wh.AddressId = address.Id;
+        
+        _context.Addresses.Add(address);
+        _context.Warehouses.Add(wh);
+        await _context.SaveChangesAsync();
+        return await GetWarehouseByIdAsync(wh.Id);
+    }
+
+    public async Task<TypedResult<object>> UpdateWarehouseAsync(string warehouseId, UpdateWarehouseRequestDTO dto)
+    {
+        var warehouse = await _context.Warehouses.Include(w => w.Address).FirstOrDefaultAsync(w => w.Id == warehouseId);
+        if (warehouse == null)
+            return TypedResult<object>.Error("Warehouse not found", 404);
+
+        if (dto.Capacity.HasValue)
+        {
+            if (dto.Capacity.Value < 0)
+                return TypedResult<object>.Error("Capacity cannot be negative", 400);
+            warehouse.Capacity = dto.Capacity.Value;
+        }
+        
+        // Inline address updates
+        if (dto.Address != null)
+        {
+            // DB check: Country must exist
+            var countryExists = await _context.CountryCodes.AnyAsync(c => c.Id == dto.Address.CountryId);
+            if (!countryExists)
+                return TypedResult<object>.Error("Country not found", 400);
+
+            if (!string.IsNullOrWhiteSpace(warehouse.AddressId))
+            {
+                var addr = await _context.Addresses.FirstAsync(a => a.Id == warehouse.AddressId);
+                addr.Street = dto.Address.Street;
+                addr.City = dto.Address.City;
+                addr.State = dto.Address.State;
+                addr.PostalCode = dto.Address.PostalCode;
+                addr.CountryId = dto.Address.CountryId;
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                var address = new Address
+                {
+                    Street = dto.Address.Street,
+                    City = dto.Address.City,
+                    State = dto.Address.State,
+                    PostalCode = dto.Address.PostalCode,
+                    CountryId = dto.Address.CountryId,
+                    WarehouseId = warehouse.Id
+                };
+                _context.Addresses.Add(address);
+                await _context.SaveChangesAsync();
+                warehouse.AddressId = address.Id;
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        await _context.SaveChangesAsync();
+        return await GetWarehouseByIdAsync(warehouse.Id);
+    }
+
+    public async Task<Result> DeleteWarehouseAsync(string warehouseId)
+    {
+        var warehouse = await _context.Warehouses.FirstOrDefaultAsync(w => w.Id == warehouseId);
+        if (warehouse == null)
+            return Result.Error("Warehouse not found", 404);
+
+        _context.Warehouses.Remove(warehouse);
+        await _context.SaveChangesAsync();
+        return Result.Success("Warehouse deleted successfully");
+    }
+    
+    public async Task<PaginatedResult<object>> GetOrdersForWarehouseAsync(string warehouseId, int pageNumber = 1, int pageSize = 5)
+    {
+        if (string.IsNullOrWhiteSpace(warehouseId))
+            return PaginatedResult<object>.Error("WarehouseId is required", 400);
+
+        var warehouseExists = await _context.Warehouses.AsNoTracking().AnyAsync(w => w.Id == warehouseId);
+        if (!warehouseExists)
+            return PaginatedResult<object>.Error("Warehouse not found", 404);
+
+        if (pageNumber < 1) pageNumber = 1;
+        if (pageSize <= 0) pageSize = 5;
+
+        var baseQuery = _context.WarehouseOrders
+            .AsNoTracking()
+            .Where(wo => wo.WarehouseId == warehouseId)
+            .Include(wo => wo.Order)
+                .ThenInclude(o => o.OrderItems);
+
+        var totalItems = await baseQuery.CountAsync();
+
+        var orders = await baseQuery
+            .OrderByDescending(wo => wo.CreatedAt)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .Select(wo => new
+            {
+                wo.Order.Id,
+                wo.Order.TotalAmount,
+                wo.Order.Status,
+                wo.Order.CreatedAt,
+                BuyerId = wo.Order.BuyerProfileId,
+                SellerId = wo.Order.OrderItems
+                    .Select(oi => oi.ProductVariant.Product.StoreInfo.SellerProfileId)
+                    .FirstOrDefault(),
+                ItemsCount = wo.Order.OrderItems.Count
+            })
+            .ToListAsync();
+
+        return PaginatedResult<object>.Success(
+            orders,
+            totalItems,
+            pageNumber,
+            pageSize,
+            message: "Warehouse orders retrieved successfully");
+    }
+
+    public async Task<TypedResult<object>> GetWarehouseOrderItemsAsync(string warehouseId, string orderId)
+    {
+        if (string.IsNullOrWhiteSpace(warehouseId) || string.IsNullOrWhiteSpace(orderId))
+            return TypedResult<object>.Error("WarehouseId and OrderId are required", 400);
+
+        var link = await _context.WarehouseOrders.AsNoTracking()
+            .FirstOrDefaultAsync(wo => wo.WarehouseId == warehouseId && wo.OrderId == orderId);
+        if (link == null)
+            return TypedResult<object>.Error("Order does not belong to this warehouse or not found", 404);
+
+        var items = await _context.OrderItems
+            .AsNoTracking()
+            .Where(oi => oi.OrderId == orderId)
+            .Include(oi => oi.ProductVariant)
+                .ThenInclude(pv => pv.Product)
+                    .ThenInclude(p => p.StoreInfo)
+            .Include(oi => oi.ProductVariant)
+                .ThenInclude(pv => pv.Images)
+            .Select(oi => new
+            {
+                oi.Id,
+                oi.Quantity,
+                oi.OrderId,
+                oi.ProductVariantId,
+                VariantPrice = oi.ProductVariant.Price,
+                ProductId = oi.ProductVariant.ProductId,
+                Title = oi.ProductVariant.Title,
+                ImageUrl = oi.ProductVariant.Images.Select(i => i.ImageUrl).FirstOrDefault(),
+                BuyerId = oi.Order.BuyerProfileId,
+                SellerId = oi.ProductVariant.Product.StoreInfo.SellerProfileId
+            })
+            .ToListAsync();
+
+        return TypedResult<object>.Success(items, "Order items retrieved successfully");
+    }
+
+}

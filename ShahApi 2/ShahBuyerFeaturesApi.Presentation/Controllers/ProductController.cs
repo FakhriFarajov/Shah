@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using ShahAuthApi.Infrastructure.Contexts;
 using ShahBuyerFeaturesApi.Application.Services.Interfaces;
 
 namespace ShahBuyerFeaturesApi.Presentation.Controllers
@@ -9,26 +11,42 @@ namespace ShahBuyerFeaturesApi.Presentation.Controllers
     public class ProductController : ControllerBase
     {
         private readonly IProductService _productService;
+        private readonly ShahDbContext _db;
 
-        public ProductController(IProductService productService)
+        public ProductController(IProductService productService, ShahDbContext db)
         {
             _productService = productService;
+            _db = db;
         }
-
         
-        [Authorize]
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetProductDetailsById(string id)
+
+        [HttpGet("allPaginated")]
+        public async Task<IActionResult> GetProducts(
+            [FromQuery] string storeId = null!,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 5,
+            [FromQuery] string? categoryId = null,
+            [FromQuery] bool includeChildCategories = true)
         {
-            var result = await _productService.GetProductDetailsByIdAsync(id);
+            if (string.IsNullOrWhiteSpace(storeId))
+                return BadRequest("storeId is required");
+            var result = await _productService.GetAllPaginatedProductAsync(storeId, page, pageSize, categoryId, includeChildCategories);
             return Ok(result);
         }
         
-        [Authorize]
+        [Authorize(Policy = "SellerPolicy")]
         [HttpGet("Random")]
-        public async Task<IActionResult> GetRandomProducts([FromQuery] int count = 45)
+        public async Task<IActionResult> GetRandomProducts(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 45,
+            [FromQuery] int? count = null)
         {
-            var result = await _productService.GetRandomProductsAsync(count);
+            // Backward compatibility: if 'count' is provided, use it as pageSize
+            if (count.HasValue && count.Value > 0)
+            {
+                pageSize = count.Value;
+            }
+            var result = await _productService.GetRandomProductsAsync(page, pageSize);
             return Ok(result);
         }
     }

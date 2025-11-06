@@ -11,7 +11,7 @@ import { logout } from '@/features/auth/services/auth.service';
 import { tokenStorage } from '@/shared/tokenStorage';
 import {jwtDecode} from 'jwt-decode';
 import { getCountries } from '@/features/profile/Country/country.service';
-import type { Country } from '@/features/profile/DTOs/profile.interfaces';
+import type { Country } from '@/features/profile/DTOs/seller.interfaces';
 
 export default function Navbar() {
     const { t } = useTranslation();

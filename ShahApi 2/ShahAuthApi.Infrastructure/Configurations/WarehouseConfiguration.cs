@@ -10,10 +10,17 @@ public class WarehouseConfiguration : IEntityTypeConfiguration<Warehouse>
     {
         builder.Property(x => x.Id).IsRequired().HasMaxLength(36);
         builder.Property(x => x.AddressId).HasMaxLength(36);
+        builder.Property(x => x.Capacity).IsRequired();
         builder.HasOne(x => x.Address)
             .WithOne(x => x.Warehouse)
             .HasForeignKey<Warehouse>(x => x.AddressId)
             .OnDelete(DeleteBehavior.SetNull);
+        
+        
+        builder.HasMany(w => w.WarehouseOrder)
+            .WithOne(wo => wo.Warehouse)
+            .HasForeignKey(wo => wo.WarehouseId)
+            .OnDelete(DeleteBehavior.Cascade);
 
     }
 }

@@ -22,18 +22,19 @@ public class AuthService : IAuthService
         _tokenService = tokenService;
     }
 
+
     public async Task<TypedResult<object>> LoginAsync(AdminLoginRequestDTO request)
     {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
 
         if (user == null || Verify(request.Password, user.Password) == false)
         {
-            throw new InvalidCredentialException("Invalid Credentials");
+            throw new InvalidCredentialException("Invalid Credentials or no such user exists");
         }
         
         if (string.IsNullOrEmpty(user.AdminProfileId))
         {
-            return TypedResult<object>.Error("User is not an admin.", 403);
+            return TypedResult<object>.Error("User is not a admin.", 403);
         }
 
         var accessToken = await _tokenService.CreateTokenAsync(user);
@@ -42,7 +43,6 @@ public class AuthService : IAuthService
         if (!string.IsNullOrEmpty(user.RefreshToken) && user.RefreshTokenExpiryTime.HasValue &&
             user.RefreshTokenExpiryTime > now)
         {
-            // Reuse existing valid refresh token
             refreshToken = user.RefreshToken;
         }
         else
@@ -61,26 +61,38 @@ public class AuthService : IAuthService
 
     public async Task<TypedResult<object>> LogoutAsync(string token)
     {
-        await BlacklistTokenAsync(token, DateTime.UtcNow.AddHours(1)); // Set expiry as needed
+        // 1. Blacklist the current access token
+        await _tokenService.BlacklistTokenAsync(token, DateTime.UtcNow.AddMinutes(3));
+
+        // 2. Find the user associated with this token
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.RefreshToken != null);
+        if (user != null)
+        {
+            // 3. Invalidate the refresh token
+            user.RefreshToken = null;
+            user.RefreshTokenExpiryTime = null;
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+        }
+
         return TypedResult<object>.Success(null, "Successfully logged out");
     }
     
-    public async Task BlacklistTokenAsync(string token, DateTime expiry)
+    //Auth 
+    public async Task<TypedResult<object>> RefreshTokenAsync(RefreshRequest request)
     {
-        var blacklisted = new BlacklistedToken
+        if (string.IsNullOrEmpty(request.RefreshToken))
+            return TypedResult<object>.Error("Refresh token is required", 400);
+
+        var result = await _tokenService.RefreshTokenAsync(request.RefreshToken, request.OldAccessToken);
+
+        if (!result.IsSuccess)
+            return TypedResult<object>.Error(result.Message, 401);
+
+        return TypedResult<object>.Success(new
         {
-            Token = token,
-            ExpiryTime = expiry
-        };
-        
-        await _context.BlacklistedTokens.AddAsync(blacklisted);
-        await _context.SaveChangesAsync();
-    }
-
-
-
-    public async Task<TypedResult<object>> RefreshTokenAsync([FromBody] string refreshToken)
-    {
-        throw new NotImplementedException();
+            accessToken = result.Data.AccessToken,
+            refreshToken = result.Data.RefreshToken
+        });
     }
 }
