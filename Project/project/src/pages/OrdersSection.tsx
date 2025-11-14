@@ -1,46 +1,138 @@
+import React, { useEffect } from "react";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
-import React from "react";
+import { getOrderDetails, getOrders } from "@/features/profile/Order/Order.service";
+import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
+import { getProfileImage } from "@/shared/utils/imagePost";
 
-interface Product {
+export interface OrderResponse {
+  isSuccess: boolean;
+  message: string;
+  statusCode: number;
+  data: OrderData;
+}
+
+export interface OrderData {
   id: string;
-  title: string;
-  description: string;
-  price: number;
-  image?: string;
+  status: number;
+  createdAt: string;
+  updatedAt: string | null;
+  totalAmount: number;
+  receipt: Receipt;
+  payment: Payment;
+  items: OrderItem[];
 }
 
-interface OrderItem {
+export interface OrderSummary {
   id: string;
-  product: Product;
-  quantity: number;
+  status: number;
+  createdAt: string;
+  totalAmount: number;
+  itemCount: number;
+  paymentStatus: number;
+  receiptId: string;
 }
 
-interface ShippingAddress {
-  street: string;
-  city: string;
-  state: string;
-  postalCode: string;
-  country: string;
+export interface Receipt {
+  id: string;
+  fileUrl: string;
+  issuedAt: string;
 }
 
-interface Order {
+export interface Payment {
   id: string;
   totalAmount: number;
-  status: string;
+  currency: string;
+  method: number;
+  status: number;
+  gatewayTransactionId: string;
   createdAt: string;
-  shippingAddress: ShippingAddress;
-  payment: { method: string; paid: boolean };
-  orderItems: OrderItem[];
+}
+
+export interface OrderItem {
+  id: string;
+  productVariantId: string;
+  title: string;
+  price: number;
+  quantity: number;
+  images: ProductImage[];
+  lineTotal: number;
+}
+
+export interface ProductImage {
+  id: string;
+  imageUrl: string;
+  isMain: boolean;
+  productVariantId: string;
+  productVariant: any | null;
 }
 
 interface OrdersSectionProps {
-  orderHistory: Order[];
   orderStatusFilter: string;
   setOrderStatusFilter: (val: string) => void;
   MdAccountCircle: React.ElementType;
 }
 
-const OrdersSection: React.FC<OrdersSectionProps> = ({ orderHistory, orderStatusFilter, setOrderStatusFilter, MdAccountCircle }) => {
+const OrdersSection: React.FC<OrdersSectionProps> = ({ orderStatusFilter, setOrderStatusFilter, MdAccountCircle }) => {
+  const [orderHistory, setOrderHistory] = React.useState<OrderData[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      try {
+          const res = await apiCallWithManualRefresh(() => getOrders());
+          const summaries: any[] = Array.isArray(res)
+            ? res
+            : Array.isArray((res as any)?.data)
+            ? (res as any).data
+            : [];
+
+          const details: OrderData[] = await Promise.all(
+            summaries.map(async (s: any) => {
+              const id = s?.id ?? s?.orderId ?? s?.ID;
+              const detailRes = await apiCallWithManualRefresh(() => getOrderDetails(id));
+              const orderData: any = (detailRes as any)?.data ?? detailRes;
+
+              // Resolve item image URLs
+              const normalizedItems = Array.isArray(orderData?.items)
+                ? await Promise.all(
+                    (orderData.items as OrderItem[]).map(async (it) => {
+                      const resolvedImages = Array.isArray(it.images)
+                        ? await Promise.all(
+                            it.images.map(async (img) => {
+                              try {
+                                const url = await getProfileImage(img.imageUrl);
+                                return { ...img, imageUrl: url || img.imageUrl };
+                              } catch {
+                                return img;
+                              }
+                            })
+                          )
+                        : [];
+                      return { ...it, images: resolvedImages };
+                    })
+                  )
+                : [];
+
+              return { ...orderData, items: normalizedItems } as OrderData;
+            })
+          );
+
+          if (!cancelled) setOrderHistory(details);
+      } catch (e) {
+        if (!cancelled) {
+          console.error("Failed to load orders:", e);
+          setOrderHistory([]);
+        }
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <div className="flex flex-col gap-6">
       <Card>
@@ -49,57 +141,78 @@ const OrdersSection: React.FC<OrdersSectionProps> = ({ orderHistory, orderStatus
         </CardHeader>
         <CardContent>
           <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-2">
-            <label htmlFor="order-status-filter" className="font-medium">Filter by status:</label>
+            <label htmlFor="order-status-filter" className="font-medium">
+              Filter by status:
+            </label>
             <select
               id="order-status-filter"
               className="border rounded px-2 py-1"
               value={orderStatusFilter}
-              onChange={e => setOrderStatusFilter(e.target.value)}
+              onChange={(e) => setOrderStatusFilter(e.target.value)}
             >
               <option value="">All</option>
-              <option value="Pending">Pending</option>
-              <option value="Shipped">Shipped</option>
-              <option value="Delivered">Delivered</option>
-              <option value="Cancelled">Cancelled</option>
+              <option value="0">Pending</option>
+              <option value="1">Shipped</option>
+              <option value="2">Delivered</option>
+              <option value="3">Cancelled</option>
             </select>
           </div>
+
           <ul className="divide-y">
             {orderHistory
-              .filter(order => !orderStatusFilter || order.status === orderStatusFilter)
+              .filter((order) => !orderStatusFilter || order.status.toString() === orderStatusFilter)
               .map((order) => (
                 <li key={order.id} className="py-2">
                   <div className="flex justify-between items-center">
                     <span className="font-medium">Order #{order.id}</span>
-                    <span>{order.createdAt}</span>
-                    <span className={`text-xs px-2 py-1 rounded ${order.status === "Delivered" ? "bg-green-200" : order.status === "Cancelled" ? "bg-red-200" : "bg-yellow-200"}`}>{order.status}</span>
+                    <span>{new Date(order.createdAt).toLocaleString()}</span>
+                    <span
+                      className={`text-xs px-2 py-1 rounded ${
+                        order.status === 2
+                          ? "bg-green-200"
+                          : order.status === 3
+                          ? "bg-red-200"
+                          : "bg-yellow-200"
+                      }`}
+                    >
+                      {order.status === 0
+                        ? "Pending"
+                        : order.status === 1
+                        ? "Shipped"
+                        : order.status === 2
+                        ? "Delivered"
+                        : "Cancelled"}
+                    </span>
                   </div>
+
                   <div className="ml-2 text-sm text-gray-600">Total: ${order.totalAmount}</div>
-                  <div className="ml-2 text-sm text-gray-600">Shipping: {order.shippingAddress.street}, {order.shippingAddress.city}</div>
+
                   <div className="ml-2 mt-1">
                     <span className="font-semibold">Items:</span>
                     <ul className="ml-4 list-disc">
-                      {order.orderItems.map((item) => (
-                        <li key={item.id} className="flex items-center gap-2">
-                          <a
-                            href={`/product/${item.product.id}`}
-                            className="flex items-center gap-2 hover:underline"
-                            style={{ display: 'inline-flex', alignItems: 'center' }}
-                          >
-                            {item.product.image ? (
+                      {order.items.map((item) => (
+                        <li key={item.id} className="flex items-center gap-2 mb-2">
+                          <div className="flex items-center gap-2" style={{ display: 'inline-flex', alignItems: 'center' }}>
+                            {item.images && item.images.length > 0 ? (
                               <img
-                                src={item.product.image}
-                                alt={item.product.title}
+                                src={item.images[0].imageUrl}
+                                alt={item.title}
                                 className="w-10 h-10 object-cover rounded mr-2 border"
                                 style={{ minWidth: 40, minHeight: 40 }}
                               />
                             ) : (
-                              <span className="w-10 h-10 flex items-center justify-center bg-gray-100 text-gray-400 rounded mr-2 border" style={{ minWidth: 40, minHeight: 40 }}>
+                              <span
+                                className="w-10 h-10 flex items-center justify-center bg-gray-100 text-gray-400 rounded mr-2 border"
+                                style={{ minWidth: 40, minHeight: 40 }}
+                              >
                                 <MdAccountCircle size={32} />
                               </span>
                             )}
-                            <span>{item.product.title}</span>
-                          </a>
-                          <span className="ml-2">x{item.quantity} (${item.product.price})</span>
+                            <span>{item.title}</span>
+                          </div>
+                          <span className="ml-2">
+                            x{item.quantity} (${item.price})
+                          </span>
                         </li>
                       ))}
                     </ul>

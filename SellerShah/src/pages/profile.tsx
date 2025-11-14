@@ -526,7 +526,7 @@ export default function ProfileSeller() {
 
                                         <div className="mb-3 flex items-center gap-2">
                                             <label className="block text-sm font-medium mb-1">Is Verified: </label>
-                                            <span className={(seller?.isVerified ? "text-green-600" : "text-red-600") + " font-medium text-sm mb-1"}>{seller?.isVerified ? "Verified" : "Unverified"}</span>
+                                            <span className={(seller?.isConfirmed ? "text-green-600" : "text-red-600") + " font-medium text-sm mb-1"}>{seller?.isConfirmed ? "Verified" : "Unverified"}</span>
                                         </div>
                                     </div>
                                 </div>

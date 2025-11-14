@@ -1,92 +1,267 @@
-// import React from 'react';
-
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
+import { getBuyerReviews } from "@/features/profile/ Reviews/Reviews.service";
+import { deleteReview as deleteReviewApi, editReview as editReviewApi } from "@/features/profile/ Reviews/Reviews.service";
+import { getProfileImage, uploadProfileImage } from "@/shared/utils/imagePost";
 
 interface Review {
   id: string;
-  comment: string;
+  buyerProfileId?: string;
+  buyerName?: string;
+  productVariantId?: string;
   rating: number;
-  product?: { id: string; name?: string; title?: string; image?: string };
-  seller: { id: string; name: string };
-  Date?: string;
+  comment: string;
+  images?: string[];
+  createdAt?: string;
+  // enriched
+  imageUrls?: string[];
 }
 
 interface ReviewsSectionProps {
-  reviews: Review[];
-  editingReviewId: string | null;
-  setEditingReviewId: (id: string | null) => void;
-  editedReview: { comment: string; rating: number };
-  setEditedReview: (review: { comment: string; rating: number }) => void;
+  editingReviewId?: string | null;
+  setEditingReviewId?: (id: string | null) => void;
+  editedReview?: { comment: string; rating: number };
+  setEditedReview?: (review: { comment: string; rating: number }) => void;
   saveReview?: (id: string) => void;
+  deleteReview?: (id: string) => void;
   buyer?: any;
 }
 
-const ReviewsSection: React.FC<ReviewsSectionProps> = ({
-  reviews,
-  editingReviewId,
-  setEditingReviewId,
-  editedReview,
-  setEditedReview,
-  saveReview,
-  buyer
-}) => {
+const ReviewsSection: React.FC<ReviewsSectionProps> = (props) => {
+  const {
+    editingReviewId,
+    setEditingReviewId,
+    editedReview,
+    setEditedReview,
+    saveReview,
+    buyer,
+  } = props || {};
+  const [localReviews, setLocalReviews] = useState<Review[]>([]);
+  // Local state for images being added while editing
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [selectedPreviews, setSelectedPreviews] = useState<string[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const res = await apiCallWithManualRefresh(() => getBuyerReviews());
+        let items: any[] = Array.isArray(res)
+          ? res
+          : Array.isArray((res as any)?.data)
+            ? (res as any).data
+            : Array.isArray((res as any)?.data?.data)
+              ? (res as any).data.data
+              : [];
+        // Resolve image IDs to URLs
+        items = await Promise.all(
+          items.map(async (r: any) => {
+            const imgs: string[] = Array.isArray(r.images) ? r.images : [];
+            const imageUrls: string[] = await Promise.all(
+              imgs.map(async (id: string) => {
+                try {
+                  const url = await getProfileImage(id);
+                  return url || id;
+                } catch {
+                  return id;
+                }
+              })
+            );
+            return { ...r, imageUrls } as Review;
+          })
+        );
+        if (!cancelled) setLocalReviews(items as Review[]);
+      } catch (e) {
+        if (!cancelled) setLocalReviews([]);
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, []);
+
   return (
     <Card className="max-w-4xl mx-auto">
       <CardHeader>
         <CardTitle>{buyer?.name ? `${buyer.name}'s Reviews` : "Reviews"}</CardTitle>
       </CardHeader>
       <CardContent>
-        <ul className="space-y-4">
-          {reviews.map((r: any) => (
-            <li key={r.id} className="border-b pb-4 flex gap-4 items-center">
-              <img src={r.product?.image} alt={r.product?.name || r.product?.title || "Product"} className="w-20 h-20 object-cover rounded border" />
-              <div className="flex-1">
-                <div className="font-semibold">
-                  Product: <a href={`/products/${r.product?.id}`} className="text-blue-600 underline">{r.product?.name || r.product?.title}</a>
-                  {" "}| Seller: <a href={`/sellers/${r.seller.id}`} className="text-blue-600 underline">{r.seller.name}</a>
+        {localReviews.length === 0 ? (
+          <div className="text-center text-gray-500">No reviews yet.</div>
+        ) : (
+          <ul className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+            {localReviews.map((r: Review) => (
+              <li key={r.id} className="border-b pb-4 flex gap-4 items-center">
+                <div className="flex-1">
+                  <div className="font-semibold">{r.buyerName || buyer?.name || "You"}</div>
+                  {editingReviewId === r.id ? (
+                    <>
+                      <div className="mt-2">
+                        <Label>Add Images</Label>
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                          onChange={(e) => {
+                            const files = Array.from(e.target.files || []).filter((f) => f && f.type.startsWith('image/')) as File[];
+                            setSelectedFiles(files);
+                            setSelectedPreviews(files.map((f) => URL.createObjectURL(f)));
+                          }}
+                        />
+                        {selectedPreviews.length > 0 && (
+                          <div className="mt-2 flex gap-2 flex-wrap max-h-40 overflow-y-auto pr-1">
+                            {selectedPreviews.map((src, i) => (
+                              <img key={i} src={src} alt={`new-${i}`} className="w-16 h-16 object-cover rounded border" />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div className="mt-2">
+                        <Label>Edit Comment</Label>
+                        <Input
+                          value={editedReview?.comment ?? ""}
+                          onChange={e => setEditedReview && setEditedReview({ ...(editedReview as any), comment: e.target.value })}
+                          className="mb-2"
+                        />
+                        <Label>Edit Rating</Label>
+                        <div className="mb-2 flex items-center gap-1">
+                          {[1,2,3,4,5].map(star => (
+                            <button
+                              key={star}
+                              type="button"
+                              aria-label={`Set rating ${star}`}
+                              className={(editedReview?.rating ?? 0) >= star ? 'text-yellow-500 text-2xl' : 'text-gray-300 hover:text-yellow-400 text-2xl'}
+                              onClick={() => setEditedReview && setEditedReview({ ...(editedReview as any), rating: star })}
+                            >
+                              ★
+                            </button>
+                          ))}
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={async () => {
+                              if (!editedReview) return;
+                              try {
+                                let imageIds: string[] | undefined = undefined;
+                                if (selectedFiles.length > 0) {
+                                  const uploaded = await Promise.all(selectedFiles.map(async (file) => uploadProfileImage(file)));
+                                  imageIds = uploaded.filter(Boolean) as string[];
+                                }
+                                if (imageIds && imageIds.length > 0) {
+                                  await apiCallWithManualRefresh(() => editReviewApi(r.id, editedReview.rating, editedReview.comment, imageIds));
+                                  // Resolve URLs for new images and append in UI
+                                  const urls = await Promise.all(imageIds.map((id) => getProfileImage(id).catch(() => "")));
+                                  setLocalReviews(prev => prev.map(rv => rv.id === r.id ? { ...rv, comment: editedReview.comment, rating: editedReview.rating, imageUrls: [...(rv.imageUrls || []), ...urls.filter(Boolean)] } : rv));
+                                } else if (saveReview) {
+                                  await saveReview(r.id);
+                                  setLocalReviews(prev => prev.map(rv => rv.id === r.id ? { ...rv, comment: editedReview.comment, rating: editedReview.rating } : rv));
+                                } else {
+                                  await apiCallWithManualRefresh(() => editReviewApi(r.id, editedReview.rating, editedReview.comment));
+                                  setLocalReviews(prev => prev.map(rv => rv.id === r.id ? { ...rv, comment: editedReview.comment, rating: editedReview.rating } : rv));
+                                }
+                                setEditingReviewId && setEditingReviewId(null);
+                                setSelectedFiles([]);
+                                setSelectedPreviews([]);
+                              } catch {
+                                // Optionally add toast here
+                              }
+                            }}
+                            disabled={
+                              !editedReview ||
+                              typeof editedReview.rating !== 'number' ||
+                              editedReview.rating < 1 ||
+                              editedReview.rating > 5 ||
+                              !(editedReview.comment || '').trim()
+                            }
+                          >
+                            Save
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => {
+                            setEditingReviewId && setEditingReviewId(null);
+                            setSelectedFiles([]);
+                            setSelectedPreviews([]);
+                          }}>Cancel</Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={async () => {
+                              try {
+                                if (props.deleteReview) {
+                                  await props.deleteReview(r.id);
+                                } else {
+                                  await apiCallWithManualRefresh(() => deleteReviewApi(r.id));
+                                }
+                                setLocalReviews(prev => prev.filter(rv => rv.id !== r.id));
+                              } catch {
+                                // Optionally add toast here
+                              }
+                            }}
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-yellow-500">Rating: {"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</div>
+                      <div className="mt-1 text-gray-700">{r.comment}</div>
+                      {Array.isArray(r.imageUrls) && r.imageUrls.length > 0 && (
+                        <div className="mt-2 flex gap-2 flex-wrap max-h-40 overflow-y-auto pr-1">
+                          {r.imageUrls.map((u, i) => (
+                            <img key={i} src={u} alt={`review-${i}`} className="w-16 h-16 object-cover rounded border" />
+                          ))}
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2 mt-3">
+                        {[1, 2, 3, 4, 5].map(star => (
+                          <button
+                            key={star}
+                            type="button"
+                            aria-label={`Set rating ${star}`}
+                            className={"text-xl " + (star <= r.rating ? 'text-yellow-500' : 'text-gray-300 hover:text-yellow-400')}
+                            onClick={() => {
+                              setEditingReviewId && setEditingReviewId(r.id);
+                              setEditedReview && setEditedReview({ comment: r.comment, rating: star });
+                            }}
+                          >
+                            ★
+                          </button>
+                        ))}
+                        <Button size="sm" variant="outline" onClick={() => {
+                          setEditingReviewId && setEditingReviewId(r.id);
+                          setEditedReview && setEditedReview({ comment: r.comment, rating: r.rating });
+                        }}>Edit</Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={async () => {
+                            try {
+                              if (props.deleteReview) {
+                                await props.deleteReview(r.id);
+                              } else {
+                                await apiCallWithManualRefresh(() => deleteReviewApi(r.id));
+                              }
+                              setLocalReviews(prev => prev.filter(rv => rv.id !== r.id));
+                            } catch {
+                              // Optionally toast error
+                            }
+                          }}
+                        >Delete</Button>
+                      </div>
+                    </>
+                  )}
                 </div>
-                {editingReviewId === r.id ? (
-                  <div className="mt-2">
-                    <Label>Edit Comment</Label>
-                    <Input
-                      value={editedReview.comment}
-                      onChange={e => setEditedReview({ ...editedReview, comment: e.target.value })}
-                      className="mb-2"
-                    />
-                    <Label>Edit Rating</Label>
-                    <select
-                      value={editedReview.rating}
-                      onChange={e => setEditedReview({ ...editedReview, rating: Number(e.target.value) })}
-                      className="mb-2 border rounded px-2 py-1"
-                    >
-                      {[1, 2, 3, 4, 5].map(n => (
-                        <option key={n} value={n}>{"★".repeat(n)}{"☆".repeat(5 - n)}</option>
-                      ))}
-                    </select>
-                    <div className="flex gap-2">
-                      {saveReview && <Button size="sm" onClick={() => saveReview(r.id)}>Save</Button>}
-                      <Button size="sm" variant="outline" onClick={() => setEditingReviewId(null)}>Cancel</Button>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="text-yellow-500">Rating: {"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</div>
-                    <div className="mt-1 text-gray-700">{r.comment}</div>
-                    <Button size="sm" variant="outline" className="mt-2" onClick={() => {
-                      setEditingReviewId(r.id);
-                      setEditedReview({ comment: r.comment, rating: r.rating });
-                    }}>Edit</Button>
-                  </>
-                )}
-              </div>
-              <div className="text-sm text-gray-400">{r.Date}</div>
-            </li>
-          ))}
-        </ul>
+                <div className="text-sm text-gray-400">{r.createdAt ? new Date(r.createdAt).toLocaleString() : ''}</div>
+              </li>
+            ))}
+          </ul>
+        )}
       </CardContent>
     </Card>
   );

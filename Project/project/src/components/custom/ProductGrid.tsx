@@ -1,8 +1,6 @@
-import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { getTranslatedCategories } from '../custom/Navbar/getTranslatedCategories';
 import { FaHome, FaMale, FaFemale, FaChild, FaMobileAlt, FaBook, FaHeart, FaBasketballBall, FaPuzzlePiece, FaCouch, FaMedkit, FaCar } from "react-icons/fa";
 
 const categoryIcons: Record<string, JSX.Element> = {
@@ -38,11 +36,10 @@ const categoryBg: Record<string, string> = {
 export default function ProductGrid() {
     const navigate = useNavigate();
     const { t } = useTranslation();
-    const categories = getTranslatedCategories(t);
 
     return (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 w-full">
-            {Object.entries(categories).map(([key, category]: [string, any]) => (
+            {/* {Object.entries(categories).map(([key, category]: [string, any]) => (
                 <div
                     key={key}
                     className={`flex flex-col items-center justify-center rounded-xl shadow-md p-6 cursor-pointer transition hover:scale-105 ${categoryBg[key] || "bg-white"}`}
@@ -53,7 +50,7 @@ export default function ProductGrid() {
                         {t(category.name)}
                     </Badge>
                 </div>
-            ))}
+            ))} */}
         </div>
     );
 }

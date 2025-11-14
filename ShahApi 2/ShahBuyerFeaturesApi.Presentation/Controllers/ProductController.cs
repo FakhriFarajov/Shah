@@ -1,52 +1,72 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ShahAuthApi.Infrastructure.Contexts;
 using ShahBuyerFeaturesApi.Application.Services.Interfaces;
+using ShahBuyerFeaturesApi.Core.DTOs.Request;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ShahBuyerFeaturesApi.Presentation.Controllers
 {
-    [ApiController]
+    [ApiController] 
     [Route("api/[controller]")]
+    
     public class ProductController : ControllerBase
     {
         private readonly IProductService _productService;
-        private readonly ShahDbContext _db;
 
-        public ProductController(IProductService productService, ShahDbContext db)
+        public ProductController(IProductService productService)
         {
             _productService = productService;
-            _db = db;
         }
-        
 
-        [HttpGet("allPaginated")]
-        public async Task<IActionResult> GetProducts(
-            [FromQuery] string storeId = null!,
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 5,
-            [FromQuery] string? categoryId = null,
-            [FromQuery] bool includeChildCategories = true)
+
+        [HttpGet("product-details/{productId}")]
+        public async Task<IActionResult> GetProductDetailsById(string productId)
         {
-            if (string.IsNullOrWhiteSpace(storeId))
-                return BadRequest("storeId is required");
-            var result = await _productService.GetAllPaginatedProductAsync(storeId, page, pageSize, categoryId, includeChildCategories);
+            var claimUserId = User.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
+
+            var result = await _productService.GetProductDetailsByIdAsync(productId, claimUserId);
             return Ok(result);
         }
         
-        [Authorize(Policy = "SellerPolicy")]
+        [HttpPost("filter")]
+        public async Task<IActionResult> FilterProducts([FromBody] ProductFilterRequestDTO? request)
+        {
+            
+            if (request is null)
+                return BadRequest("Request body is required");
+            var result = await _productService.GetAllPaginatedProductsFilteredAsync(request!);
+            return Ok(result);
+        }
+        
         [HttpGet("Random")]
         public async Task<IActionResult> GetRandomProducts(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 45,
-            [FromQuery] int? count = null)
+            [FromQuery] int? count = null,
+            [FromQuery] string? userId = null
+            )
         {
             // Backward compatibility: if 'count' is provided, use it as pageSize
             if (count.HasValue && count.Value > 0)
             {
                 pageSize = count.Value;
             }
-            var result = await _productService.GetRandomProductsAsync(page, pageSize);
+            // Prefer identity user id claim when available
+            var result = await _productService.GetRandomProductsAsync(page, pageSize, userId);
+             return Ok(result);
+         }
+
+        // POST api/product/{productId}/variant/by-attributes
+        [HttpPost("{productId}/variant/by-attributes")]
+        public async Task<IActionResult> GetVariantByAttributes(string productId, [FromBody] List<string> attributeValueIds)
+        {
+            if (string.IsNullOrWhiteSpace(productId))
+                return BadRequest("productId is required");
+            if (attributeValueIds == null || attributeValueIds.Count == 0)
+                return BadRequest("attributeValueIds are required");
+
+            var claimUserId = User.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
+            var result = await _productService.GetVariantByAttributesAsync(productId, attributeValueIds, claimUserId);
             return Ok(result);
         }
     }

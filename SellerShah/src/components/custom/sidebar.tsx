@@ -1,6 +1,6 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, ShoppingBag, ListOrdered, Settings, Flag, MessageCircleCode, Home, Menu } from "lucide-react";
+import { User, ShoppingBag, ListOrdered, Flag, Home } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
@@ -13,7 +13,6 @@ export function AppSidebar() {
         { icon: <User className="w-5 h-5 mr-2" />, label: t("Profile") },
         { icon: <ShoppingBag className="w-5 h-5 mr-2" />, label: t("Products") },
         { icon: <ListOrdered className="w-5 h-5 mr-2" />, label: t("Orders") },
-        { icon: <MessageCircleCode className="w-5 h-5 mr-2" />, label: t("Reviews") },
         { icon: <Flag className="w-5 h-5 mr-2" />, label: t("Report") },
     ];
     return (

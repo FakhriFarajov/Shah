@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ShahBuyerFeaturesApi.Application.Services.Interfaces;
+using ShahBuyerFeaturesApi.Core.DTOs.Request;
 
 namespace ShahBuyerFeaturesApi.Presentation.Controllers
 {
     [ApiController]
+    [Authorize(Policy = "BuyerPolicy")] //We need to send a Bearer token in the header to access this endpoint
     [Route("api/[controller]")]
     public class FavoriteController : ControllerBase
     {
@@ -15,39 +17,47 @@ namespace ShahBuyerFeaturesApi.Presentation.Controllers
         }
         
         
-        [Authorize(Policy = "BuyerPolicy")] //We need to send a Bearer token in the header to access this endpoint
-
         [HttpPost("add")]
-        public async Task<IActionResult> AddToFavorites([FromQuery] string buyerId, [FromQuery] string productId)
+        public async Task<IActionResult> AddToFavorites([FromBody] AddFavoriteRequestDTO request)
         {
-            await _favoriteService.AddToFavorites(buyerId, productId);
+            // Prefer an explicit buyerUserId supplied by the client; fallback to the authenticated identity claim 'id'.
+            var claimUserId = User.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
+            var effectivebuyerUserId = claimUserId;
+
+            if (string.IsNullOrWhiteSpace(effectivebuyerUserId))
+            {
+                return BadRequest("Buyer id (identity user id) is required.");
+            }
+
+            await _favoriteService.AddToFavorites(effectivebuyerUserId!, request.ProductVariantId);
             return Ok();
         }
-        [Authorize(Policy = "BuyerPolicy")] //We need to send a Bearer token in the header to access this endpoint
-
-
+        
+        
         [HttpDelete("remove")]
-        public async Task<IActionResult> RemoveFromFavorites([FromQuery] string buyerId, [FromQuery] string productId)
+        public async Task<IActionResult> RemoveFromFavorites([FromBody] RemoveFavoriteRequestDTO request)
         {
-            await _favoriteService.RemoveFromFavorites(buyerId, productId);
+            // Prefer explicit query param buyerUserId when provided; fallback to the authenticated identity claim 'id'.
+            var claimUserId = User.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
+            var effectivebuyerUserId = claimUserId;
+
+            if (string.IsNullOrWhiteSpace(effectivebuyerUserId)) return BadRequest("Buyer id (identity user id) is required.");
+
+            await _favoriteService.RemoveFromFavorites(effectivebuyerUserId!, request.ProductVariantId);
             return Ok();
         }
-
-        [Authorize(Policy = "BuyerPolicy")] //We need to send a Bearer token in the header to access this endpoint
-
-        [HttpGet("is-favorite")]
-        public async Task<IActionResult> IsFavorite([FromQuery] string buyerId, [FromQuery] string productId)
-        {
-            var result = await _favoriteService.IsFavorite(buyerId, productId);
-            return Ok(result);
-        }
-        [Authorize(Policy = "BuyerPolicy")] //We need to send a Bearer token in the header to access this endpoint
+        
+        
         [HttpGet("all")]
-        public async Task<IActionResult> GetAllFavorites([FromQuery] string buyerId)
+        public async Task<IActionResult> GetAllFavorites()
         {
-            var result = await _favoriteService.GetAllFavorites(buyerId);
+            var claimUserId = User.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
+            var effectivebuyerUserId = claimUserId;
+
+            if (string.IsNullOrWhiteSpace(effectivebuyerUserId)) return BadRequest("Buyer id (identity user id) is required.");
+
+            var result = await _favoriteService.GetAllFavorites(effectivebuyerUserId!);
             return Ok(result);
         }
     }
 }
-

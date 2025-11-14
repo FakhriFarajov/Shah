@@ -14,9 +14,9 @@ import Navbar from "@/components/custom/Navbar/navbar";
 import { AppSidebar } from "@/components/custom/sidebar";
 import Footer from "../components/custom/footer";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
-import { getProductEditPayloadById } from "@/features/profile/Tax copy/tax.service";
-import { addProduct } from "@/features/profile/Tax copy/tax.service";
-import { syncProduct } from "@/features/profile/Tax copy/tax.service";
+import { getProductEditPayloadById } from "@/features/profile/Product/Product.service";
+import { addProduct } from "@/features/profile/Product/Product.service";
+import { syncProduct } from "@/features/profile/Product/Product.service";
 import type { ProductSyncRequest } from "@/types/productCreate.interfaces";
 import { useNavigate } from "react-router-dom";
 
@@ -271,12 +271,65 @@ export default function ProductsEditOrAddPage() {
                 toast.error('Store info is missing.');
                 return;
             }
+            // Check that all variants have all attribute values selected and required fields filled
+            const allAttrs = (() => {
+                let attrs: any[] = [];
+                let current = categories.find(c => c.id === product.categoryId);
+                while (current) {
+                    if (current.attributes) {
+                        attrs = [...current.attributes, ...attrs];
+                    }
+                    if (!current.parentCategoryId) break;
+                    current = categories.find(c => c.id === current.parentCategoryId);
+                }
+                return attrs;
+            })();
+            for (const [variantIdx, variant] of (variants || []).entries()) {
+                // Check required fields
+                if (!variant.title || typeof variant.title !== "string" || variant.title.trim() === "") {
+                    toast.error(`Please enter a title for variant ${variantIdx + 1}.`);
+                    return;
+                }
+                if (!variant.description || typeof variant.description !== "string" || variant.description.trim() === "") {
+                    toast.error(`Please enter a description for variant ${variantIdx + 1}.`);
+                    return;
+                }
+                if (!variant.price || isNaN(Number(variant.price))) {
+                    toast.error(`Please enter a valid price for variant ${variantIdx + 1}.`);
+                    return;
+                }
+                if (!variant.stock || isNaN(Number(variant.stock))) {
+                    toast.error(`Please enter a valid stock for variant ${variantIdx + 1}.`);
+                    return;
+                }
+                if (!variant.weight || isNaN(Number(variant.weight))) {
+                    toast.error(`Please enter a valid weight for variant ${variantIdx + 1}.`);
+                    return;
+                }
+                if(!variant.images || variant.images.length === 0){
+                    toast.error(`Please add at least one image for variant ${variantIdx + 1}.`);
+                    return;
+                }
+                for (const attr of allAttrs) {
+                    const found = Array.isArray(variant.attributeValues)
+                        ? variant.attributeValues.find((av: any) => av && (av.attributeId === attr.id || (av.attributeValueId && av.attributeValueId.startsWith(attr.id + '___'))))
+                        : null;
+                    let valueId = "";
+                    if (found && found.attributeValueId) {
+                        const parts = found.attributeValueId.split('___');
+                        valueId = parts.length > 1 ? parts[1] : parts[0];
+                    }
+                    if (!valueId) {
+                        toast.error(`Please select a value for attribute '${attr.name}' in variant ${variantIdx + 1}.`);
+                        return;
+                    }
+                }
+            }
             const variantsWithMinioImages = await Promise.all(
                 variants.map(async (v: any) => {
                     const minioImages = await Promise.all(
                         (v.images || []).map(async (img: any, idx: number) => {
                             let isMain = v.mainImageIdx === idx;
-                            console.log('mainImageIdx:', v.mainImageIdx, 'current idx:', idx, 'isMain:', isMain);
                             if (img instanceof File) {
                                 try {
                                     const objectName = await uploadProfileImage(img);
@@ -493,7 +546,7 @@ export default function ProductsEditOrAddPage() {
                                                     />
                                                 </div>
                                                 <div className="flex-1">
-                                                    <Label className="mb-2">Weight</Label>
+                                                    <Label className="mb-2">Weight(In grams)</Label>
                                                     <input
                                                         className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
                                                         placeholder="Weight"

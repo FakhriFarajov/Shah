@@ -226,6 +226,7 @@ public class ProductService : IProductService
             {
                 p.Id,
                 ProductTitle = p.ProductVariants.Select(v => v.Title).FirstOrDefault(),
+                RepresentativeVariantId = p.ProductVariants.Select(v => v.Id).FirstOrDefault(),
                 StoreName = p.StoreInfo.StoreName,
                 Price = p.ProductVariants.Select(v => (decimal?)v.Price).Min() ?? 0m,
                 Category = p.Category,
@@ -234,13 +235,13 @@ public class ProductService : IProductService
             .ToListAsync();
 
         // Fetch main images for these products in one go
-        var productIds = pageRows.Select(r => r.Id).ToList();
+        var variantIds = pageRows.Select(r => r.RepresentativeVariantId).Where(id => !string.IsNullOrWhiteSpace(id)).ToList();
         var mains = await _context.ProductVariantImages
-            .Where(img => img.IsMain && productIds.Contains(img.ProductVariant.ProductId))
-            .Select(img => new { img.ProductVariant.ProductId, img.ImageUrl })
+            .Where(img => img.IsMain && variantIds.Contains(img.ProductVariantId))
+            .Select(img => new { img.ProductVariantId, img.ImageUrl })
             .ToListAsync();
         var mainLookup = mains
-            .GroupBy(x => x.ProductId)
+            .GroupBy(x => x.ProductVariantId)
             .ToDictionary(g => g.Key, g => g.Select(x => x.ImageUrl).FirstOrDefault());
 
         var items = pageRows
@@ -248,7 +249,7 @@ public class ProductService : IProductService
             {
                 p.Id,
                 p.ProductTitle,
-                MainImage = mainLookup.TryGetValue(p.Id, out var url) ? url : null,
+                MainImage = (p.RepresentativeVariantId != null && mainLookup.TryGetValue(p.RepresentativeVariantId, out var url)) ? url : null,
                 p.StoreName,
                 p.Price,
                 CategoryName = p.Category.CategoryName,

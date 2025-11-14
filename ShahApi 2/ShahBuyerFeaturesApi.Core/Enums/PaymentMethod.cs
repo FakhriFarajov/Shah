@@ -6,6 +6,8 @@ namespace ShahBuyerFeaturesApi.Core.Enums
         CreditCard = 1,
         BankTransfer = 2,
         PayPal = 3,
+        GooglePay = 4,
+        ApplePay = 5,
         Other = 99
     }
 }

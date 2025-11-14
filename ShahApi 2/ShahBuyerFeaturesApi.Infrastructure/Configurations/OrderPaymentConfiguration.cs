@@ -21,11 +21,11 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Configurations
                 .HasForeignKey<OrderPayment>(p => p.OrderId)
                 .OnDelete(DeleteBehavior.Restrict); // prevent multiple cascade paths
 
-            // 🔹 One BuyerProfile → One Payment
+            // 🔹 One BuyerProfile → Many Payments
             builder.HasOne(p => p.BuyerProfile)
-                .WithOne(bp => bp.OrderPayment)
-                .HasForeignKey<OrderPayment>(p => p.BuyerProfileId)
-                .OnDelete(DeleteBehavior.Cascade); // keep cascade here
+                .WithMany(bp => bp.OrderPayments)
+                .HasForeignKey(p => p.BuyerProfileId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

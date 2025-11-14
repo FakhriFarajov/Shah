@@ -8,7 +8,6 @@ import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useState } from 'react';
 import CategorySideBar from "@/components/custom/categorySidebar";
-import { useSelector } from "react-redux";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { useTranslation } from "react-i18next";
 import { toast } from 'sonner';
@@ -19,6 +18,7 @@ import { jwtDecode } from "jwt-decode";
 import { logout } from '@/features/auth/services/auth.service';
 import { getCountries } from "@/features/profile/Country/country.service";
 import { getCategories } from "@/features/profile/Category/category.service";
+import { getCartItems, getFavouritesByUserId } from "@/features/profile/product/profile.service";
 import type { Category } from '@/features/profile/DTOs/profile.interfaces';
 import type { Country } from '@/features/profile/DTOs/profile.interfaces';
 
@@ -30,15 +30,15 @@ export default function Navbar() {
     const [flag, setFlag] = useState<string>(() => localStorage.getItem('flag') || 'https://flagsapi.com/GB/flat/64.png');// Default to UK flag
     const [searchTerm, setSearchTerm] = useState("");
     const [searchResults, setSearchResults] = useState<any[]>([]); // Explicitly type as any[] or Product[] if available
-    const products = useSelector((state: any) => state.product);
     const [userLogo, setUserLogo] = useState<string>("");
-    const [userName, setUserName] = useState<string>("");
     const [cartCount, setCartCount] = useState<number>(0);
     const [favouritesCount, setFavouritesCount] = useState<number>(0);
     const [countries, setCountries] = useState<Country[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
 
     const navigate = useNavigate();
+    // Fallback products list (some projects inject a global products array). Use empty array if not present.
+    const products: any[] = (typeof window !== 'undefined' && (window as any).products) ? (window as any).products : [];
 
     useEffect(() => {
         const token = tokenStorage.get();
@@ -46,19 +46,17 @@ export default function Navbar() {
             try {
                 const decoded: any = jwtDecode(token);
                 setUserLogo(decoded.profilePicPreview || "");
-                setUserName(decoded.name || "");
                 setCartCount(Number(decoded.cart_count) || 0); // Assuming the token contains cart item count
                 setFavouritesCount(Number(decoded.favourite_count) || 0); // Assuming the token contains favourites item count
             } catch (err) {
                 tokenStorage.clear();
                 setUserLogo("");
-                setUserName("");
                 setCartCount(0);
                 setFavouritesCount(0);
             }
         }
 
-        const fetchCountries = async () => {
+    const fetchCountries = async () => {
             const fetchedCountries = await getCountries();
             const anyFetched: any = fetchedCountries;
             let arr = Array.isArray(anyFetched)
@@ -98,7 +96,69 @@ export default function Navbar() {
 
         fetchCountries();
         fetchCategories();
+        // Initial counts fetch (token may not carry latest)
+        const fetchCounts = async () => {
+            try {
+                const [cartRes, favRes] = await Promise.all([
+                    apiCallSafe(() => getCartItems()),
+                    apiCallSafe(() => getFavouritesByUserId())
+                ]);
+                const cartArr = normalizeList(cartRes);
+                const favArr = normalizeList(favRes);
+                setCartCount(cartArr.reduce((sum: number, it: any) => sum + (Number(it.quantity) || 1), 0));
+                setFavouritesCount(favArr.length);
+            } catch (err) {
+                console.warn('Failed initial counts fetch', err);
+            }
+        };
+        fetchCounts();
+        // Listen for global favourites updates
+        const onFavouritesUpdated = (e: any) => {
+            try {
+                const delta = e?.detail?.count ?? 0;
+                setFavouritesCount((c) => Math.max(0, c + Number(delta)));
+            } catch (err) {
+                console.warn('Invalid favourites update event', err);
+            }
+        };
+        // Listen for cart updates (delta-based and full refresh)
+        const onCartCountDelta = (e: any) => {
+            try {
+                const delta = Number(e?.detail?.delta ?? 0);
+                if (!Number.isFinite(delta)) return;
+                setCartCount((c) => Math.max(0, c + delta));
+            } catch (err) {
+                console.warn('Invalid cart delta event', err);
+            }
+        };
+        const onCartUpdated = async () => {
+            try {
+                const cartRes = await apiCallSafe(() => getCartItems());
+                const cartArr = normalizeList(cartRes);
+                setCartCount(cartArr.reduce((sum: number, it: any) => sum + (Number(it.quantity) || 1), 0));
+            } catch { }
+        };
+        window.addEventListener('favourites:updated', onFavouritesUpdated as EventListener);
+        window.addEventListener('cart:count-delta', onCartCountDelta as EventListener);
+        window.addEventListener('cart:updated', onCartUpdated as EventListener);
+        return () => {
+            window.removeEventListener('favourites:updated', onFavouritesUpdated as EventListener);
+            window.removeEventListener('cart:count-delta', onCartCountDelta as EventListener);
+            window.removeEventListener('cart:updated', onCartUpdated as EventListener);
+        };
     }, []);
+
+    // Helpers (defined outside effect to avoid redefinition warnings)
+    function normalizeList(res: any): any[] {
+        if (!res) return [];
+        if (Array.isArray(res)) return res;
+        if (Array.isArray(res?.data)) return res.data;
+        if (Array.isArray(res?.data?.data)) return res.data.data;
+        return [];
+    }
+    async function apiCallSafe<T>(fn: () => Promise<T>): Promise<T | null> {
+        try { return await fn(); } catch { return null; }
+    }
 
     const navigateToCart = () => {
         navigate('/cart');
@@ -109,20 +169,27 @@ export default function Navbar() {
     const handleLanguageChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
         const selectedLanguage = event.target.value;
         // Defensive: ensure countries is always an array
-    const anyCountries: any = countries;
-    const arr = Array.isArray(anyCountries) ? anyCountries : (anyCountries?.data || []);
+        const anyCountries: any = countries;
+        const arr = Array.isArray(anyCountries) ? anyCountries : (anyCountries?.data || []);
         const selected = arr.find((c: any) => c.code === selectedLanguage);
         const flagUrl = selected?.code
             ? `https://flagsapi.com/${selected.code.toUpperCase()}/flat/64.png`
             : 'https://flagsapi.com/GB/flat/64.png';
         setFlag(flagUrl);
         localStorage.setItem('flag', flagUrl);
-        i18n.changeLanguage(selectedLanguage);
+        // Only switch to supported app locales; normalize to lowercase
+        const supported = ['en','az','ru'];
+        const nextLng = supported.includes(selectedLanguage.toLowerCase()) ? selectedLanguage.toLowerCase() : 'en';
+        i18n.changeLanguage(nextLng);
     };
 
     const handleSearch = (e: any) => {
         e.preventDefault();
         if (!searchTerm.trim()) return;
+        if (!Array.isArray(products) || products.length === 0) {
+            toast.error(t('no_products_found'));
+            return;
+        }
         const found = products.find(
             (p: any) => p.name.toLowerCase() === searchTerm.trim().toLowerCase()
         );
@@ -138,6 +205,10 @@ export default function Navbar() {
         const value = e.target.value;
         setSearchTerm(value);
         if (value.trim()) {
+            if (!Array.isArray(products) || products.length === 0) {
+                setSearchResults([]);
+                return;
+            }
             const results = products.filter((p: any) =>
                 p.name.toLowerCase().includes(value.trim().toLowerCase())
             );
@@ -208,6 +279,28 @@ export default function Navbar() {
                     )}
                 </form>
                 <div className="flex items-center justify-center w-full sm:w-auto gap-2">
+
+
+                    <Button className="relative text-white bg-inherit h-12 cursor-pointer ml-2 hover:bg-gray-700" onClick={navigateToFavourites}>
+                        <div id='Favourites' className="flex items-center justify-center rounded-full p-2 relative">
+                            <TfiHeart className=" w-2" />
+                            {favouritesCount > 0 && (
+                                <span id="FavouritesCount" className="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold rounded-full px-1.5 py-0.5 border-2 border-gray-800">
+                                    {favouritesCount}
+                                </span>
+                            )}
+                        </div>
+                    </Button>
+                    <Button className="text-white bg-inherit h-12 cursor-pointer ml-2 hover:bg-gray-700" onClick={navigateToCart}>
+                        <div id='Cart' className="flex items-center justify-center rounded-full p-2 relative">
+                            <BsCart3 className=" w-2" />
+                            {cartCount > 0 && (
+                                <span id="CartCount" className="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold rounded-full px-1.5 py-0.5 border-2 border-gray-800">
+                                    {cartCount}
+                                </span>
+                            )}
+                        </div>
+                    </Button>
                     <HoverCard>
                         <HoverCardTrigger>
                             <Button className="text-white cursor-pointer h-12 bg-inherit hover:bg-gray-700" >
@@ -223,9 +316,6 @@ export default function Navbar() {
                                         </AvatarFallback>
                                     </Avatar>
                                 </div>
-                                <span className='hidden lg:block'>
-                                    {userName ? userName : t('Account')}
-                                </span>
                             </Button>
                         </HoverCardTrigger>
                         <HoverCardContent className="w-40 ">
@@ -246,30 +336,6 @@ export default function Navbar() {
                             </div>
                         </HoverCardContent>
                     </HoverCard>
-
-                    <Button className="relative text-white bg-inherit h-12 cursor-pointer ml-2 hover:bg-gray-700" onClick={navigateToFavourites}>
-                        <div id='Favourites' className="flex items-center justify-center rounded-full p-2 relative">
-                            <TfiHeart className="mr-2 w-2" />
-                            {favouritesCount > 0 ? (
-                                <span id="FavouritesCount" className="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold rounded-full px-1.5 py-0.5 border-2 border-gray-800">
-                                    {favouritesCount}
-                                </span>
-                            )
-                                : null}
-                        </div>
-                        <span className='hidden lg:block'>{t('Favourites')}</span>
-                    </Button>
-                    <Button className="text-white bg-inherit h-12 cursor-pointer ml-2 hover:bg-gray-700" onClick={navigateToCart}>
-                        <div id='Cart' className="flex items-center justify-center rounded-full p-2 relative">
-                            <BsCart3 className="mr-2 w-2" />
-                            {cartCount > 0 ? (
-                                <span id="CartCount" className="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold rounded-full px-1.5 py-0.5 border-2 border-gray-800">
-                                    {cartCount}
-                                </span>)
-                                : null}
-                        </div>
-                        <span className='hidden lg:block'>{t('Cart')}</span>
-                    </Button>
                 </div>
             </div>
             <div>
@@ -290,7 +356,7 @@ export default function Navbar() {
                         })()
                     } />
                     <div className="flex items-center space-x-2 mt-2 sm:mt-0">
-                        <img src={flag} alt={t('flag')} className='w-8 h-8' />
+                        <img src={flag} alt={'flag'} className='w-8 h-8' />
                         <select className="languageDropdown bg-white text-gray-800 p-2 rounded"
                             onChange={handleLanguageChange}
                             value={i18n.language} >

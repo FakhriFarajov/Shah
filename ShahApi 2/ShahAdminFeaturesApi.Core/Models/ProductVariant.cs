@@ -15,7 +15,7 @@ namespace ShahAdminFeaturesApi.Core.Models
         public int Stock { get; set; }
         public decimal Price { get; set; }
 
-        public ICollection<ProductVariantImage> Images { get; set; } = new List<ProductVariantImage>();
+        public IList<ProductVariantImage> Images { get; set; } = new List<ProductVariantImage>();
 
         public ICollection<ProductVariantAttributeValue> ProductVariantAttributeValues { get; set; } =
             new List<ProductVariantAttributeValue>();

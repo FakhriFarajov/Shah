@@ -1,11 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import BackToTopButton from "@/components/custom/BackToTopButton";
 import { AdaptiveTable } from "@/components/custom/adaptive-table";
 import type { AdaptiveTableColumn } from "@/components/custom/adaptive-table";
 import Navbar from "../components/custom/Navbar/navbar";
 import Footer from "../components/custom/footer";
 import { AppSidebar } from "@/components/custom/sidebar";
-import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import {
   BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, PieChart, Pie, Cell
@@ -133,8 +131,7 @@ function OrderDetailsModal({ order }: { order: Order }) {
 }
 
 export default function Main() {
-  const { t } = useTranslation();
-  const navigator = useNavigate();23
+  const navigator = useNavigate();
   const [goods, setGoods] = useState<Product[]>([]); // unused, but kept for now
   const [orderData] = useState<Order[]>(initialOrderData);
 
@@ -336,8 +333,6 @@ export default function Main() {
           </div>
         </div>
       </div>
-      {/* Back to Top Button */}
-      <BackToTopButton />
       <Footer />
     </>
   );

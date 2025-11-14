@@ -9,10 +9,10 @@ namespace ShahAdminFeaturesApi.Core.Models
 
         // Money
         public decimal TotalAmount { get; set; }
-
         public string Currency { get; set; } = "USD";
-
+        
         // Gateway info
+        
         public PaymentMethod Method { get; set; }
         public PaymentStatus Status { get; set; }
 

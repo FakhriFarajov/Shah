@@ -31,14 +31,6 @@ import OrdersSection from "./OrdersSection";
 import { apiCallWithManualRefresh } from '@/shared/apiWithManualRefresh';
 
 
-
-
-const reviews = [
-  { id: "1", comment: "Great product!", rating: 5, seller: { id: "s1", name: "Seller 1" } },
-  { id: "2", comment: "Not bad", rating: 3, seller: { id: "s2", name: "Seller 2" } },
-  { id: "3", comment: "Good experience", rating: 5, seller: { id: "s3", name: "Seller 3" } },
-];
-
 export default function AccountPage() {
   const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
   const [editedReview, setEditedReview] = useState<{ comment: string; rating: number }>({ comment: '', rating: 5 });
@@ -81,6 +73,7 @@ export default function AccountPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [countries, setCountries] = useState<{ id: number; name: string; code: string }[]>([]);
   const [loading, setLoading] = useState(false);
+  // Address confirmation handled on checkout page, not here
 
   const handleConfirmEmail = async () => {
     setLoading(true);
@@ -177,7 +170,13 @@ export default function AccountPage() {
       console.log("Add Address payload:", payload);
       const result = await apiCallWithManualRefresh(() => addAddress(payload));
       if (result && result.isSuccess) {
-        setAddress(payload);
+        try {
+          const latest = await apiCallWithManualRefresh(() => getBuyerAddress(buyerId));
+          setAddress(latest);
+          setAddressCountryCode((latest as any).countryId || (latest as any).country?.id || "");
+        } catch {
+          setAddress(payload);
+        }
         setAdding(false);
         toast.success("Address added successfully");
       } else {
@@ -336,105 +335,15 @@ export default function AccountPage() {
     toast.success("Cropped image ready to save. Click Save to upload.");
   };
 
-
-  // Order status enum
-  type OrderStatus = "Pending" | "Shipped" | "Delivered" | "Cancelled";
-  // Mock order history data
-
-  const orderHistory = [
-    {
-      id: "o1",
-      totalAmount: 1200.5,
-      status: "Delivered" as OrderStatus,
-      createdAt: "2025-08-10",
-      shippingAddress: {
-        street: "Nizami Street",
-        city: "Baku",
-        state: "Absheron",
-        postalCode: "AZ1000",
-        country: "Azerbaijan",
-      },
-      payment: { method: "Card", paid: true },
-      orderItems: [
-        {
-          id: "oi1",
-          product: {
-            id: "p1",
-            title: "Laptop",
-            description: "Gaming Laptop",
-            price: 1200.5,
-          },
-          quantity: 1,
-        },
-      ],
-    },
-    {
-      id: "o2",
-      totalAmount: 50,
-      status: "Shipped" as OrderStatus,
-      createdAt: "2025-07-22",
-      shippingAddress: {
-        street: "28 May",
-        city: "Baku",
-        state: "Absheron",
-        postalCode: "AZ1001",
-        country: "Azerbaijan",
-      },
-      payment: { method: "Card", paid: true },
-      orderItems: [
-        {
-          id: "oi2",
-          product: {
-            id: "p2",
-            title: "Headphones",
-            description: "Wireless Headphones",
-            price: 50,
-          },
-          quantity: 1,
-        },
-      ],
-    },
-    {
-      id: "o3",
-      totalAmount: 20,
-      status: "Cancelled" as OrderStatus,
-      createdAt: "2025-07-01",
-      shippingAddress: {
-        street: "Samed Vurgun",
-        city: "Baku",
-        state: "Absheron",
-        postalCode: "AZ1002",
-        country: "Azerbaijan",
-      },
-      payment: { method: "Card", paid: false },
-      orderItems: [
-        {
-          id: "oi3",
-          product: {
-            id: "p3",
-            title: "Book",
-            description: "Novel",
-            price: 20,
-          },
-          quantity: 2,
-        },
-      ],
-    },
-  ];
-
-  // History mock data
-  const history = [
-    { id: "h1", action: "Profile updated", date: "2025-09-01" },
-    { id: "h2", action: "Password changed", date: "2025-08-25" },
-    { id: "h3", action: "Address added", date: "2025-08-20" },
-  ];
   return (
     <>
-      {loading && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(255,255,255,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Spinner />
-        </div>
-      )}
+      {
+        loading && (
+          <div className="fixed inset-0 bg-white bg-opacity-100 flex items-center justify-center z-50">
+              <Spinner />
+          </div>
+        )
+      }
       <Navbar />
       <div className="flex min-h-screen bg-gray-50">
         {/* Sidebar */}
@@ -683,7 +592,7 @@ export default function AccountPage() {
                   <h3 className="text-lg font-semibold">Address</h3>
                 </div>
                 <div className="space-y-4">
-                  {!address || !address.street ? (
+                  {!(address && (address.id || address.addressId)) ? (
                     addressAddingMode ? (
                       <form onSubmit={handleAddAddress} className="space-y-4">
                         <div>
@@ -874,7 +783,7 @@ export default function AccountPage() {
                         )}
                       </div>
                       <div className="flex justify-end gap-2 col-span-2">
-                        {address && address.street && editAddressMode ? (
+                        {editAddressMode ? (
                           <>
                             <Button variant="outline" onClick={() => setEditAddressMode(false)}>
                               Cancel
@@ -886,7 +795,7 @@ export default function AccountPage() {
                             </Button>
                           </>
                         ) : (
-                          address && address.street && (
+                          (address && (address.id || address.addressId)) && (
                             <Button variant="outline" onClick={() => setEditAddressMode(true)}>
                               Edit Address
                             </Button>
@@ -901,7 +810,6 @@ export default function AccountPage() {
           )}
           {activePage === "history" && (
             <OrdersSection
-              orderHistory={orderHistory}
               orderStatusFilter={orderStatusFilter}
               setOrderStatusFilter={setOrderStatusFilter}
               MdAccountCircle={MdAccountCircle}
@@ -912,13 +820,10 @@ export default function AccountPage() {
           )}
           {activePage === "reviews" && (
             <ReviewsSection
-              reviews={reviews}
               editingReviewId={editingReviewId}
               setEditingReviewId={setEditingReviewId}
               editedReview={editedReview}
               setEditedReview={setEditedReview}
-              // @ts-ignore
-              saveReview={typeof saveReview !== 'undefined' ? saveReview : undefined}
               buyer={buyer}
             />
           )}
@@ -1002,6 +907,8 @@ export default function AccountPage() {
         </main>
       </div>
       <Footer />
+
+
     </>
   );
 }

@@ -1,103 +1,153 @@
-import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import {
-    removeFromCart,
-    clearCart,
-    updateQuantity
-} from "@/store/cartSlice";
+import { useEffect, useState } from "react";
 import { t } from "i18next";
-
-import {
-    Dialog,
-    DialogTrigger,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import NavBar from "@/components/custom/Navbar/navbar";
 import Footer from "@/components/custom/footer";
-import { addOrder } from "@/store/orderSlice";
-import { updateProductStock } from "@/store/productSlice";
 import { BsCart3 } from "react-icons/bs";
 import CartItem from "@/components/custom/CartItem";
 import { useNavigate } from "react-router-dom";
-import BackToTopButton from "@/components/custom/BackToTopButton";
+import { getCartItems } from "@/features/profile/product/profile.service";
+import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
+import { getProfileImage } from "@/shared/utils/imagePost";
+import { toast } from "sonner";
+import Spinner from "@/components/custom/Spinner";
 
 export default function Cart() {
-    const dispatch = useDispatch();
     const navigate = useNavigate();
-    const cartItems = useSelector((state: any) => state.cart);
-    const products = useSelector((state: any) => state.product);
-    const [dialogOpen, setDialogOpen] = useState(false);
-    const [formData, setFormData] = useState({ name: "", email: "", phone: "" });
+    const [cartItems, setCartItems] = useState<any[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
 
-    const handleQuantityChange = (
-        id: string,
-        delta: number,
-        productStock: number,
-        size?: string,
-        color?: string
-    ) => {
-        dispatch(updateQuantity({ id, delta, productStock, size, color }));
+    useEffect(() => {
+        async function fetchCartItems() {
+            setLoading(true);
+            try {
+                var res = await apiCallWithManualRefresh(() => getCartItems());
+                const items = Array.isArray(res)
+                    ? res
+                    : Array.isArray(res?.data)
+                        ? res.data
+                        : Array.isArray(res?.data?.data)
+                            ? res.data.data
+                            : (res?.data?.data || []);
+
+
+
+                if (Array.isArray(items)) {
+                    // items is an array of cart entries. Each entry may have `productVariant.images`.
+                    await Promise.all(items.map(async (element: any) => {
+                        try {
+                            const variant = element.productVariant ?? element.variant ?? null;
+                            if (variant && Array.isArray(variant.images)) {
+                                await Promise.all(
+                                    variant.images.map(async (img: any, i: number) => {
+                                        try {
+                                            const idOrUrl = img.imageUrl ?? img.url ?? img;
+                                            const url = await getProfileImage(idOrUrl);
+                                            variant.images[i].imageUrl = url || idOrUrl;
+                                        } catch (e) {
+                                            console.warn('Error resolving variant image', e);
+                                        }
+                                    })
+                                );
+                            }
+
+                            // fallback: set a mainImage on the cart entry for the UI to use
+                            if (!element.mainImage) {
+                                element.mainImage = variant?.images?.[0]?.imageUrl ?? element.mainImage ?? null;
+                                if (element.mainImage) {
+                                    try {
+                                        const resolved = await getProfileImage(element.mainImage);
+                                        element.mainImage = resolved || element.mainImage;
+                                    } catch (e) {
+                                        // ignore
+                                    }
+                                }
+                            }
+                        } catch (e) {
+                            console.warn('Error processing cart item images', e);
+                        }
+                    }));
+                } else if (items && Array.isArray(items.productVariants)) {
+                    // older/alternative shape where response contains productVariants array
+                    await Promise.all(items.productVariants.map(async (v: any) => {
+                        if (Array.isArray(v.images)) {
+                            await Promise.all(v.images.map(async (img: any, i: number) => {
+                                try {
+                                    const idOrUrl = img.imageUrl ?? img.url ?? img;
+                                    const url = await getProfileImage(idOrUrl);
+                                    v.images[i].imageUrl = url || idOrUrl;
+                                } catch (e) {
+                                    console.warn('Error resolving variant image', e);
+                                }
+                            }));
+                        }
+                    }));
+                }
+                console.log("Fetched cart items:", items);
+                setCartItems(items);
+                setLoading(false);
+            }
+            catch (error) {
+                console.error("Failed to fetch cart items:", error);
+                toast.error("Failed to load cart items");
+            }
+        }
+        fetchCartItems();
+        const onCartUpdated = () => { fetchCartItems(); };
+        const onQtyChanged = (e: Event) => {
+            const detail = (e as CustomEvent).detail as { variantId?: string; quantity?: number };
+            if (!detail?.variantId || typeof detail.quantity !== 'number') return;
+            setCartItems(prev => prev.map(it => {
+                const v = it.productVariant ?? it.variant;
+                if (v?.id === detail.variantId) {
+                    return { ...it, quantity: detail.quantity };
+                }
+                return it;
+            }));
+        };
+        window.addEventListener('cart:updated', onCartUpdated as EventListener);
+        window.addEventListener('cart:quantity-changed', onQtyChanged as EventListener);
+        return () => {
+            window.removeEventListener('cart:updated', onCartUpdated as EventListener);
+            window.removeEventListener('cart:quantity-changed', onQtyChanged as EventListener);
+        };
+    }, []);
+
+
+
+    const linePrice = (item: any) => {
+        const v = item.productVariant ?? item.variant ?? null;
+        const price = v?.price ?? item.price ?? 0;
+        return price;
     };
 
-    const total = cartItems.reduce(
-        (sum, item) => sum + item.price * item.quantity,
+    const total: number = cartItems.reduce(
+        (sum: number, item: any) => sum + linePrice(item) * (item.quantity || 0),
         0
     );
 
-    const handleCheckout = () => {
-        const newOrder = {
-            id: `order-${Date.now()}`,
-            trackingNumber: Math.random().toString(36).substring(2, 10).toUpperCase(),
-            customer: formData,
-            items: cartItems.map((item) => ({
-                id: item.id,
-                name: item.name,
-                quantity: item.quantity,
-                price: item.price,
-                size: item.size,
-                color: item.color,
-                image: item.image
-            })),
-            total: total.toFixed(2),
-            status: "Processing",
-            placedAt: new Date().toISOString()
-        };
-        console.log("Placing order:", newOrder);
-
-        cartItems.forEach((cartItem) => {
-            dispatch(updateProductStock({ id: cartItem.id, quantity: cartItem.quantity }));
-        });
-
-        dispatch(addOrder(newOrder));
-        dispatch(removeFromCart(cartItems.map(item => item.id)));
-        setDialogOpen(false);
-        dispatch(clearCart());
-        setFormData({ name: "", email: "", phone: "" });
-    };
-
     return (
         <>
+        {
+            loading && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-16 w-16">
+                        <Spinner />
+                    </div>
+                </div>
+            )
+        }
             <NavBar />
             <div className="container mx-auto px-4 py-6 min-h-screen">
                 <h1 className="text-2xl font-bold mb-6">{t('Your Cart')}</h1>
                 <div className="flex flex-col md:flex-row gap-8">
                     <div className="flex-1 space-y-4">
                         {cartItems.length > 0 ? (
-                            cartItems.map((item) => {
-                                const product = products.find(p => p.id === item.id);
-                                const currentStock = product ? product.inStock : 0;
+                            cartItems.map((item, id) => {
                                 return (
                                     <CartItem
-                                        key={item.id + (item.size || '') + (item.color || '')}
+                                        key={id}
                                         item={item}
-                                        currentStock={currentStock}
-                                        onQuantityChange={(id, delta) => handleQuantityChange(id, delta, currentStock, item.size, item.color)}
-                                        onRemove={(id) => dispatch(removeFromCart(id))}
                                     />
                                 );
                             })
@@ -115,62 +165,35 @@ export default function Cart() {
                         <h2 className="text-xl font-bold mb-4">{t('Your cart')}</h2>
                         <div className="mb-2 flex justify-between">
                             <span>{t('Products')} ({cartItems.length})</span>
-                            <span className="font-semibold">{cartItems.reduce((sum, item) => sum + item.oldPrice * item.quantity, 0).toFixed(2)}</span>
+                            <span className="font-semibold">{cartItems.reduce((sum: number, item: any) => {
+                                const v = item.productVariant ?? item.variant ?? null;
+                                const price = v?.price ?? item.price ?? 0;
+                                const oldPrice = v?.oldPrice ?? item.oldPrice ?? price;
+                                return sum + (oldPrice * (item.quantity || 0));
+                            }, 0).toFixed(2)}</span>
                         </div>
                         <div className="mb-2 flex justify-between text-red-500">
                             <span>{t('Discount')}</span>
                             <span>
-                                -{cartItems.reduce((sum, item) => sum + ((item.oldPrice - item.price) * item.quantity), 0).toFixed(2)}
+                                -{cartItems.reduce((sum: number, item: any) => {
+                                    const v = item.productVariant ?? item.variant ?? null;
+                                    const price = v?.price ?? item.price ?? 0;
+                                    const oldPrice = v?.oldPrice ?? item.oldPrice ?? price;
+                                    return sum + ((oldPrice - price) * (item.quantity || 0));
+                                }, 0).toFixed(2)}
                             </span>
                         </div>
                         <div className="mb-4 flex justify-between font-bold text-lg">
                             <span>{t('Total cost')}</span>
                             <span>{total.toFixed(2)}</span>
                         </div>
-                        <Button className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-lg" onClick={() => setDialogOpen(true)}>
+                        <Button className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-lg" onClick={() => navigate('/checkout')}>
                             {t('Proceed to checkout')}
                         </Button>
                     </div>
                 </div>
             </div>
-            {cartItems.length > 0 ? (
-                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>{t('Checkout Details')}</DialogTitle>
-                        </DialogHeader>
-                        <form
-                            onSubmit={(e) => {
-                                e.preventDefault();
-                                handleCheckout();
-                            }}
-                            className="space-y-4"
-                        >
-                            <Input required placeholder={t('Full Name')} value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
-                            <Input required type="email" placeholder={t('Email')} value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
-                            <Input required type="tel" pattern="^\+?[0-9\- ]{10,20}$" title={t('Please enter a valid phone number (10-15 digits, optional +)')} placeholder={t('Phone')} value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
-                            <DialogFooter>
-                                <Button type="submit">{t('Place Order')}</Button>
-                            </DialogFooter>
-                        </form>
-                    </DialogContent>
-                </Dialog>
-            ) : (
-                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>{t('Cart is empty')}</DialogTitle>
-                        </DialogHeader>
-                        <p className="text-center">{t('You have no items in your cart. Please add some products before proceeding to checkout.')}</p>
-                        <DialogFooter>
-                            <Button onClick={() => setDialogOpen(false)}>{t('Close')}</Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-            )}
-            <BackToTopButton />
             <Footer />
-
         </>
     );
 }

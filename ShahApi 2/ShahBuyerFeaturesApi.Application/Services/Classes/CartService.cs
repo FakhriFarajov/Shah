@@ -1,6 +1,4 @@
-using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using ShahBuyerFeaturesApi.Application.Services.Interfaces;
 using ShahBuyerFeaturesApi.Application.Services.Interfaces;
 using ShahBuyerFeaturesApi.Core.DTOs.Response;
 using ShahBuyerFeaturesApi.Core.Models;
@@ -8,32 +6,33 @@ using ShahBuyerFeaturesApi.Infrastructure.Contexts;
 
 namespace ShahBuyerFeaturesApi.Application.Services.Classes;
 
-public class CartService 
+public class CartService : ICartService
 {
     private readonly ShahDbContext _context;
-    private readonly IMapper _mapper;
 
-    public CartService(ShahDbContext context, IMapper mapper)
+    public CartService(ShahDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
     
-    public async Task AddToCart(string buyerId, string productId, string productVariantId)
+    public async Task AddToCart(string productVariantId, string buyerId)
     {
-        var product = await _context.Products.FindAsync(productId);
-        if (product == null)
-            throw new Exception("Product not found");
+        // Validate variant exists
         var variant = await _context.ProductVariants.FindAsync(productVariantId);
-        if (variant == null || variant.ProductId != productId)
+        if (variant == null)
             throw new Exception("Product variant not found");
-        var cartItem = await _context.CartItems.FirstOrDefaultAsync(ci => ci.BuyerProfileId == buyerId && ci.ProductVariantId == productId && ci.ProductVariantId == productVariantId);
+
+        // Find existing cart item for this buyer + variant
+        var cartItem = await _context.CartItems
+            .FirstOrDefaultAsync(ci => ci.BuyerProfileId == buyerId && ci.ProductVariantId == productVariantId);
+
         int newQuantity = cartItem != null ? cartItem.Quantity + 1 : 1;
         if (variant.Stock < newQuantity)
             throw new Exception("Not enough stock available");
+
         if (cartItem != null)
         {
-            cartItem.Quantity += 1;
+            cartItem.Quantity = newQuantity;
         }
         else
         {
@@ -48,90 +47,134 @@ public class CartService
         await _context.SaveChangesAsync();
     }
 
-    // public async Task DeleteFromCart(string buyerId, string productId, string productVariantId)
-    // {
-    //     var cartItem = await _context.CartItems.FirstOrDefaultAsync(ci => ci.BuyerProfileId == buyerId && ci.ProductVariantId == productId && ci.ProductVariantId == productVariantId);
-    //     if (cartItem == null)
-    //         throw new Exception("Cart item not found");
-    //     _context.CartItems.Remove(cartItem);
-    //     await _context.SaveChangesAsync();
-    // }
-    //
-    // public async Task IncreaseQuantity(string buyerId, string productId, string productVariantId)
-    // {
-    //     var cartItem = await _context.CartItems.FirstOrDefaultAsync(ci => ci.BuyerProfileId == buyerId && ci.ProductId == productId && ci.ProductVariantId == productVariantId);
-    //     if (cartItem == null)
-    //         throw new Exception("Cart item not found");
-    //     var variant = await _context.ProductVariants.FindAsync(productVariantId);
-    //     if (variant == null || variant.ProductId != productId)
-    //         throw new Exception("Product variant not found");
-    //     if (cartItem.Quantity + 1 > variant.Stock)
-    //         throw new Exception("Not enough stock available");
-    //     cartItem.Quantity += 1;
-    //     await _context.SaveChangesAsync();
-    // }
-    //
-    // public async Task DecreaseQuantity(string buyerId, string productId, string productVariantId)
-    // {
-    //     var cartItem = await _context.CartItems.FirstOrDefaultAsync(ci => ci.BuyerProfileId == buyerId && ci.ProductId == productId && ci.ProductVariantId == productVariantId);
-    //     if (cartItem == null)
-    //         throw new Exception("Cart item not found");
-    //     cartItem.Quantity -= 1;
-    //     if (cartItem.Quantity <= 0)
-    //     {
-    //         _context.CartItems.Remove(cartItem);
-    //     }
-    //     await _context.SaveChangesAsync();
-    // }
-    //
-    // public async Task DeleteAllCartItems(string buyerId)
-    // {
-    //     var allItems = await _context.CartItems.Where(c => c.BuyerProfileId == buyerId).ToListAsync();
-    //     _context.CartItems.RemoveRange(allItems);
-    //     await _context.SaveChangesAsync();
-    // }
-    //
-    // public async Task<TypedResult<object>> GetAllCartItems(string buyerId)
-    // {
-    //     var cartItems = await _context.CartItems
-    //         .Include(ci => ci.Product)
-    //             .ThenInclude(p => p.ProductDetails)
-    //         .Include(ci => ci.ProductVariant)
-    //             .ThenInclude(v => v.ProductVariantAttributeValue)
-    //                 .ThenInclude(vav => vav.ProductAttributeValue)
-    //                     .ThenInclude(av => av.ProductAttribute)
-    //         .Where(ci => ci.BuyerProfileId == buyerId)
-    //         .Select(ci => new
-    //         {
-    //             ci.Id,
-    //             Product = new
-    //             {
-    //                 ci.Product.Id,
-    //                 ProductDetails = ci.Product.ProductDetails == null ? null : new
-    //                 {
-    //                     ci.Product.ProductDetails.Id,
-    //                     ci.Product.ProductDetails.Title,
-    //                     ci.Product.ProductDetails.Description,
-    //                 }
-    //             },
-    //             ProductVariant = new
-    //             {
-    //                 ci.ProductVariant.Id,
-    //                 ci.ProductVariant.Price,
-    //                 ci.ProductVariant.Stock,
-    //                 Attributes = ci.ProductVariant.ProductVariantAttributeValue.Select(vav => new
-    //                 {
-    //                     Name = vav.ProductAttributeValue.ProductAttribute.Name,
-    //                     Value = vav.ProductAttributeValue.Value
-    //                 }).ToList()
-    //             },
-    //             ci.Quantity
-    //         })
-    //         .ToListAsync();
-    //
-    //     return TypedResult<object>.Success(cartItems);
-    // }
-    //
+    public async Task DeleteFromCart(string productVariantId, string buyerId)
+    {
+        var cartItem = await _context.CartItems
+            .FirstOrDefaultAsync(ci => ci.BuyerProfileId == buyerId && ci.ProductVariantId == productVariantId);
+        if (cartItem == null)
+            throw new Exception("Cart item not found");
+        _context.CartItems.Remove(cartItem);
+        await _context.SaveChangesAsync();
+    }
 
+    public async Task IncreaseQuantity(string productVariantId, string buyerId)
+    {
+        var cartItem = await _context.CartItems
+            .FirstOrDefaultAsync(ci => ci.BuyerProfileId == buyerId && ci.ProductVariantId == productVariantId);
+        if (cartItem == null)
+            throw new Exception("Cart item not found");
+
+        var variant = await _context.ProductVariants.FindAsync(productVariantId);
+        if (variant == null)
+            throw new Exception("Product variant not found");
+
+        if (cartItem.Quantity + 1 > variant.Stock)
+            throw new Exception("Not enough stock available");
+
+        cartItem.Quantity += 1;
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DecreaseQuantity(string productVariantId, string buyerId)
+    {
+        var cartItem = await _context.CartItems
+            .FirstOrDefaultAsync(ci => ci.BuyerProfileId == buyerId && ci.ProductVariantId == productVariantId);
+        if (cartItem == null)
+            throw new Exception("Cart item not found");
+
+        cartItem.Quantity -= 1;
+        if (cartItem.Quantity <= 0)
+        {
+            _context.CartItems.Remove(cartItem);
+        }
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteAllCartItems(string buyerId)
+    {
+        var allItems = await _context.CartItems.Where(c => c.BuyerProfileId == buyerId).ToListAsync();
+        if (allItems.Count > 0)
+        {
+            _context.CartItems.RemoveRange(allItems);
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task<TypedResult<object>> GetAllCartItems(string buyerId)
+    {
+        var cartItems = await _context.CartItems
+            .Where(ci => ci.BuyerProfileId == buyerId)
+            .Select(ci => new CartListItemDto
+            {
+                Id = ci.Id,
+                Product = (ci.ProductVariant != null && ci.ProductVariant.Product != null) ? new ProductDto
+                {
+                    Id = (ci.ProductVariant != null && ci.ProductVariant.Product != null) ? ci.ProductVariant.Product.Id : null,
+                    StoreName = (ci.ProductVariant != null && ci.ProductVariant.Product != null && ci.ProductVariant.Product.StoreInfo != null) ? ci.ProductVariant.Product.StoreInfo.StoreName : null,
+                    CategoryName = (ci.ProductVariant != null && ci.ProductVariant.Product != null && ci.ProductVariant.Product.Category != null) ? ci.ProductVariant.Product.Category.CategoryName : null
+                } : null,
+                ProductVariant = ci.ProductVariant != null ? new ProductVariantDto
+                {
+                    Id = ci.ProductVariant.Id,
+                    Title = ci.ProductVariant.Title,
+                    Description = ci.ProductVariant.Description,
+                    Price = ci.ProductVariant.Price,
+                    Stock = ci.ProductVariant.Stock,
+                    Attributes = ci.ProductVariant.ProductVariantAttributeValues.Select(vav => new AttributeDto
+                    {
+                        Name = vav.ProductAttributeValue.ProductAttribute.Name,
+                        Value = vav.ProductAttributeValue.Value
+                    }).ToList(),
+                    Images = ci.ProductVariant.Images.Select(i => new ImageDto { ImageUrl = i.ImageUrl, IsMain = i.IsMain }).ToList(),
+                    ReviewsCount = ci.ProductVariant.Reviews.Count(),
+                    AverageRating = ci.ProductVariant.Reviews.Any() ? ci.ProductVariant.Reviews.Average(r => r.Rating) : 0.0
+                } : null!,
+                Quantity = ci.Quantity
+            })
+            .ToListAsync();
+
+        return TypedResult<object>.Success(cartItems.Cast<object>().ToList());
+    }
+
+    // DTOs used for projection (EF Core can materialize these as long as they have settable properties)
+    private class CartListItemDto
+    {
+        public string Id { get; set; } = null!;
+        public ProductDto? Product { get; set; }
+        public ProductVariantDto ProductVariant { get; set; } = null!;
+        public int Quantity { get; set; }
+    }
+
+    private class ProductDto
+    {
+        public string? Id { get; set; }
+        public string? StoreName { get; set; }
+        public string? CategoryName { get; set; }
+    }
+
+    private class ProductVariantDto
+    {
+        public string Id { get; set; } = null!;
+        public string Title { get; set; } = null!;
+        public string Description { get; set; } = null!;
+        public decimal Price { get; set; }
+        public int Stock { get; set; }
+        public List<AttributeDto> Attributes { get; set; } = new();
+        public List<ImageDto> Images { get; set; } = new();
+        public int ReviewsCount { get; set; }
+        public double AverageRating { get; set; }
+    }
+
+    private class AttributeDto
+    {
+        public string Name { get; set; } = null!;
+        public string Value { get; set; } = null!;
+    }
+
+    private class ImageDto
+    {
+        public string ImageUrl { get; set; } = null!;
+        public bool IsMain { get; set; }
+    }
 
 }

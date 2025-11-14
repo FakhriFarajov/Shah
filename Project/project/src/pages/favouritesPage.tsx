@@ -6,7 +6,10 @@ import { Heart } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import BackToTopButton from "@/components/custom/BackToTopButton";
+import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
+import { getFavouritesByUserId } from "@/features/profile/product/profile.service";
+import { toast } from "sonner";
+import { getProfileImage } from "@/shared/utils/imagePost";
 
 
 
@@ -16,10 +19,45 @@ export default function FavouritesPage() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const favs = localStorage.getItem("favourites");
-        if (favs) {
-            setFavourites(JSON.parse(favs));
+        async function fetchFavourites() {
+            try {
+                var res = await apiCallWithManualRefresh(() => getFavouritesByUserId());
+                const items = Array.isArray(res)
+                    ? res
+                    : Array.isArray(res?.data)
+                        ? res.data
+                        : Array.isArray(res?.data?.data)
+                            ? res.data.data
+                            : (res?.data?.data || []);
+
+                if (Array.isArray(items) && items.length > 0) {
+                    await Promise.all(
+                        items.map(async (element: any) => {
+                            try {
+                                if (element.mainImage) {
+                                    const url = await getProfileImage(element.mainImage);
+                                    element.mainImage = url || "https://picsum.photos/seed/product1/400/400";
+                                } else if (element.mainImage) {
+                                    element.mainImage = element.mainImage;
+                                } else {
+                                    element.mainImage = "https://picsum.photos/seed/product1/400/400";
+                                }
+                            } catch (error) {
+                                console.warn("Error resolving product image:", error);
+                                element.mainImage = null;
+                            }
+                        })
+                    );
+                }
+                console.log("Fetched Favourites:", items);
+                setFavourites(items);
+            }
+            catch (error) {
+                console.error("Failed to fetch favourites:", error);
+                toast.error("Failed to load favourites");
+            }
         }
+        fetchFavourites();
     }, []);
 
     return (
@@ -43,7 +81,6 @@ export default function FavouritesPage() {
                     </div>
                 )}
             </div>
-            <BackToTopButton />
             <Footer />
 
         </>

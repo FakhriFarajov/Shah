@@ -9,7 +9,6 @@ namespace ShahBuyerFeaturesApi.Core.Models
 
         // Money
         public decimal TotalAmount { get; set; }
-
         public string Currency { get; set; } = "USD";
         
         // Gateway info

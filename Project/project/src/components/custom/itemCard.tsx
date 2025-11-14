@@ -2,105 +2,186 @@ import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Star, Heart } from "lucide-react";
-import { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { addFavourite, removeFavourite } from "@/store/favouritesSlice";
 import { ShoppingCart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import type { productCardDTO } from "@/features/profile/DTOs/profile.interfaces";
+import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
+import { addToCart, addToFavourites, removeFromCart, removeFromFavourites } from "@/features/profile/product/profile.service";
+import { toast } from "sonner";
+import { useState } from "react";
 
 
-export default function ProductCard({ product }: { product: any }) {
-  const dispatch = useDispatch();
-  const favourites = useSelector((state: any) => state.favourites || []);
-  const [isFav, setIsFav] = useState(false);
+export default function ProductCard({ product }: { product: productCardDTO }) {
   const navigator = useNavigate();
 
-  // Sync with Redux favourites
-  useEffect(() => {
-    setIsFav(favourites.some((p: any) => p.id === product.id && p.size === product.size && p.color === product.color));
-  }, [favourites, product.id, product.size, product.color]);
+  const [isFavorite, setIsFavorite] = useState<boolean>(product.isFavorite || false);
+  const [isInCart, setIsInCart] = useState<boolean>(product.isInCart || false);
 
-  const handleFavToggle = () => {
-    const favData = {
-      id: product.id,
-      name: product.name,
-      title: product.title,
-      price: product.price,
-      inStock: product.inStock,
-      images: product.images || ["https://via.placeholder.com/300x200"],
-      size: product.size,
-      color: product.color,
-      daysLeft: product.daysLeft,
-      oldPrice: product.oldPrice,
-      category: product.category,
-      stock: product.stock,
-      seller: product.seller,
-      description: product.description,
-      reviews: product.reviews || [],
+
+  const handleFavAdd = async () => {
+    console.log("Toggling favourite for product:", product);
+    const data = {
+      productId: product.representativeVariantId,
     };
-    if (isFav) {
-      dispatch(removeFavourite({ id: favData.id, size: favData.size, color: favData.color }));
-    } else {
-      dispatch(addFavourite(favData));
+    try {
+      const result = await apiCallWithManualRefresh(() => addToFavourites(data.productId));
+      console.log("Favourites updated:", result);
+      toast.success("Favourites updated");
+      setIsFavorite(true);
+    }
+    catch (error: any) {
+      console.error("Failed to update favourites:", error);
+      // Network/axios specific handling
+      if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
+        toast.error('Network error: could not reach server. Check your connection or backend.');
+      } else if (error.response) {
+        if(error.response.status === 401){
+          toast.error(`Unauthorized: Please log in to manage favourites.`);
+          navigator('/login');
+        } else {
+          toast.error('Failed to update favourites');
+        }
+      }
+      return;
     }
   };
 
-  // Sync Redux favourites to localStorage for persistence
-  useEffect(() => {
-    localStorage.setItem("favourites", JSON.stringify(favourites));
-  }, [favourites]);
+  const handleFavRemove = async () => {
+    const data = {
+      productId: product.representativeVariantId,
+    };
+    try {
+      const result = await apiCallWithManualRefresh(() => removeFromFavourites(data.productId));
+      console.log("Favourites updated:", result);
+      setIsFavorite(false);
+      toast.success("Favourites updated");
+    }
+    catch (error: any) {
+      console.error("Failed to update favourites:", error);
+      // Network/axios specific handling
+      if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
+        toast.error('Network error: could not reach server. Check your connection or backend.');
+      } else if (error.response) {
+        toast.error(`Server error: ${error.response.status} ${error.response.statusText}`);
+      } else {
+        toast.error('Failed to update favourites');
+      }
+      return;
+    }
+  };
 
-  const avgRating =
-    product.reviews?.length > 0
-      ? product.reviews.reduce((sum, r) => sum + r.rating, 0) /
-        product.reviews.length
-      : 0;
+  const handleCartAdd = async () => {
+    console.log("Adding to cart for product:", product);
+    const data = {
+      productId: product.representativeVariantId,
+    };
+    try {
+      const result = await apiCallWithManualRefresh(() => addToCart(data.productId));
+      console.log("Cart updated:", result);
+      toast.success("Cart updated");
+      setIsInCart(true);
+    }
+    catch (error: any) {
+      console.error("Failed to update cart:", error);
+      // Network/axios specific handling
+      if (error.response.code === 'ERR_NETWORK' || error.message === 'Network Error') {
+        toast.error('Network error: could not reach server. Check your connection or backend.');
+      } else if (error.response) {
+        if(error.response.status === 401){
+          toast.error(`Unauthorized: Please log in to manage cart.`);
+          navigator('/login');
+        } else {
+          console.error("Failed to update cart:", error.response);
+          toast.error(`Server error: ${error.response.status} ${error.response.statusText}`);
+        }
+      } else {
+        toast.error('Failed to update favourites');
+      }
+      return;
+    }
+  };
+
+  const handleCartRemove = async () => {
+    const data = {
+      productId: product.representativeVariantId,
+    };
+    try {
+      const result = await apiCallWithManualRefresh(() => removeFromCart(data.productId));
+      console.log("Cart updated:", result);
+      setIsInCart(false);
+      toast.success("Cart updated");
+    }
+    catch (error: any) {
+      console.error("Failed to update cart:", error);
+      // Network/axios specific handling
+      if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
+        toast.error('Network error: could not reach server. Check your connection or backend.');
+      } else if (error.response) {
+        toast.error(`Server error: ${error.response.status} ${error.response.statusText}`);
+      } else {
+        toast.error('Failed to update favourites');
+      }
+      return;
+    }
+  };
+
+
 
   return (
-    <Card className="w-full max-w-sm p-0 border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition relative">
+    <Card className="w-full sm:max-w-sm md:max-w-xl p-0 border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition relative">
       {/* Favourite Button */}
       <button
-        onClick={handleFavToggle}
-        className="absolute top-3 right-3 z-10 p-2 rounded-full bg-white shadow hover:bg-gray-100"
-        title={isFav ? "Remove from Favourites" : "Add to Favourites"}
+        onClick={isFavorite ? handleFavRemove : handleFavAdd}
+        className="absolute top-3 right-3 z-10 p-2 rounded-full  hidden xl:block bg-white shadow hover:bg-gray-100"
+        title={isFavorite ? "Remove from Favourites" : "Add to Favourites"}
       >
         <Heart
           size={18}
-          className={isFav ? "fill-red-500 text-red-500" : "text-gray-500"}
+          className={isFavorite ? "fill-red-500 text-red-500" : "text-gray-500"}
         />
       </button>
 
       {/* Product Image */}
-      <CardHeader className="p-0" onClick={() => navigator(`/product/${product.id}`)}>
+      <CardHeader
+        className="p-0"
+        onClick={() =>
+          navigator(`/product?id=${product.id}&productVariantId=${product.representativeVariantId}`)
+        }
+      >
         <div className="w-full aspect-square overflow-hidden rounded-t-xl bg-gray-200">
           <img
-            src={product.images[0]?.url || "https://via.placeholder.com/300x200"}
-            alt={product.title}
+            src={product.mainImage}
+            alt={product.productTitle}
             className="w-full h-full object-cover"
           />
         </div>
       </CardHeader>
 
       {/* Content */}
-      <CardContent className="space-y-2" onClick={() => navigator(`/product/${product.id}`)}>
+      <CardContent
+        className="space-y-2"
+        onClick={() =>
+          navigator(`/product?id=${product.id}&productVariantId=${product.representativeVariantId}`)
+        }
+      >
         <h3 className="text-base font-semibold text-gray-900">
-          {product.title}
+          {product.productTitle}
         </h3>
-        <p className="text-sm text-gray-600 line-clamp-2">
+        <p className="text-sm text-gray-600 line-clamp-2 min-h-[43px]">
           {product.description}
         </p>
 
         {/* Category */}
         <div className="flex flex-wrap gap-2 pt-2">
           <Badge variant="secondary" className="bg-gray-200 text-gray-700">
-            {product.category.name}
+            {product.categoryName}
           </Badge>
         </div>
 
         {/* Price + Stock */}
         <div className="flex justify-between items-center pt-2">
           <span className="text-lg font-bold text-gray-900">
-            ${product.price}
+            {product.price}$
           </span>
         </div>
 
@@ -110,33 +191,47 @@ export default function ProductCard({ product }: { product: any }) {
             <Star
               key={i}
               size={14}
-              className={i < avgRating ? "text-yellow-500" : "text-gray-300"}
-              fill={i < avgRating ? "currentColor" : "none"}
+              className={i < Math.round(product.averageRating) ? "text-yellow-400" : "text-gray-300"}
+              fill={i < Math.round(product.averageRating) ? "currentColor" : "none"}
             />
           ))}
           <span className="text-xs text-gray-500 ml-2">
-            ({product.reviews.length})
+            ({product.reviewsCount})
           </span>
         </div>
       </CardContent>
 
       {/* Footer */}
-      <CardFooter className="p-4 flex justify-between items-center border-t border-gray-200">
-        <span className="text-xs text-gray-500">{product.seller.name}</span>
-        <div className="flex gap-2">
-          <Button
-            onClick={() => {
-              const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-              if (!cart.some((p: any) => p.id === product.id)) {
-                localStorage.setItem("cart", JSON.stringify([...cart, { ...product, quantity: 1 }]));
-              }
-            }}
-            className="px-3 py-1 rounded-xl text-xs font-medium "
-          >
-            <ShoppingCart size={16} className="mr-1" />
-            Add to Cart
-          </Button>
-        </div>
+      <CardFooter className="p-4 flex gap-2 items-center border-t border-gray-200">
+        <Button
+          onClick={() => {
+            isInCart ? handleCartRemove() : handleCartAdd();
+          }}
+          className={`flex-1 px-3 py-2 rounded-xl flex justify-center text-sm font-medium text-white ${isInCart ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}
+          title={isInCart ? "Go to Cart" : "Add to Cart"}
+        >
+          {isInCart ? (
+            <div className="flex items-center">
+              <ShoppingCart size={16} className="mr-1" />
+              Already in Cart
+            </div>
+          ) : (
+            <>
+              <ShoppingCart size={16} className="mr-1" />
+              Add to Cart
+            </>
+          )}
+        </Button>
+        <Button
+          onClick={isFavorite ? handleFavRemove : handleFavAdd}
+          className="px-3 py-2 rounded-xl flex items-center text-sm font-medium bg-gray-100 hover:bg-gray-300 w-12 xl:w-12 flex xl:hidden"
+          title={isFavorite ? "Remove from Favourites" : "Add to Favourites"}
+        >
+          <Heart
+            size={16}
+            className={isFavorite ? "fill-red-500 text-red-500" : "text-gray-500"}
+          />
+        </Button>
       </CardFooter>
     </Card>
   );

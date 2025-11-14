@@ -1,67 +1,76 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using ShahBuyerFeaturesApi.Application.Services.Interfaces;
 using ShahBuyerFeaturesApi.Core.DTOs.Response;
 using ShahBuyerFeaturesApi.Core.Models;
 using ShahBuyerFeaturesApi.Infrastructure.Contexts;
+using ShahBuyerFeaturesApi.Core.DTOs.Request;
 
 namespace ShahBuyerFeaturesApi.Application.Services.Classes
 {
-    public class FavoriteService 
+    public class FavoriteService : IFavoriteService
     {
         private readonly ShahDbContext _context;
         public FavoriteService(ShahDbContext context)
         {
             _context = context;
         }
-        //
-        // public async Task AddToFavorites(string buyerId, string productId)
-        // {
-        //     var exists = await _context.Favorites.AnyAsync(f => f.BuyerProfileId == buyerId && f.ProductId == productId);
-        //     if (!exists)
-        //     {
-        //         var favorite = new Favorite { BuyerProfileId = buyerId, ProductId = productId };
-        //         _context.Favorites.Add(favorite);
-        //         await _context.SaveChangesAsync();
-        //     }
-        // }
-        //
-        // public async Task RemoveFromFavorites(string buyerId, string productId)
-        // {
-        //     var favorite = await _context.Favorites.FirstOrDefaultAsync(f => f.BuyerProfileId == buyerId && f.ProductId == productId);
-        //     if (favorite != null)
-        //     {
-        //         _context.Favorites.Remove(favorite);
-        //         await _context.SaveChangesAsync();
-        //     }
-        // }
-        //
-        // public async Task<bool> IsFavorite(string buyerId, string productId)
-        // {
-        //     return await _context.Favorites.AnyAsync(f => f.BuyerProfileId == buyerId && f.ProductId == productId);
-        // }
-        //
-        // public async Task<TypedResult<List<object>>> GetAllFavorites(string buyerId)
-        // {
-        //     var favorites = await _context.Favorites
-        //         .Include(f => f.Product)
-        //             .ThenInclude(p => p.ProductDetails)
-        //         .Where(f => f.BuyerProfileId == buyerId)
-        //         .Select(f => new
-        //         {
-        //             f.Product.Id,
-        //             ProductDetails = f.Product.ProductDetails == null ? null : new
-        //             {
-        //                 f.Product.ProductDetails.Id,
-        //                 f.Product.ProductDetails.Title,
-        //                 f.Product.ProductDetails.Description
-        //             }
-        //         })
-        //         .ToListAsync();
-        //     return TypedResult<List<object>>.Success(favorites.Cast<object>().ToList());
-        // }
-    }
-}
+        
+        // Now requires ProductVariantId (variant id) directly from the caller
+        public async Task AddToFavorites(string buyerUserId, string productVariantId)
+        {
+            var exists = await _context.Favorites.AnyAsync(f => f.BuyerProfileId == buyerUserId && f.ProductVariantId == productVariantId);
+            if (!exists)
+            {
+                // Double-check the variant still exists (prevents FK violation if it was deleted concurrently)
+                var variantExists = await _context.ProductVariants.AnyAsync(v => v.Id == productVariantId);
+                if (!variantExists) return;
 
+                var favorite = new Favorite
+                {
+                    BuyerProfileId = buyerUserId,
+                    ProductVariantId = productVariantId
+                };
+                _context.Favorites.Add(favorite);
+                await _context.SaveChangesAsync();
+            }
+        }
+        
+        
+        public async Task RemoveFromFavorites(string buyerUserId, string productVariantId)
+        {
+            // Resolve caller-supplied buyerUserId to the identity user id (BuyerProfiles.UserId)
+            var favorite = await _context.Favorites.FirstOrDefaultAsync(f => f.BuyerProfileId == buyerUserId && f.ProductVariantId == productVariantId);
+            if (favorite != null)
+            {
+                _context.Favorites.Remove(favorite);
+                await _context.SaveChangesAsync();
+            }
+         }
+        public async Task<TypedResult<List<object>>> GetAllFavorites(string buyerUserId)
+        {
+             var favorites = await _context.Favorites
+               .Where(f => f.BuyerProfileId == buyerUserId)
+                 .Select(f => new FavoriteListItemDto
+                 {
+                        RepresentativeVariantId = f.ProductVariantId,
+                     // Use null-safe projections so we don't dereference navigation properties that may be null
+                     Id = f.ProductVariant.Product != null ? f.ProductVariant.Product.Id : null,
+                     ProductTitle = f.ProductVariant != null ? f.ProductVariant.Title : null,
+                     Description = f.ProductVariant != null ? f.ProductVariant.Description : null,
+                     Price = f.ProductVariant != null ? f.ProductVariant.Price : 0m,
+                     Stock = f.ProductVariant != null ? f.ProductVariant.Stock : 0,
+                     MainImage = f.ProductVariant != null
+                         ? f.ProductVariant.Images.Where(i => i.IsMain).Select(i => i.ImageUrl).FirstOrDefault()
+                         : null,
+                     StoreName = f.ProductVariant.Product != null && f.ProductVariant.Product.StoreInfo != null ? f.ProductVariant.Product.StoreInfo.StoreName : null,
+                     CategoryName = f.ProductVariant.Product != null && f.ProductVariant.Product.Category != null ? f.ProductVariant.Product.Category.CategoryName : null,
+                     ReviewsCount = f.ProductVariant != null ? f.ProductVariant.Reviews.Count : 0,
+                     AverageRating = f.ProductVariant != null && f.ProductVariant.Reviews.Any() ? f.ProductVariant.Reviews.Average(r => r.Rating) : 0.0,
+                     IsFavorite = true,
+                     IsInCart = _context.CartItems.Any(ci => ci.BuyerProfileId == buyerUserId && ci.ProductVariantId == f.ProductVariantId)
+                 })
+                 .ToListAsync();
+             return TypedResult<List<object>>.Success(favorites.Cast<object>().ToList());
+         }
+    }
+ }

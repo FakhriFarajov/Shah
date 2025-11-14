@@ -36,12 +36,17 @@ public static class ApplicationServiceExtensions
         // Services
         services.AddScoped<IAddressService, AddressService>();
         services.AddScoped<IBuyerService, BuyerService>();
-        // services.AddScoped<ICartService, CartService>();
-        // services.AddScoped<IFavoriteService, FavoriteService>();
+        services.AddScoped<ICartService, CartService>();
+        services.AddScoped<IFavoriteService, FavoriteService>();
         services.AddScoped<ImageService>();
         services.AddScoped<CountryCodeService>();
         services.AddScoped<CategoryService>();
         services.AddScoped<TokenManager>();
+        services.AddScoped<IProductService, ProductService>();
+        services.AddScoped<IReviewService, ReviewService>();
+        services.AddScoped<ICheckoutService, CheckoutService>();
+        services.AddScoped<IOrderService, OrderService>();
+        
 
         // Exception middleware
         services.AddSingleton<GlobalExceptionMiddleware>();

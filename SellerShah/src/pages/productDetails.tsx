@@ -99,6 +99,7 @@ const chartOptions = {
 
 export default function ProductDetailsPage() {// We must accept the id of the product via route params and fetch real data based on that id
 
+
   return (
     <>
       <Navbar />
@@ -128,11 +129,11 @@ export default function ProductDetailsPage() {// We must accept the id of the pr
                 )}
               </div>
               <div className="flex gap-2 mt-2">
-                {categories.map(cat => (
+                {/* {categories.map(cat => (
                   <span key={cat.id} className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-xs">
                     {cat.name}
                   </span>
-                ))}
+                ))} */}
               </div>
               <p className="text-gray-600 mb-2">{demoProduct.description}</p>
               <div className="flex flex-wrap gap-4 text-sm">

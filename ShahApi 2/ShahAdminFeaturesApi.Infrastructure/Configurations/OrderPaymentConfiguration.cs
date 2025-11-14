@@ -23,8 +23,7 @@ namespace ShahAdminFeaturesApi.Infrastructure.Configurations
 
             // 🔹 One BuyerProfile → One Payment
             builder.HasOne(p => p.BuyerProfile)
-                .WithOne(bp => bp.OrderPayment)
-                .HasForeignKey<OrderPayment>(p => p.BuyerProfileId)
+                .WithMany(bp => bp.OrderPayments)
                 .OnDelete(DeleteBehavior.Cascade); // keep cascade here
         }
     }

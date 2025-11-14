@@ -112,11 +112,13 @@ export default function RegForm({
 
   return (
     <>
-      {loading && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(255,255,255,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Spinner />
-        </div>
-      )}
+      {
+        loading && (
+          <div className="fixed inset-0 bg-white bg-opacity-100 flex items-center justify-center z-50">
+              <Spinner />
+          </div>
+        )
+      }
       <div className={cn("flex flex-col gap-6", className)} {...props}>
         <form onSubmit={handleRegister}>
           <div className="flex flex-col gap-6">

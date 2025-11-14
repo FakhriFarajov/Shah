@@ -87,3 +87,32 @@ export interface Category {
   categoryName: string;
   parentCategoryId?: string;
 }
+
+export interface productCardDTO {
+  id: string;
+  productTitle: string;
+  representativeVariantId: string;
+  price: number;
+  mainImage: string;
+  categoryName: string;
+  storeName: string;
+  description: string;
+  reviewsCount: number;
+  averageRating: number;
+  isFavorite?: boolean;
+  isInCart: boolean;
+  productVariantId?: string | null;
+  buyerId: string | null;
+}
+  
+// Front-end representation of the C# ProductFilterRequestDTO
+export interface ProductFilterRequest {
+  categoryId?: string | null;
+  includeChildCategories?: boolean;
+  page?: number;
+  pageSize?: number;
+  minPrice?: number | null;
+  maxPrice?: number | null;
+  valueIds?: string[];
+  userId?: string | null;
+}

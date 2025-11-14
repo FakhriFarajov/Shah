@@ -45,10 +45,10 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Configurations
                    .HasForeignKey(ci => ci.BuyerProfileId)
                    .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasOne(bp => bp.OrderPayment)
-                   .WithOne(p => p.BuyerProfile)
-                   .HasForeignKey<OrderPayment>(p => p.BuyerProfileId)
-                   .OnDelete(DeleteBehavior.SetNull);
+            builder.HasMany(bp => bp.OrderPayments)
+                   .WithOne(op => op.BuyerProfile)
+                   .HasForeignKey(op => op.BuyerProfileId)
+                   .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

@@ -12,7 +12,8 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Configurations
             builder.Property(o => o.Id).IsRequired().HasMaxLength(36);
             builder.Property(o => o.BuyerProfileId).IsRequired().HasMaxLength(36);
             
-            builder.Property(o => o.TotalAmount).IsRequired().HasColumnType("decimal(18, 2)");
+            builder.Property(o => o.TotalAmount).HasColumnType("decimal(18,2)");
+            
             builder.HasOne(o => o.BuyerProfile)
                    .WithMany(bp => bp.Orders)
                    .HasForeignKey(o => o.BuyerProfileId)

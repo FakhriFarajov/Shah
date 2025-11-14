@@ -22,6 +22,19 @@ public class CategoryController : ControllerBase
         if (result.IsSuccess)
             return Ok(result.Data);
         return BadRequest(result.Message);
+        
+
+
+        
     }
+    [HttpGet("{id}/getAttributesAndValues")]
+    public async Task<IActionResult> GetAttributesWithValues(string id)
+    {
+        var result = await _categoryService.GetAttributesWithValuesAsync(id);
+        if (result.IsSuccess)
+            return StatusCode(result.StatusCode, result.Data);
+        return StatusCode(result.StatusCode, new { message = result.Message });
+    }        
+
 }
 

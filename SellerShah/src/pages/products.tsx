@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button";
 import Footer from "../components/custom/footer";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
 import { getUserIdFromToken } from "@/shared/getUserIdFromToken";
-import { GetAllPaginatedProductAsync } from "@/features/profile/Tax copy/tax.service";
+import { GetAllPaginatedProductAsync } from "@/features/profile/Product/Product.service";
 import { getProfileImage } from "@/shared/utils/imagePost";
 import { getSellerProfile } from "@/features/profile/ProfileServices/profile.service";
-import { getProductEditPayloadById } from "@/features/profile/Tax copy/tax.service";
+import { getProductEditPayloadById } from "@/features/profile/Product/Product.service";
 import { toast } from "sonner";
 interface Product {
   id: string;
@@ -93,8 +93,6 @@ export default function ProductsPage() {
       setLoading(false);
     }
   }
-
-
 
   return (
     <>

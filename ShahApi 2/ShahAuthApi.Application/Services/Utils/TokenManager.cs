@@ -37,8 +37,8 @@ public class TokenManager
         if (role == Core.Enums.Role.Buyer)
         {
             claims.Add(new Claim("buyer_profile_id", user.BuyerProfileId ?? string.Empty));
-            var favCount = await _context.Favorites.CountAsync(f => f.BuyerProfileId == user.BuyerProfileId);
-            var cartCount = await _context.CartItems.CountAsync(c => c.BuyerProfileId == user.BuyerProfileId);
+            var favCount = await _context.Favorites.CountAsync(f => f.BuyerProfileId == user.Id);
+            var cartCount = await _context.CartItems.CountAsync(c => c.BuyerProfileId == user.Id);
             claims.Add(new Claim("favorite_count", favCount.ToString()));
             claims.Add(new Claim("cart_count", cartCount.ToString()));
             claims.Add(new Claim("profile_image", user.BuyerProfile?.ImageProfile ?? string.Empty));

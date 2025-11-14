@@ -124,5 +124,21 @@ namespace ShahSellerFeaturesApi.Presentation.Controllers
             var result = await _productService.SyncProductAsync(id, request, sellerProfileId);
             return StatusCode(result.StatusCode, result);
         }
+
+        [Authorize(Policy = "SellerPolicy")]
+        [HttpGet("mine")]
+        public async Task<IActionResult> GetMyProducts([FromQuery] int page = 1, [FromQuery] int pageSize = 15, [FromQuery] string? categoryId = null, [FromQuery] bool includeChildCategories = true)
+        {
+            var sellerProfileId = User?.Claims?.FirstOrDefault(c => c.Type == "seller_profile_id")?.Value;
+            if (string.IsNullOrWhiteSpace(sellerProfileId))
+                return BadRequest("Seller profile not found in token.");
+
+            var store = await _db.StoreInfos.AsNoTracking().FirstOrDefaultAsync(s => s.SellerProfileId == sellerProfileId);
+            if (store == null)
+                return BadRequest("No store found for the authenticated seller.");
+
+            var result = await _productService.GetAllPaginatedProductAsync(store.Id, page, pageSize, categoryId, includeChildCategories);
+            return StatusCode(result.StatusCode, result);
+        }
     }
 }

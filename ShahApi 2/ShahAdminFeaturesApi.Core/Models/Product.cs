@@ -7,6 +7,6 @@ namespace ShahAdminFeaturesApi.Core.Models
         public Category Category { get; set; } = null!;
         public string StoreInfoId { get; set; }
         public StoreInfo StoreInfo { get; set; } = null!;
-        public ICollection<ProductVariant> ProductVariants { get; set; } = new List<ProductVariant>();
+        public IList<ProductVariant> ProductVariants { get; set; } = new List<ProductVariant>();
     }
 }
