@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ShahSellerFeaturesApi.Core.Models;
+using ShahSellerFeaturesApi.Core.Enums;
 
 namespace ShahSellerFeaturesApi.Infrastructure.Configurations
 {
@@ -22,6 +23,10 @@ namespace ShahSellerFeaturesApi.Infrastructure.Configurations
                    .WithMany(pv => pv.OrderItems)
                    .HasForeignKey(oi => oi.ProductVariantId)
                    .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Property(oi => oi.Status)
+                   .HasConversion<int>()
+                   .HasDefaultValue(OrderStatus.Pending);
         }
     }
 }

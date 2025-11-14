@@ -6,9 +6,9 @@ import { ShoppingCart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { productCardDTO } from "@/features/profile/DTOs/profile.interfaces";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
-import { addToCart, addToFavourites, removeFromCart, removeFromFavourites } from "@/features/profile/product/profile.service";
+import { addToCart, addToFavourites, removeFromCart, removeFromFavourites, getProductDetailsById } from "@/features/profile/product/profile.service";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 
 export default function ProductCard({ product }: { product: productCardDTO }) {
@@ -16,6 +16,34 @@ export default function ProductCard({ product }: { product: productCardDTO }) {
 
   const [isFavorite, setIsFavorite] = useState<boolean>(product.isFavorite || false);
   const [isInCart, setIsInCart] = useState<boolean>(product.isInCart || false);
+  const [variantStock, setVariantStock] = useState<number | null>(null);
+  // Fetch product details to determine stock for the representative variant
+  useEffect(() => {
+    let cancelled = false;
+    async function loadDetails() {
+      try {
+        const res = await apiCallWithManualRefresh(() => getProductDetailsById(product.id));
+        const details: any = (res as any)?.data ?? res;
+        // Try to find the representative variant and take a stock-like field
+        const variants: any[] = Array.isArray(details?.variants) ? details.variants : [];
+        const variant = variants.find(v => v.id === product.representativeVariantId || v.productVariantId === product.representativeVariantId) || variants[0];
+        const stockLike = variant?.availableQuantity ?? variant?.stock ?? variant?.quantity ?? details?.availableQuantity ?? details?.stock ?? null;
+        if (!cancelled) setVariantStock(typeof stockLike === 'number' ? stockLike : null);
+      } catch (e) {
+        // Silent fail; keep fallback behavior
+        if (!cancelled) setVariantStock(null);
+      }
+    }
+    loadDetails();
+    return () => { cancelled = true; };
+  }, [product.id, product.representativeVariantId]);
+
+  // Consider multiple possible inventory fields from backend with details override
+  const derivedOutOfStockFromCard =
+    (product as any)?.stock === 0 ||
+    (product as any)?.availableQuantity === 0 ||
+    (product as any)?.inStock === false;
+  const outOfStock: boolean = (variantStock !== null) ? variantStock <= 0 : derivedOutOfStockFromCard;
 
 
   const handleFavAdd = async () => {
@@ -203,25 +231,31 @@ export default function ProductCard({ product }: { product: productCardDTO }) {
 
       {/* Footer */}
       <CardFooter className="p-4 flex gap-2 items-center border-t border-gray-200">
-        <Button
-          onClick={() => {
-            isInCart ? handleCartRemove() : handleCartAdd();
-          }}
-          className={`flex-1 px-3 py-2 rounded-xl flex justify-center text-sm font-medium text-white ${isInCart ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}
-          title={isInCart ? "Go to Cart" : "Add to Cart"}
-        >
-          {isInCart ? (
-            <div className="flex items-center">
-              <ShoppingCart size={16} className="mr-1" />
-              Already in Cart
-            </div>
-          ) : (
-            <>
-              <ShoppingCart size={16} className="mr-1" />
-              Add to Cart
-            </>
-          )}
-        </Button>
+        {outOfStock ? (
+          <div className="flex-1 px-3 py-2 rounded-xl flex justify-center text-sm font-medium bg-gray-200 text-gray-600">
+            Out of stock
+          </div>
+        ) : (
+          <Button
+            onClick={() => {
+              isInCart ? handleCartRemove() : handleCartAdd();
+            }}
+            className={`flex-1 px-3 py-2 rounded-xl flex justify-center text-sm font-medium text-white ${isInCart ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}
+            title={isInCart ? "Go to Cart" : "Add to Cart"}
+          >
+            {isInCart ? (
+              <div className="flex items-center">
+                <ShoppingCart size={16} className="mr-1" />
+                Already in Cart
+              </div>
+            ) : (
+              <>
+                <ShoppingCart size={16} className="mr-1" />
+                Add to Cart
+              </>
+            )}
+          </Button>
+        )}
         <Button
           onClick={isFavorite ? handleFavRemove : handleFavAdd}
           className="px-3 py-2 rounded-xl flex items-center text-sm font-medium bg-gray-100 hover:bg-gray-300 w-12 xl:w-12 flex xl:hidden"

@@ -7,8 +7,6 @@ using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using ShahAuthApi.Application.Services.Utils;
-using ShahAuthApi.Infrastructure.MappingConfigurations;
 using ShahSellerFeaturesApi.Application.Services.Classes;
 using ShahSellerFeaturesApi.Application.Services.Interfaces;
 using ShahSellerFeaturesApi.Infrastructure.Contexts;
@@ -133,5 +131,22 @@ public static class ApplicationServiceExtensions
         });
 
         return services;
+    }
+
+    private static void ApplyDatabasePatches(WebApplication app)
+    {
+        using var scope = app.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ShahSellerFeaturesApi.Infrastructure.Contexts.ShahDbContext>();
+        try
+        {
+            var addItemStatus = @"
+IF COL_LENGTH('dbo.OrderItems','Status') IS NULL
+BEGIN
+    ALTER TABLE [dbo].[OrderItems] ADD [Status] int NOT NULL CONSTRAINT DF_OrderItems_Status DEFAULT(0);
+END
+";
+            db.Database.ExecuteSqlRaw(addItemStatus);
+        }
+        catch { }
     }
 }

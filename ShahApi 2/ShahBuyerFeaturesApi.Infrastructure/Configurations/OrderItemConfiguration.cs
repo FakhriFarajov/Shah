@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ShahBuyerFeaturesApi.Core.Models;
+using ShahBuyerFeaturesApi.Core.Enums;
 
 namespace ShahBuyerFeaturesApi.Infrastructure.Configurations
 {
@@ -22,6 +23,11 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Configurations
                    .WithMany(pv => pv.OrderItems)
                    .HasForeignKey(oi => oi.ProductVariantId)
                    .OnDelete(DeleteBehavior.Restrict);
+
+            // New: per-item status
+            builder.Property(oi => oi.Status)
+                   .HasConversion<int>()
+                   .HasDefaultValue(OrderStatus.Pending);
         }
     }
 }

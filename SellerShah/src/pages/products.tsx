@@ -40,11 +40,9 @@ export default function ProductsPage() {
   const fetchProducts = async (newPage: number = page) => {
     setLoading(true);
     const sellerId = getUserIdFromToken();
-    console.log('Seller ID:', sellerId);
     try {
       const seller = await apiCallWithManualRefresh(() => getSellerProfile(sellerId));
       const result = await apiCallWithManualRefresh(() => GetAllPaginatedProductAsync(seller.storeInfoId, newPage, pageSize,));
-      console.log('Fetched products:', result);
       if ((result.data)) {
         const productsWithImages = await Promise.all(result.data.map(async (product: Product) => {
           if (product.mainImage) {
@@ -57,7 +55,6 @@ export default function ProductsPage() {
           }
           return product;
         }));
-        console.log('Products with images:', productsWithImages);
         setProducts(productsWithImages);
       } else {
         setProducts(result.data);
@@ -65,7 +62,6 @@ export default function ProductsPage() {
       setTotalItems(result.totalCount || 0);
       setTotalPages(result.totalPages || 1);
     } catch (error) {
-      console.error("Error fetching products:", error);
     } finally {
       setLoading(false);
     }
@@ -82,12 +78,10 @@ export default function ProductsPage() {
     setLoading(true);
     try {
       const result = await apiCallWithManualRefresh(() => getProductEditPayloadById(productsToSearchId));
-      console.log('Search result:', result);
       if (result.isSuccess) {
         navigate(`/productsEditOrAdd?productId=${productsToSearchId}`);
       }
     } catch (error) {
-      console.error("Failed to fetch products:", error);
       toast.error('Failed to fetch products. Please check the ID and try again.');
     } finally {
       setLoading(false);

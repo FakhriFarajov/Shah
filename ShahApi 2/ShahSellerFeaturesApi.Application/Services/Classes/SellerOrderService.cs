@@ -231,4 +231,37 @@ public class SellerOrderService : ISellerOrderService
 
         return TypedResult<object>.Success(new { warehouseOrder.Id, warehouseOrder.OrderId, warehouseOrder.WarehouseId, warehouseOrder.CreatedAt }, "Sent to warehouse");
     }
+
+    public async Task<TypedResult<object>> UpdateOrderItemStatusAsync(string orderItemId, string sellerProfileId, OrderStatus newStatus)
+    {
+        var (storeId, err, code) = await ResolveSellerStoreAsync(sellerProfileId);
+        if (!string.IsNullOrEmpty(err)) return TypedResult<object>.Error(err, code);
+        if (string.IsNullOrWhiteSpace(orderItemId))
+            return TypedResult<object>.Error("orderItemId is required", 400);
+
+        var item = await _context.OrderItems
+            .Include(oi => oi.ProductVariant).ThenInclude(pv => pv.Product)
+            .Include(oi => oi.Order)
+            .FirstOrDefaultAsync(oi => oi.Id == orderItemId);
+        if (item == null)
+            return TypedResult<object>.Error("OrderItem not found", 404);
+        if (item.ProductVariant.Product.StoreInfoId != storeId)
+            return TypedResult<object>.Error("Seller not authorized for this item", 403);
+
+        if (item.Status == newStatus)
+            return TypedResult<object>.Success(new { item.Id, item.Status }, "No change", 200);
+
+        // Disallow illegal regressions from terminal states
+        var terminal = item.Status == OrderStatus.Delivered || item.Status == OrderStatus.Cancelled || item.Status == OrderStatus.Returned;
+        if (terminal && newStatus < item.Status)
+            return TypedResult<object>.Error("Cannot revert a terminal status", 400);
+
+        item.Status = newStatus;
+        if (item.Order != null)
+        {
+            item.Order.UpdatedAt = DateTime.UtcNow;
+        }
+        await _context.SaveChangesAsync();
+        return TypedResult<object>.Success(new { item.Id, item.Status }, "Item status updated", 200);
+    }
 }

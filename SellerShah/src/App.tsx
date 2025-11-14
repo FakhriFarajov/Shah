@@ -8,7 +8,6 @@ import SellerProfile from './pages/profile'
 import ProductsPage from './pages/products'
 import OrdersPage from './pages/orders'
 import ReportPage from './pages/report'
-import ReviewsPage from './pages/reviews'
 import { Toaster } from 'sonner';
 import ProductDetailsPage from './pages/productsPage'
 import AuthProvider from './features/auth/contexts/AuthProvider'
@@ -33,7 +32,6 @@ function App() {
             <Route path='/product-details' element={<ProductDetailsPage />} />
             <Route path='/orders' element={<OrdersPage />} />
             <Route path='/report' element={<ReportPage />} />
-            <Route path='/reviews' element={<ReviewsPage />} />
           </Routes>
 
         </BrowserRouter>

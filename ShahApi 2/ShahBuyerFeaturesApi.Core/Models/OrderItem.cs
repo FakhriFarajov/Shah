@@ -1,3 +1,5 @@
+using ShahBuyerFeaturesApi.Core.Enums;
+
 namespace ShahBuyerFeaturesApi.Core.Models
 {
     public class OrderItem
@@ -11,5 +13,7 @@ namespace ShahBuyerFeaturesApi.Core.Models
         public string ProductVariantId { get; set; } = null!;
         public ProductVariant ProductVariant { get; set; } = null!;
 
+        // Per-item status
+        public OrderStatus Status { get; set; } = OrderStatus.Pending;
     }
 }

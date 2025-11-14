@@ -65,4 +65,15 @@ public class OrdersController : ControllerBase
         var result = await _sellerOrderService.SendOrderToWarehouseAsync(id, sellerProfileId, request.WarehouseId);
         return StatusCode(result.StatusCode, result);
     }
+
+    // PUT api/orders/items/{orderItemId}/status
+    [HttpPut("items/{orderItemId}/status")]
+    public async Task<IActionResult> UpdateItemStatus(string orderItemId, [FromBody] OrderStatusDto status)
+    {
+        var sellerProfileId = User?.Claims?.FirstOrDefault(c => c.Type == "seller_profile_id")?.Value;
+        if (string.IsNullOrWhiteSpace(sellerProfileId))
+            return BadRequest("Seller profile not found in token.");
+        var result = await _sellerOrderService.UpdateOrderItemStatusAsync(orderItemId, sellerProfileId, status.Status);
+        return StatusCode(result.StatusCode, result);
+    }
 }

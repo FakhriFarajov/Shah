@@ -34,22 +34,26 @@ const cargoCompanies = [
 export default function OrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
+  const [selectedOrder] = useState<any | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [newStatus, setNewStatus] = useState<number>(0);
   const [statusUpdates, setStatusUpdates] = useState<Record<string, number>>({});
   const [showWarehouseModal, setShowWarehouseModal] = useState(false);
   const [selectedWarehouse, setSelectedWarehouse] = useState("");
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
+  const pageSize = 5;
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
       setLoading(true);
       try {
-        const res = await apiCallWithManualRefresh(() => getOrders());
-		console.log("Orders fetch response:", res);
+        // Pass page and pageSize to getOrders
+        const res = await apiCallWithManualRefresh(() => getOrders({ page, pageSize }));
         const data = res?.data || [];
+        setTotalPages(res?.totalPages || 1);
         // Resolve images for each order's items
         const ordersWithImages = await Promise.all(
           data.map(async (order: any) => {
@@ -84,30 +88,13 @@ export default function OrdersPage() {
     }
     load();
     return () => { cancelled = true; };
-  }, []);
-
-  // Handler to open modal and set selected order
-  const handleManageClick = (order: any) => {
-    setSelectedOrder(order);
-    setNewStatus(order.status);
-    setShowModal(true);
-  };
+  }, [page]);
 
   // Handler to change status
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setNewStatus(Number(e.target.value));
   };
 
-  // Handler to send order (simulate API call)
-  const handleSendOrder = () => {
-    // Here you would call your API to update status/send order
-    if (selectedOrder) {
-      selectedOrder.status = newStatus;
-      // Optionally update local state
-      setShowModal(false);
-      setSelectedOrder(null);
-    }
-  };
 
   const handleStatusSelect = (orderId: string, newStatus: number) => {
     setStatusUpdates(prev => ({ ...prev, [orderId]: newStatus }));
@@ -120,7 +107,7 @@ export default function OrdersPage() {
   const handleSendToWarehouse = async () => {
     if (pendingOrderId && selectedWarehouse) {
       try {
-        await sendOrderToWarehouse(pendingOrderId, selectedWarehouse);
+        await apiCallWithManualRefresh(() => sendOrderToWarehouse(pendingOrderId, selectedWarehouse));
         setShowWarehouseModal(false);
         setSelectedWarehouse("");
         setPendingOrderId(null);
@@ -135,7 +122,7 @@ export default function OrdersPage() {
     const newStatus = statusUpdates[orderId];
     if (typeof newStatus === "number") {
       try {
-        await updateOrderStatus(orderId, newStatus);
+        await apiCallWithManualRefresh(() => updateOrderStatus(orderId, newStatus));
         setOrders(prev => prev.map(order => order.id === orderId ? { ...order, status: newStatus } : order));
         toast.success("Order status updated");
       } catch (err) {
@@ -264,6 +251,27 @@ export default function OrdersPage() {
               )}
             </div>
           </div>
+          <div className="flex justify-center items-center gap-4 mt-6">
+            <button
+              className="px-4 py-2 rounded-xl bg-indigo-800 text-white hover:bg-indigo-300 disabled:opacity-50"
+              onClick={() => {
+                if (page > 1) setPage(page - 1);
+              }}
+              disabled={page === 1}
+            >
+              Previous
+            </button>
+            <span className="text-gray-700">Page {page} of {totalPages}</span>
+            <button
+              className="px-4 py-2 rounded-xl bg-indigo-800 text-white hover:bg-indigo-300 disabled:opacity-50"
+              onClick={() => {
+                if (page < totalPages) setPage(page + 1);
+              }}
+              disabled={page === totalPages}
+            >
+              Next
+            </button>
+          </div>
           {/* Modal for sending order */}
           {showModal && selectedOrder && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
@@ -278,7 +286,7 @@ export default function OrdersPage() {
                     ))}
                   </select>
                 </div>
-                <button className="w-full py-3 text-lg font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow mt-4" onClick={handleSendOrder}>Send</button>
+                <button className="w-full py-3 text-lg font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow mt-4" onClick={handleSendToWarehouse}>Send</button>
               </div>
             </div>
           )}

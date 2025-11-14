@@ -160,9 +160,7 @@ export default function Checkout() {
         }
         fetchCartItems();
         fetchCountries();
-        console.log("Countries fetched:", countries);
         fetchBuyerAndAddress();
-        console.log("Checkout page initialized.");
         // Listen for global cart updates (e.g., item removed from product page or cart item)
         const onCartUpdated = () => { fetchCartItems(); };
         const onQtyChanged = (e: any) => {
@@ -173,10 +171,11 @@ export default function Checkout() {
                 return v?.id === variantId ? { ...ci, quantity } : ci;
             }));
         };
+        setLoading(false);
+
         window.addEventListener('cart:updated', onCartUpdated as EventListener);
         window.addEventListener('cart:quantity-changed', onQtyChanged as EventListener);
         return () => {
-            setLoading(false);
             window.removeEventListener('cart:updated', onCartUpdated as EventListener);
             window.removeEventListener('cart:quantity-changed', onQtyChanged as EventListener);
         };
@@ -282,13 +281,13 @@ export default function Checkout() {
 
     return (
         <>
-      {
-        loading && (
-          <div className="fixed inset-0 bg-white bg-opacity-100 flex items-center justify-center z-50">
-              <Spinner />
-          </div>
-        )
-      }
+            {
+                loading && (
+                    <div className="fixed inset-0 bg-white bg-opacity-100 flex items-center justify-center z-50">
+                        <Spinner />
+                    </div>
+                )
+            }
             <NavBar />
             <div className="container mx-auto px-4 py-6 min-h-screen">
                 <h1 className="text-2xl font-bold mb-6">{t('Your Cart')}</h1>

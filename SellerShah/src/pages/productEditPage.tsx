@@ -38,19 +38,15 @@ export default function ProductsEditOrAddPage() {
 
     useEffect(() => {
         async function fetchInitialData() {
-            console.log('Fetching categories and product data...');
             const cats = await getAllCategoriesWithAttributesAndValuesAsync();
             setCategories(cats);
             // Fetch seller profile to get storeInfoId
             const sellerId = getUserIdFromToken();
-            console.log('Decoded sellerId:', sellerId);
             if (sellerId) {
                 try {
                     const seller = await apiCallWithManualRefresh(() => getSellerProfile(sellerId));
-                    console.log('Fetched seller:', seller);
                     setProduct((prev: any) => ({ ...prev, storeInfoId: seller.storeInfoId }));
                 } catch (err) {
-                    console.error('Failed to fetch seller info', err);
                     toast.error('Failed to fetch seller info');
                 }
             } else {
@@ -60,7 +56,6 @@ export default function ProductsEditOrAddPage() {
             if (isEdit && productId) {
                 try {
                     const productResponse = await apiCallWithManualRefresh(() => getProductEditPayloadById(productId));
-                    console.log('Fetched product edit payload:', productResponse);
                     if (productResponse.data) {
                         const prodData = productResponse.data;
                         setProduct({
@@ -125,7 +120,6 @@ export default function ProductsEditOrAddPage() {
                         toast.error('Failed to fetch product data');
                     }
                 } catch (err) {
-                    console.error('Error fetching product data', err);
                     toast.error('Error fetching product data');
                 }
             }
@@ -261,7 +255,6 @@ export default function ProductsEditOrAddPage() {
     }
     const handleSubmit = async () => {
         try {
-            console.log('Submit: product:', product, 'variants:', variants);
             // Check that all required product-level fields are filled
             if (!product.categoryId) {
                 toast.error('Please select a category.');
@@ -441,7 +434,6 @@ export default function ProductsEditOrAddPage() {
                 toast.success('Product added successfully!');
             }
         } catch (error) {
-            console.error("Error submitting product:", error);
             toast.error('Failed to submit product');
         }
     };

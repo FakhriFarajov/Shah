@@ -91,7 +91,7 @@ export default function ProductPage() {
       try {
         const res = await apiCallWithManualRefresh(() => getProductDetailsById(productId));
         const productData = res && res.data ? res.data : res;
-
+        console.log("Product details fetched:", productData);
         try {
           // Optionally fetch reviews separately if needed
         } catch (error) {
