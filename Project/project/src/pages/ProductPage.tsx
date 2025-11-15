@@ -108,7 +108,6 @@ export default function ProductPage() {
                   try {
                     const idOrUrl = img.imageUrl ?? img.url ?? img;
                     const url = await getProfileImage(idOrUrl);
-                    // update the imageUrl to be a usable URL
                     pd.images[idx].imageUrl = url || idOrUrl;
                   } catch (e) {
                   }
@@ -154,6 +153,8 @@ export default function ProductPage() {
   const activeVariant = Array.isArray(productData?.variants)
     ? (productData.variants.find((v: any) => String(v.productVariantId ?? v.id) === String(productVariantIdParam)) || productData.variants[0])
     : null;
+  const activeStock = (activeVariant?.availableQuantity ?? activeVariant?.stock ?? activeVariant?.quantity ?? 0);
+  const outOfStock = activeStock <= 0;
   // Prefer variant images if present, otherwise use product-level images
   const displayImages = Array.isArray(activeVariant?.images) && (activeVariant.images.length > 0)
     ? activeVariant.images
@@ -839,25 +840,32 @@ export default function ProductPage() {
                   </div>
                 ))}
                 <div className="flex gap-2 mt-4">
-                  <Button
-                    onClick={() => {
-                      isInCart ? handleCartRemove() : handleCartAdd();
-                    }}
-                    className={`flex-1 px-3 py-2 rounded-xl flex justify-center text-sm font-medium text-white ${isInCart ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}
-                    title={isInCart ? "Go to Cart" : "Add to Cart"}
-                  >
-                    {isInCart ? (
-                      <div className="flex items-center">
-                        <ShoppingCart size={16} className="mr-1" />
-                        Already in Cart
-                      </div>
-                    ) : (
-                      <>
-                        <ShoppingCart size={16} className="mr-1" />
-                        Add to Cart
-                      </>
-                    )}
-                  </Button>
+                  {outOfStock ? (
+                    <div className="flex-1 px-3 py-2 rounded-xl flex justify-center text-sm font-medium bg-gray-200 text-gray-600">
+                      Out of stock
+                    </div>
+                  ) : (
+                    <Button
+                      onClick={() => {
+                        isInCart ? handleCartRemove() : handleCartAdd();
+                      }}
+                      className={`flex-1 px-3 py-2 rounded-xl flex justify-center text-sm font-medium text-white ${isInCart ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}
+                      title={isInCart ? "Go to Cart" : "Add to Cart"}
+                      disabled={outOfStock}
+                    >
+                      {isInCart ? (
+                        <div className="flex items-center">
+                          <ShoppingCart size={16} className="mr-1" />
+                          Already in Cart
+                        </div>
+                      ) : (
+                        <>
+                          <ShoppingCart size={16} className="mr-1" />
+                          Add to Cart
+                        </>
+                      )}
+                    </Button>
+                  )}
                   <Button
                     onClick={isFavorite ? handleFavRemove : handleFavAdd}
                     className="px-3 py-2 rounded-xl flex items-center text-sm font-medium bg-gray-100 hover:bg-gray-300 w-12 xl:w-12"

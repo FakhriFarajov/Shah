@@ -46,6 +46,9 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IReviewService, ReviewService>();
         services.AddScoped<ICheckoutService, CheckoutService>();
         services.AddScoped<IOrderService, OrderService>();
+        services.AddScoped<IPdfReceiptService, PdfReceiptService>(); 
+        services.AddScoped<IEmailService, SmtpEmailService>();
+        
         
 
         // Exception middleware

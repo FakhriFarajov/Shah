@@ -16,11 +16,8 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Configurations
             builder.Property(r => r.IssuedAt)
                 .IsRequired();
 
-            builder.HasOne(r => r.Order)
-                .WithOne(o => o.Receipt)
-                .HasForeignKey<Receipt>(r => r.OrderId)
-                .OnDelete(DeleteBehavior.Cascade);
+            builder.Property(r => r.File)
+                .IsRequired();
         }
     }
 }
-

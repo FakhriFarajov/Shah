@@ -28,14 +28,13 @@ public class OrderService : IOrderService
             .Select(o => new
             {
                 o.Id,
-                o.Status,
                 o.CreatedAt,
                 o.UpdatedAt,
                 o.TotalAmount,
                 Receipt = o.Receipt != null ? new
                 {
                     o.Receipt.Id,
-                    o.Receipt.FileUrl,
+                    File = o.Receipt.File,
                     o.Receipt.IssuedAt
                 } : null,
                 Payment = o.OrderPayment != null ? new
@@ -65,34 +64,10 @@ public class OrderService : IOrderService
         if (order == null)
             return TypedResult<object>.Error("Order not found", 404);
 
-        // Compute aggregate status from item statuses (client-side)
-        OrderStatus AggregateStatusFromItems(IEnumerable<OrderStatus> statuses)
-        {
-            var list = statuses.ToList();
-            if (list.Count == 0) return order.Status; // fallback
-            bool anyReturned = list.Contains(OrderStatus.Returned);
-            bool anyCancelled = list.Contains(OrderStatus.Cancelled);
-            bool allDelivered = list.All(s => s == OrderStatus.Delivered);
-            bool anyDelivered = list.Any(s => s == OrderStatus.Delivered);
-            bool anyShipped = list.Any(s => s == OrderStatus.Shipped);
-            bool anyProcessing = list.Any(s => s == OrderStatus.Processing);
-            bool allPending = list.All(s => s == OrderStatus.Pending);
-
-            if (allDelivered) return OrderStatus.Delivered;
-            if (anyReturned) return OrderStatus.Returned; // surface returns prominently
-            if (anyCancelled && !anyShipped && !anyDelivered && !anyProcessing) return OrderStatus.Cancelled;
-            if (anyDelivered || anyShipped) return OrderStatus.Shipped; // treat as at-least shipped
-            if (anyProcessing) return OrderStatus.Processing;
-            if (allPending) return OrderStatus.Pending;
-            return order.Status;
-        }
-
-        var aggregate = AggregateStatusFromItems(order.Items.Select(i => (OrderStatus)i.GetType().GetProperty("Status")!.GetValue(i)!));
+        // AggregateStatusFromItems and aggregate variable removed
         var shaped = new
         {
             order.Id,
-            order.Status,
-            AggregateStatus = aggregate,
             order.CreatedAt,
             order.UpdatedAt,
             order.TotalAmount,
@@ -116,12 +91,12 @@ public class OrderService : IOrderService
             .Select(o => new
             {
                 o.Id,
-                o.Status,
                 o.CreatedAt,
                 o.TotalAmount,
                 ItemCount = o.OrderItems.Count,
                 PaymentStatus = o.OrderPayment.Status,
-                ReceiptId = o.ReceiptId
+                ReceiptId = o.ReceiptId,
+                HasReceipt = o.ReceiptId != null
             })
             .ToListAsync();
 

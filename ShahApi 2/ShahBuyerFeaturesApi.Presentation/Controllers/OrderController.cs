@@ -12,10 +12,12 @@ namespace ShahBuyerFeaturesApi.Presentation.Controllers;
 public class OrderController : ControllerBase
 {
     private readonly IOrderService _orderService;
+    private readonly IPdfReceiptService _pdfReceiptService;
 
-    public OrderController(IOrderService orderService)
+    public OrderController(IOrderService orderService, IPdfReceiptService pdfReceiptService)
     {
         _orderService = orderService;
+        _pdfReceiptService = pdfReceiptService;
     }
 
     // GET api/order/{id}
@@ -25,6 +27,17 @@ public class OrderController : ControllerBase
         var buyerId = GetUserIdFromClaims();
         var result = await _orderService.GetOrderByIdAsync(id, buyerId);
         return Ok(result);
+    }
+
+    // POST api/order/{id}/receipt
+    [HttpPost("{id}/receipt")]
+    public async Task<IActionResult> GenerateReceipt(string id)
+    {
+        var buyerId = GetUserIdFromClaims();
+        if (string.IsNullOrWhiteSpace(buyerId))
+            return Unauthorized();
+        var result = await _pdfReceiptService.GenerateAndSaveReceiptAsync(id, buyerId);
+        return StatusCode(result.StatusCode, result);
     }
 
     // GET api/order
@@ -47,4 +60,3 @@ public class OrderController : ControllerBase
                ?? string.Empty;
     }
 }
-

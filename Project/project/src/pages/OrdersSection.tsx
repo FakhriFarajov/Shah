@@ -54,6 +54,7 @@ export interface OrderItem {
   title: string;
   price: number;
   quantity: number;
+  status: number;
   images: ProductImage[];
   lineTotal: number;
 }
@@ -133,6 +134,25 @@ const OrdersSection: React.FC<OrdersSectionProps> = ({ orderStatusFilter, setOrd
     };
   }, []);
 
+  // Order status is now per item, not per order
+  // Filter orders by item status
+  const filteredOrders = orderHistory.filter(order => {
+    if (!orderStatusFilter) return true;
+    // Show order if any item matches the filter
+    return order.items.some(item => item.status?.toString() === orderStatusFilter);
+  });
+
+  // Helper for item status label and color
+  function getItemStatusInfo(status: number) {
+    switch (status) {
+      case 0: return { label: "Pending", color: "bg-yellow-200" };
+      case 1: return { label: "Shipped", color: "bg-blue-200" };
+      case 2: return { label: "Delivered", color: "bg-green-200" };
+      case 3: return { label: "Cancelled", color: "bg-red-200" };
+      default: return { label: "Unknown", color: "bg-gray-200" };
+    }
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <Card>
@@ -142,7 +162,7 @@ const OrdersSection: React.FC<OrdersSectionProps> = ({ orderStatusFilter, setOrd
         <CardContent>
           <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-2">
             <label htmlFor="order-status-filter" className="font-medium">
-              Filter by status:
+              Filter by item status:
             </label>
             <select
               id="order-status-filter"
@@ -159,38 +179,20 @@ const OrdersSection: React.FC<OrdersSectionProps> = ({ orderStatusFilter, setOrd
           </div>
 
           <ul className="divide-y">
-            {orderHistory
-              .filter((order) => !orderStatusFilter || order.status.toString() === orderStatusFilter)
-              .map((order) => (
-                <li key={order.id} className="py-2">
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium">Order #{order.id}</span>
-                    <span>{new Date(order.createdAt).toLocaleString()}</span>
-                    <span
-                      className={`text-xs px-2 py-1 rounded ${
-                        order.status === 2
-                          ? "bg-green-200"
-                          : order.status === 3
-                          ? "bg-red-200"
-                          : "bg-yellow-200"
-                      }`}
-                    >
-                      {order.status === 0
-                        ? "Pending"
-                        : order.status === 1
-                        ? "Shipped"
-                        : order.status === 2
-                        ? "Delivered"
-                        : "Cancelled"}
-                    </span>
-                  </div>
+            {filteredOrders.map((order) => (
+              <li key={order.id} className="py-2">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Order #{order.id}</span>
+                  <span>{new Date(order.createdAt).toLocaleString()}</span>
+                  <span className="text-xs px-2 py-1 rounded bg-gray-100">Total: ${order.totalAmount}</span>
+                </div>
 
-                  <div className="ml-2 text-sm text-gray-600">Total: ${order.totalAmount}</div>
-
-                  <div className="ml-2 mt-1">
-                    <span className="font-semibold">Items:</span>
-                    <ul className="ml-4 list-disc">
-                      {order.items.map((item) => (
+                <div className="ml-2 mt-1">
+                  <span className="font-semibold">Items:</span>
+                  <ul className="ml-4 list-disc">
+                    {order.items.map((item) => {
+                      const statusInfo = getItemStatusInfo(item.status);
+                      return (
                         <li key={item.id} className="flex items-center gap-2 mb-2">
                           <div className="flex items-center gap-2" style={{ display: 'inline-flex', alignItems: 'center' }}>
                             {item.images && item.images.length > 0 ? (
@@ -213,12 +215,16 @@ const OrdersSection: React.FC<OrdersSectionProps> = ({ orderStatusFilter, setOrd
                           <span className="ml-2">
                             x{item.quantity} (${item.price})
                           </span>
+                          <span className={`ml-2 text-xs px-2 py-1 rounded ${statusInfo.color}`}>
+                            {statusInfo.label}
+                          </span>
                         </li>
-                      ))}
-                    </ul>
-                  </div>
-                </li>
-              ))}
+                      );
+                    })}
+                  </ul>
+                </div>
+              </li>
+            ))}
           </ul>
         </CardContent>
       </Card>

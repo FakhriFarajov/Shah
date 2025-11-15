@@ -50,7 +50,6 @@ public class SellerOrderService : ISellerOrderService
             .Select(o => new
             {
                 o.Id,
-                o.Status,
                 o.CreatedAt,
                 o.TotalAmount,
                 ItemCount = o.OrderItems.Count(oi => oi.ProductVariant.Product.StoreInfoId == storeId),
@@ -83,7 +82,6 @@ public class SellerOrderService : ISellerOrderService
             .Select(o => new
             {
                 o.Id,
-                o.Status,
                 o.CreatedAt,
                 o.UpdatedAt,
                 o.TotalAmount,
@@ -98,6 +96,7 @@ public class SellerOrderService : ISellerOrderService
                         Title = oi.ProductVariant.Title,
                         Price = oi.ProductVariant.Price,
                         oi.Quantity,
+                        Status = oi.Status, // Added item-level status
                         LineTotal = oi.ProductVariant.Price * oi.Quantity,
                         Images = oi.ProductVariant.Images.Select(i => new { i.ImageUrl, i.IsMain })
                     }).ToList()
@@ -120,7 +119,6 @@ public class SellerOrderService : ISellerOrderService
             .Select(o => new
             {
                 o.Id,
-                o.Status,
                 o.CreatedAt,
                 o.UpdatedAt,
                 o.TotalAmount,
@@ -135,6 +133,7 @@ public class SellerOrderService : ISellerOrderService
                         Title = oi.ProductVariant.Title,
                         Price = oi.ProductVariant.Price,
                         oi.Quantity,
+                        Status = oi.Status, // Added item-level status
                         LineTotal = oi.ProductVariant.Price * oi.Quantity,
                         Images = oi.ProductVariant.Images.Select(i => new { i.ImageUrl, i.IsMain })
                     }).ToList()
@@ -145,42 +144,6 @@ public class SellerOrderService : ISellerOrderService
             return TypedResult<object>.Error("Order not found for this seller", 404);
 
         return TypedResult<object>.Success(order);
-    }
-
-    public async Task<TypedResult<object>> UpdateOrderStatusAsync(string orderId, string sellerProfileId, OrderStatus newStatus)
-    {
-        var (storeId, err, code) = await ResolveSellerStoreAsync(sellerProfileId);
-        if (!string.IsNullOrEmpty(err)) return TypedResult<object>.Error(err, code);
-        if (string.IsNullOrWhiteSpace(orderId))
-            return TypedResult<object>.Error("orderId is required", 400);
-
-        var order = await _context.Orders
-            .Include(o => o.OrderItems).ThenInclude(oi => oi.ProductVariant).ThenInclude(pv => pv.Product)
-            .FirstOrDefaultAsync(o => o.Id == orderId);
-
-        if (order == null)
-            return TypedResult<object>.Error("Order not found", 404);
-
-        var sellerHasItems = order.OrderItems.Any(oi => oi.ProductVariant.Product.StoreInfoId == storeId);
-        if (!sellerHasItems)
-            return TypedResult<object>.Error("Seller not authorized for this order", 403);
-
-        var allItemsBelongToSeller = order.OrderItems.All(oi => oi.ProductVariant.Product.StoreInfoId == storeId);
-        if (!allItemsBelongToSeller)
-            return TypedResult<object>.Error("Order contains items from other stores; cannot change global status", 409);
-
-        if (order.Status == newStatus)
-            return TypedResult<object>.Success(new { order.Id, order.Status, order.UpdatedAt }, "No change", 200);
-
-        if ((order.Status == OrderStatus.Delivered || order.Status == OrderStatus.Cancelled || order.Status == OrderStatus.Returned) && newStatus < order.Status)
-        {
-            return TypedResult<object>.Error("Cannot revert a terminal status", 400);
-        }
-
-        order.Status = newStatus;
-        order.UpdatedAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
-        return TypedResult<object>.Success(new { order.Id, order.Status, order.UpdatedAt }, "Status updated", 200);
     }
 
     public async Task<TypedResult<object>> SendOrderToWarehouseAsync(string orderId, string sellerProfileId, string warehouseId)

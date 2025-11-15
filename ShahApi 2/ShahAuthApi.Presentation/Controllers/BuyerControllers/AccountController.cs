@@ -28,7 +28,6 @@ public class AccountController : ControllerBase
         return Ok(res);
     }
 
-    [Authorize(Policy = "BuyerPolicy")] //We need to send a Bearer token in the header to access this endpoint
     [HttpPost("ConfirmEmail")]
     public async Task<IActionResult> ConfirmEmailAsync()
     {
@@ -65,4 +64,3 @@ public class AccountController : ControllerBase
         return Ok(result);
     }
 }
-

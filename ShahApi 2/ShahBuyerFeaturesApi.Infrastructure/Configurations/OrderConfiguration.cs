@@ -29,12 +29,12 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Configurations
                    .HasForeignKey(oi => oi.OrderId)
                    .OnDelete(DeleteBehavior.Cascade);
             
-            
+            builder.Property(o => o.ReceiptId).HasMaxLength(36).IsRequired(false);
+            // Configure single FK: Order.ReceiptId -> Receipt.Id (optional)
             builder.HasOne(o => o.Receipt)
-                .WithOne(wo => wo.Order)
-                .HasForeignKey<Order>(wo => wo.ReceiptId)
-                .OnDelete(DeleteBehavior.Cascade);
-            
+                   .WithOne(r => r.Order)
+                   .HasForeignKey<Order>(o => o.ReceiptId)
+                   .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

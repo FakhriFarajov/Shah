@@ -11,7 +11,6 @@ public interface ISellerOrderService
     
     // Single order operations
     Task<TypedResult<object>> GetOrderByIdForSellerAsync(string orderId, string sellerProfileId);
-    Task<TypedResult<object>> UpdateOrderStatusAsync(string orderId, string sellerProfileId, OrderStatus newStatus);
     
     // New: create a WarehouseOrder and link to the order
     Task<TypedResult<object>> SendOrderToWarehouseAsync(string orderId, string sellerProfileId, string warehouseId);

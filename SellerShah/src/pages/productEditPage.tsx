@@ -299,7 +299,7 @@ export default function ProductsEditOrAddPage() {
                     toast.error(`Please enter a valid weight for variant ${variantIdx + 1}.`);
                     return;
                 }
-                if(!variant.images || variant.images.length === 0){
+                if (!variant.images || variant.images.length === 0) {
                     toast.error(`Please add at least one image for variant ${variantIdx + 1}.`);
                     return;
                 }
@@ -435,6 +435,9 @@ export default function ProductsEditOrAddPage() {
             }
         } catch (error) {
             toast.error('Failed to submit product');
+        }
+        finally {
+            navigator('/products');
         }
     };
     return (

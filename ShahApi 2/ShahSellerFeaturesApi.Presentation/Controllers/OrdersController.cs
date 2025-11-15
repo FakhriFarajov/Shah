@@ -42,16 +42,6 @@ public class OrdersController : ControllerBase
         return StatusCode(result.StatusCode, result);
     }
 
-    [HttpPut("{id}/status")]
-    public async Task<IActionResult> UpdateStatus(string id, [FromBody] OrderStatusDto status)
-    {
-        var sellerProfileId = User?.Claims?.FirstOrDefault(c => c.Type == "seller_profile_id")?.Value;
-        if (string.IsNullOrWhiteSpace(sellerProfileId))
-            return BadRequest("Seller profile not found in token.");
-        var result = await _sellerOrderService.UpdateOrderStatusAsync(id, sellerProfileId, status.Status);
-        return StatusCode(result.StatusCode, result);
-    }
-
     // POST api/orders/{id}/send-to-warehouse
     [HttpPost("{id}/send-to-warehouse")]
     public async Task<IActionResult> SendToWarehouse(string id, [FromBody] WarehouseSendRequestDto request)

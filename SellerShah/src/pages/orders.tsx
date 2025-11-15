@@ -2,7 +2,7 @@ import Navbar from "../components/custom/Navbar/navbar";
 import { AppSidebar } from "@/components/custom/sidebar";
 import { useState, useEffect } from "react";
 import Footer from "../components/custom/footer";
-import { getOrders, updateOrderStatus, sendOrderToWarehouse } from "@/features/profile/Order/Order.service";
+import { getOrders, updateOrderItemStatus, sendOrderToWarehouse } from "@/features/profile/Order/Order.service";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
 import { toast } from "sonner";
 
@@ -53,6 +53,7 @@ export default function OrdersPage() {
         // Pass page and pageSize to getOrders
         const res = await apiCallWithManualRefresh(() => getOrders({ page, pageSize }));
         const data = res?.data || [];
+		 console.log("Fetched orders data:", data);
         setTotalPages(res?.totalPages || 1);
         // Resolve images for each order's items
         const ordersWithImages = await Promise.all(
@@ -122,11 +123,17 @@ export default function OrdersPage() {
     const newStatus = statusUpdates[orderId];
     if (typeof newStatus === "number") {
       try {
-        await apiCallWithManualRefresh(() => updateOrderStatus(orderId, newStatus));
-        setOrders(prev => prev.map(order => order.id === orderId ? { ...order, status: newStatus } : order));
-        toast.success("Order status updated");
+        await apiCallWithManualRefresh(() => updateOrderItemStatus(orderId, newStatus));
+        setOrders(prev => prev.map(order => ({
+          ...order,
+          items: order.items.map((item: any) =>
+            item.id === orderId ? { ...item, status: newStatus } : item
+          )
+        })));
+		console.log("Order item status updated:", orderId, newStatus);
+        toast.success("Order item status updated");
       } catch (err) {
-        toast.error("Failed to update status");
+        toast.error("Failed to update item status");
       }
     }
   };
@@ -153,7 +160,6 @@ export default function OrdersPage() {
                     <div className="flex flex-col md:flex-row gap-6 items-center">
                       <div className="flex flex-col gap-2 md:w-1/3">
                         <div className="font-bold text-xl text-gray-900">Order #{order.id}</div>
-                        <div className="text-gray-500 text-sm">Status: <span className="font-semibold">{OrderStatusText[order.status]}</span></div>
                         <div className="text-gray-500 text-sm">Created: {order.createdAt ? order.createdAt.slice(0, 19).replace('T', ' ') : '-'}</div>
                         <div className="text-gray-500 text-sm">Updated: {order.updatedAt ? order.updatedAt.slice(0, 19).replace('T', ' ') : '-'}</div>
                         <div className="text-gray-500 text-sm">Total: <span className="font-semibold">${order.totalAmount}</span></div>
@@ -189,62 +195,64 @@ export default function OrdersPage() {
                       <div className="font-medium text-indigo-700 mb-2">Items</div>
                       <div className="flex flex-wrap gap-4">
                         {order.items && order.items.length > 0 ? (
-                          order.items.map((item: any) => (
-                            <div key={item.id} className="bg-gray-50 rounded-xl border p-4 flex flex-col items-center w-64">
-                              <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-400 to-blue-400 flex items-center justify-center shadow-lg mb-2 overflow-hidden">
-                                {item.images && item.images.length > 0 ? (
-                                  <img
-                                    src={item.images[0].imageUrl}
-                                    alt={item.title}
-                                    className="w-full h-full object-cover"
-                                  />
-                                ) : (
-                                  <span className="text-2xl font-bold text-white">{item.title[0]}</span>
-                                )}
-                              </div>
-                              <div className="font-bold text-lg text-gray-900">{item.title}</div>
-                              <div className="text-gray-500 text-sm">ID: {item.id}</div>
-                              <div className="text-gray-500 text-sm">Variant: {item.productVariantId}</div>
-                              <div className="text-gray-500 text-sm">Price: ${item.price}</div>
-                              <div className="text-gray-500 text-sm">Quantity: {item.quantity}</div>
-                              <div className="text-gray-500 text-sm">Line Total: ${item.lineTotal}</div>
-                              <div className="flex gap-2 mt-2">
-                                {item.images && item.images.length > 0 ? (
-                                  item.images.map((img: any, idx: number) => (
+                            order.items.map((item: any) => (
+                              <div key={item.id} className="bg-gray-50 rounded-xl border p-4 flex flex-col items-center w-64">
+                                <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-400 to-blue-400 flex items-center justify-center shadow-lg mb-2 overflow-hidden">
+                                  {item.images && item.images.length > 0 ? (
                                     <img
-                                      key={idx}
-                                      src={img.imageUrl}
+                                      src={item.images[0].imageUrl}
                                       alt={item.title}
-                                      className={`w-8 h-8 object-cover rounded ${img.isMain ? 'border-2 border-indigo-600' : 'border'}`}
+                                      className="w-full h-full object-cover"
                                     />
-                                  ))
-                                ) : (
-                                  <span className="text-gray-400">No images</span>
-                                )}
+                                  ) : (
+                                    <span className="text-2xl font-bold text-white">{item.title[0]}</span>
+                                  )}
+                                </div>
+                                <div className="font-bold text-lg text-gray-900">{item.title}</div>
+                                <div className="text-gray-500 text-sm">ID: {item.id}</div>
+                                <div className="text-gray-500 text-sm">Variant: {item.productVariantId}</div>
+                                <div className="text-gray-500 text-sm">Price: ${item.price}</div>
+                                <div className="text-gray-500 text-sm">Quantity: {item.quantity}</div>
+                                <div className="text-gray-500 text-sm">Line Total: ${item.lineTotal}</div>
+                                <div className="text-gray-500 text-sm">Status: <span className="font-semibold">{OrderStatusText[item.status]}</span></div>
+
+                                <div className="flex gap-2 mt-2">
+                                  {item.images && item.images.length > 0 ? (
+                                    item.images.map((img: any, idx: number) => (
+                                      <img
+                                        key={idx}
+                                        src={img.imageUrl}
+                                        alt={item.title}
+                                        className={`w-8 h-8 object-cover rounded ${img.isMain ? 'border-2 border-indigo-600' : 'border'}`}
+                                      />
+                                    ))
+                                  ) : (
+                                    <span className="text-gray-400">No images</span>
+                                  )}
+                                </div>
+								                                <div className="flex items-center gap-2 mt-2">
+                                  <select
+                                    value={statusUpdates[item.id] ?? item.status}
+                                    onChange={e => handleStatusSelect(item.id, Number(e.target.value))}
+                                    className="border rounded px-2 py-1"
+                                  >
+                                    {OrderStatusOptions.map(opt => (
+                                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                    ))}
+                                  </select>
+                                  <button
+                                    className="ml-2 px-3 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700"
+                                    onClick={() => handleStatusUpdate(item.id)}
+                                    disabled={statusUpdates[item.id] === undefined || statusUpdates[item.id] === item.status}
+                                  >
+                                    Update
+                                  </button>
+                                </div>
                               </div>
-                            </div>
-                          ))
+							  
+                            ))
                         ) : <span className="text-gray-400">No items</span>}
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2 mt-2">
-                      <label className="font-medium text-gray-700">Status:</label>
-                      <select
-                        value={statusUpdates[order.id] ?? order.status}
-                        onChange={e => handleStatusSelect(order.id, Number(e.target.value))}
-                        className="border rounded px-2 py-1"
-                      >
-                        {OrderStatusOptions.map(opt => (
-                          <option key={opt.value} value={opt.value}>{opt.label}</option>
-                        ))}
-                      </select>
-                      <button
-                        className="ml-2 px-3 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700"
-                        onClick={() => handleStatusUpdate(order.id)}
-                        disabled={statusUpdates[order.id] === undefined || statusUpdates[order.id] === order.status}
-                      >
-                        Update
-                      </button>
                     </div>
                   </div>
                 ))

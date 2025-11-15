@@ -5,7 +5,6 @@ namespace ShahAdminFeaturesApi.Core.Models
     public class Order
     {
         public string Id { get; set; } = System.Guid.NewGuid().ToString();
-        public OrderStatus Status { get; set; } // consider enum
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime? UpdatedAt { get; set; }
         public string BuyerProfileId { get; set; }

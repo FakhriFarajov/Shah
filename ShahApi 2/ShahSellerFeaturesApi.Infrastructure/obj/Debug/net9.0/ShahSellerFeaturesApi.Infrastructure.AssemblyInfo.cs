@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ShahSellerFeaturesApi.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1d5a9f39b9bc5fca04641982b1d6026e6b503de5")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9a551acf13a9d6614bfb7b0e3ad995d7bf16338b")]
 [assembly: System.Reflection.AssemblyProductAttribute("ShahSellerFeaturesApi.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ShahSellerFeaturesApi.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

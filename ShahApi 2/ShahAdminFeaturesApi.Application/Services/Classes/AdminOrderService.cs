@@ -32,7 +32,6 @@ public class AdminOrderService : IAdminOrderService
                 .Select(o => new
                 {
                     o.Id,
-                    o.Status,
                     o.CreatedAt,
                     o.TotalAmount,
                     ItemCount = o.OrderItems.Count,
@@ -52,7 +51,6 @@ public class AdminOrderService : IAdminOrderService
                 .Select(o => new
                 {
                     o.Id,
-                    o.Status,
                     o.CreatedAt,
                     o.UpdatedAt,
                     o.TotalAmount,
@@ -62,7 +60,8 @@ public class AdminOrderService : IAdminOrderService
                     Items = o.OrderItems.Select(oi => new
                     {
                         oi.Id,
-                        oi.ProductVariantId,
+                        oi.ProductVariantId, 
+                        oi.Status,
                         Title = oi.ProductVariant.Title,
                         Price = oi.ProductVariant.Price,
                         oi.Quantity,
@@ -86,7 +85,6 @@ public class AdminOrderService : IAdminOrderService
             .Select(o => new
             {
                 o.Id,
-                o.Status,
                 o.CreatedAt,
                 o.UpdatedAt,
                 o.TotalAmount,
@@ -97,6 +95,7 @@ public class AdminOrderService : IAdminOrderService
                 {
                     oi.Id,
                     oi.ProductVariantId,
+                    oi.Status,
                     Title = oi.ProductVariant.Title,
                     Price = oi.ProductVariant.Price,
                     oi.Quantity,

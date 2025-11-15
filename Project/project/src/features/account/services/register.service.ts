@@ -13,6 +13,7 @@ export async function register(payload: RegisterRequest): Promise<RegisterRespon
 export async function confirmEmail(): Promise<{ success: boolean; error?: string }> {
   try {
     const { data } = await authHttp.post<{ success: boolean; error?: string }>("/ConfirmEmail");
+    console.log("Email confirmation response:", data);
     return data;
   } catch (error) {
     return { success: false, error: (error as Error).message };

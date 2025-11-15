@@ -28,7 +28,7 @@ public class AccountController : ControllerBase
         return Ok(res);
     }
 
-    [Authorize(Policy = "SellerPolicy")] //We need to send a Bearer token in the header to access this endpoint
+    [Authorize] // require authentication, not SellerPolicy
     [HttpPost("ConfirmEmail")]
     public async Task<IActionResult> ConfirmEmailAsync()
     {

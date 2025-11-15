@@ -6,7 +6,7 @@ namespace ShahAuthApi.Core.Models
     {
         public string Id { get; set; } = System.Guid.NewGuid().ToString();
         public decimal TotalAmount { get; set; }
-        public OrderStatus Status { get; set; } // consider enum
+
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime? UpdatedAt { get; set; }
         

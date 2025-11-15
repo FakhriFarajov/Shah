@@ -24,7 +24,8 @@ export default function CartItem({ item }: CartItemProps) {
   const product = item.product ?? item.productInfo ?? null;
   const name = variant?.title ?? product?.productTitle ?? item.name ?? product?.storeName ?? 'Product';
   const price = variant?.price ?? item.price ?? 0;
-  const stock = variant?.stock ?? item.stock ?? 0;
+  const stock: number = (variant?.availableQuantity ?? variant?.stock ?? variant?.quantity ?? item.stock ?? 0) as number;
+  const outOfStock = (stock ?? 0) <= 0;
   // Try multiple places for image
   const image = variant?.images?.[0]?.imageUrl ?? item.mainImage ?? item.image ?? null;
   const attrs = variant?.attributes ?? item.attributes ?? [];
@@ -108,6 +109,7 @@ export default function CartItem({ item }: CartItemProps) {
 
   function startHold(mode: 'inc' | 'dec') {
     if (!variant?.id) return;
+    if (outOfStock) return;
     if (holdTimeoutRef.current || holdIntervalRef.current) return; // already holding
     // After a short delay, start repeating
     holdTimeoutRef.current = setTimeout(() => {
@@ -136,8 +138,9 @@ export default function CartItem({ item }: CartItemProps) {
     clearHolds();
     if (!variant?.id) return;
     if (!wasActive) {
-      if (mode === 'inc') await handleQuantityIncrease();
-      else await handleQuantityDecrease();
+  if (outOfStock) return;
+  if (mode === 'inc') await handleQuantityIncrease();
+  else await handleQuantityDecrease();
     }
   }
 
@@ -151,7 +154,12 @@ export default function CartItem({ item }: CartItemProps) {
     <Card className="flex flex-col md:flex-row gap-4 p-4 items-center">
       <img src={image || 'https://picsum.photos/seed/product1/400/400'} alt={name} className="w-full md:w-32 h-auto rounded-md" onClick={() => navigator(`/product?id=${product.id}&productVariantId=${variant.id}`)}/>
       <CardContent className="flex flex-col flex-1 ml-4 mb-2">
-        <h3 className="text-lg font-semibold">{t(name)} - ${price}</h3>
+        <h3 className="text-lg font-semibold flex items-center gap-2">
+          {t(name)} - ${price}
+          {outOfStock && (
+            <Badge className="bg-red-100 text-red-700">{t('Out of stock')}</Badge>
+          )}
+        </h3>
         <div className="flex items-center gap-2 mb-2">
           <Label>{t('Subtotal')}: ${(price * quantity).toFixed(2)}</Label>
         </div>
@@ -166,8 +174,8 @@ export default function CartItem({ item }: CartItemProps) {
         )}
 
         <Label className="mb-2">{t('Quantity')}: {quantity}</Label>
-        <Label className="mb-2">{t('In Stock')}: {stock}</Label>
-        <Label className="text-red-500">{stock <= 3 ? `${t('Left')} ${stock} ${t('pcs')}` : ""}</Label>
+  <Label className="mb-2">{t('In Stock')}: {Math.max(0, stock)}</Label>
+  <Label className="text-red-500">{!outOfStock && stock <= 3 ? `${t('Left')} ${stock} ${t('pcs')}` : ""}</Label>
       </CardContent>
       <CardFooter className="flex flex-col md:items-end gap-3">
         <div className="flex items-center gap-2">
@@ -178,7 +186,7 @@ export default function CartItem({ item }: CartItemProps) {
             onMouseLeave={() => clearHolds()}
             onTouchStart={() => startHold('dec')}
             onTouchEnd={() => stopHold('dec')}
-            disabled={quantity <= 1}
+            disabled={quantity <= 1 || outOfStock}
           >
             −
           </Button>
@@ -190,7 +198,7 @@ export default function CartItem({ item }: CartItemProps) {
             onMouseLeave={() => clearHolds()}
             onTouchStart={() => startHold('inc')}
             onTouchEnd={() => stopHold('inc')}
-            disabled={quantity >= stock}
+            disabled={quantity >= stock || outOfStock}
           >
             +
           </Button>

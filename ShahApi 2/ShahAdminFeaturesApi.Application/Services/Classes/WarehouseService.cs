@@ -215,7 +215,6 @@ public class WarehouseService : IWarehouseService
             {
                 wo.Order.Id,
                 wo.Order.TotalAmount,
-                wo.Order.Status,
                 wo.Order.CreatedAt,
                 BuyerId = wo.Order.BuyerProfileId,
                 SellerId = wo.Order.OrderItems
@@ -257,6 +256,7 @@ public class WarehouseService : IWarehouseService
                 oi.Quantity,
                 oi.OrderId,
                 oi.ProductVariantId,
+                oi.Status,
                 VariantPrice = oi.ProductVariant.Price,
                 ProductId = oi.ProductVariant.ProductId,
                 Title = oi.ProductVariant.Title,
