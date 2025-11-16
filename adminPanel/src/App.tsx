@@ -15,6 +15,8 @@ import OrdersPage from './pages/orders';
 import AdminProfilesPage from './pages/admins';
 import AuthProvider from './features/auth/contexts/AuthProvider';
 import WarehousesOrdersPage from './pages/warehousesOrders';
+import ProductsEditOrAddPage from './pages/productEditPage';
+import ProductDetailsPage from './pages/productDetails';
 import { Toaster } from 'sonner';
 function App() {
 
@@ -38,6 +40,8 @@ function App() {
             <Route path='/reviews' element={<ReviewsPage />} />
             <Route path='/reviews-buyer' element={<ReviewsPage />} />//by id
             <Route path='/products' element={<ProductsPage />} />//by id
+            <Route path='/productsEditOrAdd' element={<ProductsEditOrAddPage />} />
+            <Route path='/product-details' element={<ProductDetailsPage />} />
             <Route path='/categories' element={<CategoryManager />} />
             <Route path='/admins' element={<AdminProfilesPage />} />
             <Route path='*' element={<Login />} />

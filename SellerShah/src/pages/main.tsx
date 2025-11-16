@@ -4,7 +4,6 @@ import type { AdaptiveTableColumn } from "@/components/custom/adaptive-table";
 import Navbar from "../components/custom/Navbar/navbar";
 import Footer from "../components/custom/footer";
 import { AppSidebar } from "@/components/custom/sidebar";
-import { useNavigate } from "react-router-dom";
 import {
   BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, PieChart, Pie, Cell
 } from "recharts";
@@ -131,11 +130,7 @@ function OrderDetailsModal({ order }: { order: Order }) {
 }
 
 export default function Main() {
-  const navigator = useNavigate();
-  const [goods, setGoods] = useState<Product[]>([]); // unused, but kept for now
   const [orderData] = useState<Order[]>(initialOrderData);
-
-
 
   const orderColumns: AdaptiveTableColumn<Order>[] = [
     {
@@ -204,18 +199,6 @@ export default function Main() {
     { name: "United Kingdom", percent: 69 },
     { name: "Russia", percent: 35 },
   ];
-
-  type Product = {
-    id: number;
-    productName: string;
-    subcategory: string;
-    status: string;
-    price: string;
-    quantity: string;
-    totalPrice: string;
-    destination: string;
-  };
-
 
   return (
     <>

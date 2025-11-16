@@ -1009,8 +1009,8 @@ export default function ProductPage() {
                 {uploadingImages && (
                   <p className="text-xs text-blue-600 mt-1">{t('Uploading images...')}</p>
                 )}
-                {existingImageUrls.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-2">
+                {(existingImageUrls.length > 0 || previewUrls.length > 0) && (
+                  <div className="flex flex-row gap-2 mt-2 overflow-x-auto">
                     {existingImageUrls.map((url, idx) => (
                       <div key={`existing-${idx}`} className="relative group">
                         <img src={url} alt={t('Existing image')} className="w-20 h-20 object-cover rounded border" />
@@ -1026,10 +1026,6 @@ export default function ProductPage() {
                         )}
                       </div>
                     ))}
-                  </div>
-                )}
-                {previewUrls.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-2">
                     {previewUrls.map((url, idx) => (
                       <div key={`new-${idx}`} className="relative group">
                         <img

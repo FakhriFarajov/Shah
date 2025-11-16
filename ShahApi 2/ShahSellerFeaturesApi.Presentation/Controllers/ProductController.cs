@@ -140,5 +140,17 @@ namespace ShahSellerFeaturesApi.Presentation.Controllers
             var result = await _productService.GetAllPaginatedProductAsync(store.Id, page, pageSize, categoryId, includeChildCategories);
             return StatusCode(result.StatusCode, result);
         }
+
+        [Authorize(Policy = "SellerPolicy")]
+        [HttpGet("{id}/stats")]
+        public async Task<IActionResult> GetProductStatistics(string id, [FromQuery] string? productVariantId = null)
+        {
+            var sellerProfileId = User?.Claims?.FirstOrDefault(c => c.Type == "seller_profile_id")?.Value;
+            if (string.IsNullOrWhiteSpace(sellerProfileId))
+                return BadRequest("Seller profile not found in token.");
+
+            var result = await _productService.GetProductStatisticsAsync(id, sellerProfileId, productVariantId);
+            return StatusCode(result.StatusCode, result);
+        }
     }
 }

@@ -13,7 +13,7 @@ namespace ShahAdminFeaturesApi.Core.Models
         public ICollection<Review> Reviews { get; set; } = new List<Review>();
         public ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
 
-        // Allow multiple payments per buyer
-        public ICollection<OrderPayment> OrderPayments { get; set; } = new List<OrderPayment>();
+        public string? OrderPaymentId { get; set; }
+        public OrderPayment? OrderPayment { get; set; }
     }
 }

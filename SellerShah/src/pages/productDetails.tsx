@@ -2,7 +2,6 @@ import Navbar from "../components/custom/Navbar/navbar";
 import Footer from "../components/custom/footer";
 import { AppSidebar } from "@/components/custom/sidebar";
 import { Bar } from "react-chartjs-2";
-import { Button } from "@/components/ui/button";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -12,202 +11,205 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-
+import { useEffect, useState } from "react";
+import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
+import { getProductStatistics } from "@/features/profile/Product/Product.service";
+import { useSearchParams } from "react-router-dom";
+import { getProfileImage } from "@/shared/utils/imagePost";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-// Demo product data
-const demoProduct = {
-  id: "p1",
-  title: "Sample Product",
-  description: "This is a sample product description.",
-  price: 99.99,
-  stock: 50,
-  weight: 1.5,
-  height: 10,
-  width: 5,
-  depth: 2,
-  category: "Electronics",
-  subcategory: "Phones",
-  images: [
-    "https://via.placeholder.com/150",
-    "https://via.placeholder.com/150/6366f1/fff?text=Image+2",
-    "https://via.placeholder.com/150/10b981/fff?text=Image+3"
-  ],
-  isVerified: true,
-  reviews: [
-    { id: "r1", rating: 4, comment: "Great product!" },
-    { id: "r2", rating: 5, comment: "Excellent!" },
-    { id: "r3", rating: 3, comment: "Good, but could be better." },
-  ],
-  variants: [
-    {
-      id: "v1",
-      price: 89.99,
-      stock: 20,
-      weight: 1.2,
-      attributeValues: [
-        { attributeValueId: "color-red" },
-        { attributeValueId: "storage-64gb" },
-      ],
-      images: [
-        "https://via.placeholder.com/150/ff0000/fff?text=Red",
-        "https://via.placeholder.com/150/00ff00/fff?text=Green",
-      ],
-    },
-    {
-      id: "v2",
-      price: 99.99,
-      stock: 30,
-      weight: 1.5,
-      attributeValues: [
-        { attributeValueId: "color-blue" },
-        { attributeValueId: "storage-128gb" },
-      ],
-      images: [
-        "https://via.placeholder.com/150/0000ff/fff?text=Blue",
-        "https://via.placeholder.com/150/ffff00/fff?text=Yellow",
-      ],
-    },
-  ],
-};
 
-const salesData = {
-  labels: ["2020", "2021", "2022", "2023", "2024", "2025"],
-  datasets: [
-    {
-      label: "Sales",
-      data: [120, 180, 150, 210, 300, 250],
-      backgroundColor: "#6366f1",
-      borderRadius: 8,
+
+
+export default function ProductDetailsPage() {
+  const [searchParams] = useSearchParams();
+  const productId = searchParams.get("productId") || "";
+  const productVariantId = searchParams.get("productVariantId") || "";
+  const [details, setDetails] = useState<any | null>(null);
+
+  useEffect(() => {
+    async function fetchDetails() {
+      try {
+        var result = await apiCallWithManualRefresh(() => getProductStatistics(productId, productVariantId));
+        // Resolve review image URLs asynchronously
+        if (result.data?.reviews?.latest) {
+          result.data.reviews.latest = await Promise.all(
+            result.data.reviews.latest.map(async (review: any) => {
+              const resolvedImages = Array.isArray(review.images)
+                ? await Promise.all(
+                  review.images.map(async (img: string) => {
+                    try {
+                      const url = await getProfileImage(img);
+                      return url || img;
+                    } catch {
+                      return img;
+                    }
+                  })
+                )
+                : [];
+              return { ...review, images: resolvedImages };
+            })
+          );
+        }
+        setDetails(result.data);
+      } catch (error) {
+        console.error("Failed to fetch product details:", error);
+      }
+    }
+    fetchDetails();
+  }, []);
+
+  if (!details) return <div>Loading...</div>;
+
+  // Prepare chart data for orders and revenue
+  const chartLabels = ["Last 1 Day", "Last 30 Days", "Last 1 Year"];
+  const ordersData = [details.last1Day.orders, details.last30Days.orders, details.last1Year.orders];
+  const revenueData = [details.last1Day.revenue, details.last30Days.revenue, details.last1Year.revenue];
+
+  const ordersChart = {
+    labels: chartLabels,
+    datasets: [
+      {
+        label: "Orders",
+        data: ordersData,
+        backgroundColor: "#6366f1",
+        borderRadius: 8,
+      },
+    ],
+  };
+  const revenueChart = {
+    labels: chartLabels,
+    datasets: [
+      {
+        label: "Revenue",
+        data: revenueData,
+        backgroundColor: "#10b981",
+        borderRadius: 8,
+      },
+    ],
+  };
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      title: { display: false },
     },
-  ],
-};
-const chartOptions = {
-  responsive: true,
-  plugins: {
-    legend: { display: false },
-    title: { display: false },
-  },
-  scales: {
-    y: { beginAtZero: true, grid: { color: "#f3f4f6" } },
-    x: { grid: { color: "#f3f4f6" } },
-  },
-};
-
-export default function ProductDetailsPage() {// We must accept the id of the product via route params and fetch real data based on that id
-
+    scales: {
+      y: { beginAtZero: true, grid: { color: "#f3f4f6" } },
+      x: { grid: { color: "#f3f4f6" } },
+    },
+  };
 
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gray-50 flex">
+      <div className="min-h-screen flex flex-col md:flex-row">
         <AppSidebar />
         <div className="flex-1 py-8 px-2 md:px-8">
-          <div className="max-w-4xl mx-auto mt-8 mb-8 p-8 bg-white rounded-2xl shadow-xl border flex flex-col gap-8">
-            <div className=" flex justify-start items-left">
-              <Button
-                type="button"
-                variant="outline"
-                className="mb-4 ml-0 mr-auto"
-                onClick={() => window.history.back()}
-              >
-                ← Back
-              </Button>
+          <div className="max-w-4xl mx-auto mb-8">
+            <h1 className="text-3xl font-extrabold text-gray-900 mb-2 tracking-tight">Product Details</h1>
+            <p className="text-lg text-gray-500 mb-4">Product ID: {details.productId}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <div className="bg-white rounded-xl shadow p-6 flex flex-col items-start">
+                <h2 className="text-xl font-bold mb-2 text-indigo-700">Totals</h2>
+                <div>Orders: {details.totals.orders}</div>
+                <div>Items: {details.totals.items}</div>
+                <div>Delivered Items: {details.totals.deliveredItems}</div>
+                <div>Cancelled Items: {details.totals.cancelledItems}</div>
+                <div>Revenue: ${details.totals.revenue}</div>
+              </div>
+              <div className="bg-white rounded-xl shadow p-6 flex flex-col items-start">
+                <h2 className="text-xl font-bold mb-2 text-indigo-700">Inventory</h2>
+                <div>Stock Available: {details.inventory.stockAvailable}</div>
+                <div>Min Price: ${details.inventory.minPrice}</div>
+                <div>Max Price: ${details.inventory.maxPrice}</div>
+                <div>Favorites: {details.favorites}</div>
+              </div>
+              <div className="bg-white rounded-xl shadow p-6 flex flex-col items-start">
+                <h2 className="text-xl font-bold mb-2 text-indigo-700">Ratings</h2>
+                <div>Average: {details.ratings.average}</div>
+                <div>Count: {details.ratings.count}</div>
+              </div>
+              <div className="bg-white rounded-xl shadow p-6 flex flex-col items-start">
+                <h2 className="text-xl font-bold mb-2 text-indigo-700">Top Variant</h2>
+                {details.topVariants.map((v: any) => (
+                  <div key={v.productVariantId}>
+                    <div>Title: {v.title}</div>
+                    <div>Quantity: {v.quantity}</div>
+                  </div>
+                ))}
+              </div>
             </div>
-            {/* Product Images */}
-            {/* Product Info & Stats */}
-            <div className="flex-1 flex flex-col gap-4">
-              <div className="flex items-center gap-2">
-                <h2 className="text-2xl font-bold text-gray-800">{demoProduct.title}</h2>
-                {demoProduct.isVerified ? (
-                  <span className="bg-green-500 text-white px-2 py-1 rounded text-xs">Verified</span>
-                ) : (
-                  <span className="bg-red-500 text-white px-2 py-1 rounded text-xs">Unverified</span>
-                )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <div className="bg-white rounded-xl shadow p-6 flex flex-col items-center">
+                <h2 className="text-lg font-bold mb-4 text-indigo-700">Orders (Last 1 Day, 30 Days, 1 Year)</h2>
+                <Bar data={ordersChart} options={chartOptions} className="w-full" />
               </div>
-              <div className="flex gap-2 mt-2">
-                {/* {categories.map(cat => (
-                  <span key={cat.id} className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-xs">
-                    {cat.name}
-                  </span>
-                ))} */}
+              <div className="bg-white rounded-xl shadow p-6 flex flex-col items-center">
+                <h2 className="text-lg font-bold mb-4 text-green-700">Revenue (Last 1 Day, 30 Days, 1 Year)</h2>
+                <Bar data={revenueChart} options={chartOptions} className="w-full" />
               </div>
-              <p className="text-gray-600 mb-2">{demoProduct.description}</p>
-              <div className="flex flex-wrap gap-4 text-sm">
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-white rounded-xl shadow p-6">
+                <h2 className="text-lg font-bold mb-2 text-indigo-700">Last 1 Day</h2>
+                <div>Orders: {details.last1Day.orders}</div>
+                <div>Items: {details.last1Day.items}</div>
+                <div>Delivered Items: {details.last1Day.deliveredItems}</div>
+                <div>Revenue: ${details.last1Day.revenue}</div>
               </div>
-              {/* Statistics */}
-              <div className="flex flex-col md:flex-row gap-8 mt-6">
-                <div className="flex-1 flex flex-col gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-3xl font-bold text-indigo-600">
-                      {demoProduct.reviews.length > 0
-                        ? (
-                          demoProduct.reviews.reduce((acc, r) => acc + r.rating, 0) / demoProduct.reviews.length
-                        ).toFixed(1)
-                        : "-"}
-                    </span>
-                    <span className="text-yellow-400 text-xl">★</span>
-                    <span className="text-gray-500">({demoProduct.reviews.length} reviews)</span>
-                  </div>
-                  <span className="text-gray-400 text-xs">Average Rating</span>
-                  <div className="mt-2 text-lg font-semibold text-gray-700">Total Sales: 120</div>
-                </div>
-                <div className="flex-1 min-w-[250px]">
-                  <Bar data={salesData} options={chartOptions} height={180} />
-                </div>
+              <div className="bg-white rounded-xl shadow p-6">
+                <h2 className="text-lg font-bold mb-2 text-indigo-700">Last 30 Days</h2>
+                <div>Orders: {details.last30Days.orders}</div>
+                <div>Items: {details.last30Days.items}</div>
+                <div>Delivered Items: {details.last30Days.deliveredItems}</div>
+                <div>Revenue: ${details.last30Days.revenue}</div>
               </div>
-              {/* Recent Reviews */}
-              <div className="mt-8">
-                <h3 className="text-lg font-bold text-gray-700 mb-2">Recent Reviews</h3>
-                <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-2">
-                  {demoProduct.reviews.length === 0 ? (
-                    <span className="text-gray-400">No reviews yet.</span>
-                  ) : (
-                    demoProduct.reviews.slice(0, 3).map((review) => (
-                      <div key={review.id} className="bg-gray-50 rounded p-3 border flex flex-col gap-1">
-                        <span className="text-yellow-400">{"★".repeat(review.rating)}<span className="text-gray-300">{"★".repeat(5 - review.rating)}</span></span>
-                        <span className="text-gray-700 text-sm">{review.comment}</span>
-                      </div>
-                    ))
-                  )}
-                </div>
+              <div className="bg-white rounded-xl shadow p-6">
+                <h2 className="text-lg font-bold mb-2 text-indigo-700">Last 1 Year</h2>
+                <div>Orders: {details.last1Year.orders}</div>
+                <div>Items: {details.last1Year.items}</div>
+                <div>Delivered Items: {details.last1Year.deliveredItems}</div>
+                <div>Revenue: ${details.last1Year.revenue}</div>
               </div>
-              {/* Variants Section */}
-              {demoProduct.variants && demoProduct.variants.length > 0 && (
-                <div className="mt-8">
-                  <h3 className="text-lg font-bold text-gray-700 mb-2">Variants</h3>
-                  <div className="flex flex-col gap-4">
-                    {demoProduct.variants.map((variant, idx) => (
-                      <div key={variant.id || idx} className="bg-gray-50 rounded p-3 border flex flex-col gap-1">
-                        <div className="flex gap-4 flex-wrap">
-                          <span className="bg-gray-100 px-2 py-1 rounded">Price: <b>${variant.price}</b></span>
-                          <span className="bg-gray-100 px-2 py-1 rounded">Stock: <b>{variant.stock}</b></span>
-                          <span className="bg-gray-100 px-2 py-1 rounded">Weight: <b>{variant.weight}kg</b></span>
-                          {/* Add more fields as needed */}
-                        </div>
-                        {/* Attributes */}
-                        <div className="flex gap-2 mt-2 flex-wrap">
-                          {variant.attributeValues && variant.attributeValues.map((attr, i) => (
-                            <span key={i} className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-xs">
-                              {attr.attributeValueId}
-                            </span>
-                          ))}
-                        </div>
-                        {/* Images */}
-                        <div className="flex gap-2 mt-2">
-                          {variant.images && variant.images.map((img, i) => (
-                            <img key={i} src={img} alt={`Variant ${idx + 1} Image`} className="w-12 h-12 object-cover rounded border" />
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
+
+          {/* Reviews Section */}
+          {details?.reviews?.latest && details.reviews.latest.length > 0 && (
+            <div className="mt-10 overflow-x-auto max-w-4xl mx-auto mb-8 px-2">
+              <h2 className="text-2xl font-bold mb-4 text-indigo-700">Latest Reviews</h2>
+              <div className="flex gap-6 overflow-x-auto pb-2" style={{scrollbarWidth: 'thin'}}>
+                {details.reviews.latest.map((review: any) => (
+                  <div key={review.id} className="bg-white rounded-xl shadow p-6 flex flex-col gap-2 min-w-[300px]">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="font-semibold text-lg text-indigo-600">{review.productVariantTitle}</span>
+                      <span className="text-yellow-500">{'★'.repeat(review.rating)}</span>
+                    </div>
+                    <div className="text-gray-700 mb-2">{review.comment}</div>
+                    <div className="text-xs text-gray-400 mb-2">{new Date(review.createdAt).toLocaleString()}</div>
+                    {/* Images resolver */}
+                    {review.images && review.images.length > 0 && (
+                      <div className="flex gap-2 flex-wrap mt-2">
+                        {review.images.map((imgUrl: string, idx: number) => (
+                          <img
+                            key={idx}
+                            src={imgUrl}
+                            alt={`Review image ${idx + 1}`}
+                            className="w-20 h-20 object-cover rounded-lg border"
+                            onError={e => (e.currentTarget.src = '/vite.svg')}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
+
       </div>
       <Footer />
     </>

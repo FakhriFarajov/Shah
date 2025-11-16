@@ -81,45 +81,46 @@ const OrdersSection: React.FC<OrdersSectionProps> = ({ orderStatusFilter, setOrd
 
     async function load() {
       try {
-          const res = await apiCallWithManualRefresh(() => getOrders());
-          const summaries: any[] = Array.isArray(res)
-            ? res
-            : Array.isArray((res as any)?.data)
+        const res = await apiCallWithManualRefresh(() => getOrders());
+        const summaries: any[] = Array.isArray(res)
+          ? res
+          : Array.isArray((res as any)?.data)
             ? (res as any).data
             : [];
 
-          const details: OrderData[] = await Promise.all(
-            summaries.map(async (s: any) => {
-              const id = s?.id ?? s?.orderId ?? s?.ID;
-              const detailRes = await apiCallWithManualRefresh(() => getOrderDetails(id));
-              const orderData: any = (detailRes as any)?.data ?? detailRes;
+            
+        const details: OrderData[] = await Promise.all(
+          summaries.map(async (s: any) => {
+            const id = s?.id ?? s?.orderId ?? s?.ID;
+            const detailRes = await apiCallWithManualRefresh(() => getOrderDetails(id));
+            const orderData: any = (detailRes as any)?.data ?? detailRes;
 
-              // Resolve item image URLs
-              const normalizedItems = Array.isArray(orderData?.items)
-                ? await Promise.all(
-                    (orderData.items as OrderItem[]).map(async (it) => {
-                      const resolvedImages = Array.isArray(it.images)
-                        ? await Promise.all(
-                            it.images.map(async (img) => {
-                              try {
-                                const url = await getProfileImage(img.imageUrl);
-                                return { ...img, imageUrl: url || img.imageUrl };
-                              } catch {
-                                return img;
-                              }
-                            })
-                          )
-                        : [];
-                      return { ...it, images: resolvedImages };
-                    })
-                  )
-                : [];
+            // Resolve item image URLs
+            const normalizedItems = Array.isArray(orderData?.items)
+              ? await Promise.all(
+                (orderData.items as OrderItem[]).map(async (it) => {
+                  const resolvedImages = Array.isArray(it.images)
+                    ? await Promise.all(
+                      it.images.map(async (img) => {
+                        try {
+                          const url = await getProfileImage(img.imageUrl);
+                          return { ...img, imageUrl: url || img.imageUrl };
+                        } catch {
+                          return img;
+                        }
+                      })
+                    )
+                    : [];
+                  return { ...it, images: resolvedImages };
+                })
+              )
+              : [];
 
-              return { ...orderData, items: normalizedItems } as OrderData;
-            })
-          );
+            return { ...orderData, items: normalizedItems } as OrderData;
+          })
+        );
 
-          if (!cancelled) setOrderHistory(details);
+        if (!cancelled) setOrderHistory(details);
       } catch (e) {
         if (!cancelled) {
           console.error("Failed to load orders:", e);
@@ -146,9 +147,10 @@ const OrdersSection: React.FC<OrdersSectionProps> = ({ orderStatusFilter, setOrd
   function getItemStatusInfo(status: number) {
     switch (status) {
       case 0: return { label: "Pending", color: "bg-yellow-200" };
-      case 1: return { label: "Shipped", color: "bg-blue-200" };
-      case 2: return { label: "Delivered", color: "bg-green-200" };
-      case 3: return { label: "Cancelled", color: "bg-red-200" };
+      case 1: return { label: "Processing", color: "bg-indigo-200" };
+      case 2: return { label: "Shipped", color: "bg-blue-200" };
+      case 3: return { label: "Delivered", color: "bg-green-200" };
+      case 4: return { label: "Cancelled", color: "bg-red-200" };
       default: return { label: "Unknown", color: "bg-gray-200" };
     }
   }
@@ -171,61 +173,79 @@ const OrdersSection: React.FC<OrdersSectionProps> = ({ orderStatusFilter, setOrd
               onChange={(e) => setOrderStatusFilter(e.target.value)}
             >
               <option value="">All</option>
-              <option value="0">Pending</option>
-              <option value="1">Shipped</option>
-              <option value="2">Delivered</option>
-              <option value="3">Cancelled</option>
+              {[
+                { value: 0, label: "Pending" },
+                { value: 1, label: "Processing" },
+                { value: 2, label: "Shipped" },
+                { value: 3, label: "Delivered" },
+                { value: 4, label: "Cancelled" },
+              ].map((status) => (
+                <option key={status.value} value={status.value}>
+                  {status.label}
+                </option>
+              ))}
+              {[
+                { value: 5, label: "Returned" }
+              ].map((status) => (
+                <option key={status.value} value={status.value}>
+                  {status.label}
+                </option>
+              ))}
             </select>
           </div>
 
-          <ul className="divide-y">
-            {filteredOrders.map((order) => (
-              <li key={order.id} className="py-2">
-                <div className="flex justify-between items-center">
-                  <span className="font-medium">Order #{order.id}</span>
-                  <span>{new Date(order.createdAt).toLocaleString()}</span>
-                  <span className="text-xs px-2 py-1 rounded bg-gray-100">Total: ${order.totalAmount}</span>
-                </div>
 
-                <div className="ml-2 mt-1">
-                  <span className="font-semibold">Items:</span>
-                  <ul className="ml-4 list-disc">
-                    {order.items.map((item) => {
-                      const statusInfo = getItemStatusInfo(item.status);
-                      return (
-                        <li key={item.id} className="flex items-center gap-2 mb-2">
-                          <div className="flex items-center gap-2" style={{ display: 'inline-flex', alignItems: 'center' }}>
-                            {item.images && item.images.length > 0 ? (
-                              <img
-                                src={item.images[0].imageUrl}
-                                alt={item.title}
-                                className="w-10 h-10 object-cover rounded mr-2 border"
-                                style={{ minWidth: 40, minHeight: 40 }}
-                              />
-                            ) : (
-                              <span
-                                className="w-10 h-10 flex items-center justify-center bg-gray-100 text-gray-400 rounded mr-2 border"
-                                style={{ minWidth: 40, minHeight: 40 }}
-                              >
-                                <MdAccountCircle size={32} />
-                              </span>
-                            )}
-                            <span>{item.title}</span>
-                          </div>
-                          <span className="ml-2">
-                            x{item.quantity} (${item.price})
-                          </span>
-                          <span className={`ml-2 text-xs px-2 py-1 rounded ${statusInfo.color}`}>
-                            {statusInfo.label}
-                          </span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <div className="max-h-[60vh] overflow-y-auto">
+            <ul className="divide-y">
+              {filteredOrders.map((order) => (
+                <li key={order.id} className="py-2">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium">Order #{order.id}</span>
+                    <span>{new Date(order.createdAt).toLocaleString()}</span>
+                    <span className="text-xs px-2 py-1 rounded bg-gray-100">Total: ${order.totalAmount}</span>
+                  </div>
+
+                  <div className="ml-2 mt-1">
+                    <span className="font-semibold">Items:</span>
+                    <ul className="ml-4 list-disc">
+                      {order.items.map((item) => {
+                        const statusInfo = getItemStatusInfo(item.status);
+                        return (
+                          <li key={item.id} className="flex items-center gap-2 mb-2">
+                            <div className="flex items-center gap-2" style={{ display: 'inline-flex', alignItems: 'center' }}>
+                              {item.images && item.images.length > 0 ? (
+                                <img
+                                  src={item.images[0].imageUrl}
+                                  alt={item.title}
+                                  className="w-10 h-10 object-cover rounded mr-2 border"
+                                  style={{ minWidth: 40, minHeight: 40 }}
+                                />
+                              ) : (
+                                <span
+                                  className="w-10 h-10 flex items-center justify-center bg-gray-100 text-gray-400 rounded mr-2 border"
+                                  style={{ minWidth: 40, minHeight: 40 }}
+                                >
+                                  <MdAccountCircle size={32} />
+                                </span>
+                              )}
+                              <span>{item.title}</span>
+                            </div>
+                            <span className="ml-2">
+                              x{item.quantity} (${item.price})
+                            </span>
+                            <span className={`ml-2 text-xs px-2 py-1 rounded ${statusInfo.color}`}>
+                              {statusInfo.label}
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+
         </CardContent>
       </Card>
     </div>

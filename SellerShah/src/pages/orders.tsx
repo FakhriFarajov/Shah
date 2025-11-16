@@ -51,7 +51,7 @@ export default function OrdersPage() {
       setLoading(true);
       try {
         // Pass page and pageSize to getOrders
-        const res = await apiCallWithManualRefresh(() => getOrders({ page, pageSize }));
+        const res = await apiCallWithManualRefresh(() => getOrders(page, pageSize));
         const data = res?.data || [];
 		 console.log("Fetched orders data:", data);
         setTotalPages(res?.totalPages || 1);

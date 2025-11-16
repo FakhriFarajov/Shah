@@ -13,7 +13,9 @@
           "Minio.AspNetCore": "6.0.1",
           "Scalar.AspNetCore": "2.7.2",
           "ShahAdminFeaturesApi.Application": "1.0.0",
+          "ShahAdminFeaturesApi.Core": "1.0.0",
           "ShahAuthApi.Application": "1.0.0",
+          "ShahSellerFeaturesApi.Core": "1.0.0",
           "SixLabors.ImageSharp": "3.1.11"
         },
         "runtime": {
@@ -1388,6 +1390,19 @@
             "fileVersion": "1.0.0.0"
           }
         }
+      },
+      "ShahSellerFeaturesApi.Core/1.0.0": {
+        "dependencies": {
+          "Microsoft.EntityFrameworkCore": "9.0.8",
+          "Minio.AspNetCore": "6.0.1",
+          "SixLabors.ImageSharp": "3.1.11"
+        },
+        "runtime": {
+          "ShahSellerFeaturesApi.Core.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
       }
     }
   },
@@ -2221,6 +2236,11 @@
       "sha512": ""
     },
     "ShahAuthApi.Infrastructure/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "ShahSellerFeaturesApi.Core/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

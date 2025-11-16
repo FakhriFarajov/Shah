@@ -11,7 +11,7 @@ namespace ShahAdminFeaturesApi.Infrastructure.Configurations
             builder.HasKey(w => w.Id);
             builder.Property(w => w.Id).IsRequired().HasMaxLength(36);
             builder.Property(w => w.AddressId).HasMaxLength(36);
-            builder.Property(w => w.Capacity).IsRequired();
+            
             
             builder.HasOne(w => w.Address)
                    .WithOne(a => a.Warehouse)

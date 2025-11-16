@@ -8,7 +8,6 @@ namespace ShahSellerFeaturesApi.Presentation.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Policy = "SellerPolicy")]
 public class OrdersController : ControllerBase
 {
     private readonly ISellerOrderService _sellerOrderService;

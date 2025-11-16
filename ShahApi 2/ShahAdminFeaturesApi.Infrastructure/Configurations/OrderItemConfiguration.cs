@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using ShahAdminFeaturesApi.Core.Models;
 using ShahAdminFeaturesApi.Core.Enums;
+using ShahAdminFeaturesApi.Core.Models;
 
 namespace ShahAdminFeaturesApi.Infrastructure.Configurations
 {

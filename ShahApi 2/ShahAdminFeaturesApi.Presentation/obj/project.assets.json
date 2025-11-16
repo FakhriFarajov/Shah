@@ -2367,6 +2367,21 @@
         "frameworkReferences": [
           "Microsoft.AspNetCore.App"
         ]
+      },
+      "ShahSellerFeaturesApi.Core/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "dependencies": {
+          "Microsoft.EntityFrameworkCore": "9.0.8",
+          "Minio.AspNetCore": "6.0.1",
+          "SixLabors.ImageSharp": "3.1.11"
+        },
+        "compile": {
+          "bin/placeholder/ShahSellerFeaturesApi.Core.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/ShahSellerFeaturesApi.Core.dll": {}
+        }
       }
     }
   },
@@ -6171,6 +6186,11 @@
       "type": "project",
       "path": "../ShahAuthApi.Infrastructure/ShahAuthApi.Infrastructure.csproj",
       "msbuildProject": "../ShahAuthApi.Infrastructure/ShahAuthApi.Infrastructure.csproj"
+    },
+    "ShahSellerFeaturesApi.Core/1.0.0": {
+      "type": "project",
+      "path": "../ShahSellerFeaturesApi.Core/ShahSellerFeaturesApi.Core.csproj",
+      "msbuildProject": "../ShahSellerFeaturesApi.Core/ShahSellerFeaturesApi.Core.csproj"
     }
   },
   "projectFileDependencyGroups": {
@@ -6180,7 +6200,9 @@
       "Minio.AspNetCore >= 6.0.1",
       "Scalar.AspNetCore >= 2.7.2",
       "ShahAdminFeaturesApi.Application >= 1.0.0",
+      "ShahAdminFeaturesApi.Core >= 1.0.0",
       "ShahAuthApi.Application >= 1.0.0",
+      "ShahSellerFeaturesApi.Core >= 1.0.0",
       "SixLabors.ImageSharp >= 3.1.11"
     ]
   },
@@ -6212,8 +6234,14 @@
             "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAdminFeaturesApi.Application/ShahAdminFeaturesApi.Application.csproj": {
               "projectPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAdminFeaturesApi.Application/ShahAdminFeaturesApi.Application.csproj"
             },
+            "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAdminFeaturesApi.Core/ShahAdminFeaturesApi.Core.csproj": {
+              "projectPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAdminFeaturesApi.Core/ShahAdminFeaturesApi.Core.csproj"
+            },
             "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Application/ShahAuthApi.Application.csproj": {
               "projectPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Application/ShahAuthApi.Application.csproj"
+            },
+            "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahSellerFeaturesApi.Core/ShahSellerFeaturesApi.Core.csproj": {
+              "projectPath": "/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahSellerFeaturesApi.Core/ShahSellerFeaturesApi.Core.csproj"
             }
           }
         }

@@ -25,3 +25,11 @@ export async function syncProduct(id: string, payload: ProductSyncRequest): Prom
   console.log("sync response", response);
   return response;
 }
+
+// Get product statistics for a seller
+export async function getProductStatistics(productId: string, productVariantId?: string): Promise<any> {
+  const params: Record<string, string> = {};
+  if (productVariantId) params.productVariantId = productVariantId;
+  const response = await authHttp.get(`/${productId}/stats`, { params });
+  return response;
+}

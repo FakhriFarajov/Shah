@@ -85,7 +85,7 @@ public class SellerOrderService : ISellerOrderService
                 o.CreatedAt,
                 o.UpdatedAt,
                 o.TotalAmount,
-                Receipt = o.Receipt != null ? new { o.Receipt.Id, o.Receipt.FileUrl, o.Receipt.IssuedAt } : null,
+                Receipt = o.Receipt != null ? new { o.Receipt.Id, File = o.Receipt.File, o.Receipt.IssuedAt } : null,
                 Payment = o.OrderPayment != null ? new { o.OrderPayment.Id, o.OrderPayment.Status, o.OrderPayment.Method, o.OrderPayment.TotalAmount, o.OrderPayment.Currency } : null,
                 Items = o.OrderItems
                     .Where(oi => oi.ProductVariant.Product.StoreInfoId == storeId)
@@ -122,7 +122,7 @@ public class SellerOrderService : ISellerOrderService
                 o.CreatedAt,
                 o.UpdatedAt,
                 o.TotalAmount,
-                Receipt = o.Receipt != null ? new { o.Receipt.Id, o.Receipt.FileUrl, o.Receipt.IssuedAt } : null,
+                Receipt = o.Receipt != null ? new { o.Receipt.Id, File = o.Receipt.File, o.Receipt.IssuedAt } : null,
                 Payment = o.OrderPayment != null ? new { o.OrderPayment.Id, o.OrderPayment.Status, o.OrderPayment.Method, o.OrderPayment.TotalAmount, o.OrderPayment.Currency } : null,
                 Items = o.OrderItems
                     .Where(oi => oi.ProductVariant.Product.StoreInfoId == storeId)

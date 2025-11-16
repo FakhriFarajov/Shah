@@ -9,6 +9,7 @@ function useCountUp(target: number, duration = 1000, decimals = 0) {
     const [count, setCount] = useState(0);
     const startTimestamp = useRef<number | null>(null);
 
+    
     //Effect to handle the counting animation
     useEffect(() => {
         function step(timestamp: number) {

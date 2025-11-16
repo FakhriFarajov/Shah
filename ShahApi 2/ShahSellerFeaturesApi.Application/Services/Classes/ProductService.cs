@@ -5,6 +5,7 @@ using ShahSellerFeaturesApi.Core.DTOs.Request;
 using ShahSellerFeaturesApi.Core.DTOs.Response;
 using ShahSellerFeaturesApi.Infrastructure.Contexts;
 using ShahSellerFeaturesApi.Core.Models;
+using ShahSellerFeaturesApi.Core.Enums;
 
 namespace ShahSellerFeaturesApi.Application.Services.Classes;
 
@@ -16,7 +17,6 @@ public class ProductService : IProductService
     {
         _context = context;
     }
-
     public async Task<TypedResult<object>> AddProductAsync(CreateProductRequestDTO request)
     {
         // Basic existence checks
@@ -134,7 +134,6 @@ public class ProductService : IProductService
             return TypedResult<object>.Error($"Failed to add product: {ex.Message}", 500);
         }
     }
-
     public async Task<TypedResult<object>> GetProductDetailsByIdAsync(string productId) //Correct 
     {
         var product = await _context.Products
@@ -180,7 +179,7 @@ public class ProductService : IProductService
         };
         return TypedResult<object>.Success(result);
     }
-
+    
     public async Task<PaginatedResult<object>> GetAllPaginatedProductAsync(string? storeId = null, int page = 1, int pageSize = 5,
         string? categoryId = null, bool includeChildCategories = true)
     {
@@ -692,6 +691,195 @@ public class ProductService : IProductService
         };
 
         return TypedResult<object>.Success(payload, "Product synchronized successfully");
+    }
+
+    public async Task<TypedResult<object>> GetProductStatisticsAsync(string productId, string sellerProfileId, string? productVariantId = null)
+    {
+        if (string.IsNullOrWhiteSpace(productId))
+            return TypedResult<object>.Error("productId is required", 400);
+        if (string.IsNullOrWhiteSpace(sellerProfileId))
+            return TypedResult<object>.Error("sellerProfileId is required", 400);
+
+        // Verify ownership and fetch minimal info
+        var ownership = await _context.Products
+            .AsNoTracking()
+            .Where(p => p.Id == productId)
+            .Select(p => new { p.Id, p.StoreInfoId, SellerProfileId = p.StoreInfo.SellerProfileId })
+            .FirstOrDefaultAsync();
+
+        if (ownership == null)
+            return TypedResult<object>.Error("Product not found", 404);
+        if (ownership.SellerProfileId != sellerProfileId)
+            return TypedResult<object>.Error("Forbidden", 403);
+
+        // If variantId provided, validate it's part of this product
+        if (!string.IsNullOrWhiteSpace(productVariantId))
+        {
+            var belongs = await _context.ProductVariants.AsNoTracking()
+                .AnyAsync(v => v.Id == productVariantId && v.ProductId == productId);
+            if (!belongs)
+                return TypedResult<object>.Error("Variant does not belong to product", 400);
+        }
+
+        // Base variant set for this product (optionally narrowed to one variant)
+        IQueryable<ProductVariant> variantsQuery = _context.ProductVariants
+            .AsNoTracking()
+            .Where(v => v.ProductId == productId);
+        if (!string.IsNullOrWhiteSpace(productVariantId))
+            variantsQuery = variantsQuery.Where(v => v.Id == productVariantId);
+
+        // Aggregate counts from order items (by item status)
+        IQueryable<OrderItem> orderItemsQuery = _context.OrderItems
+            .AsNoTracking()
+            .Where(oi => oi.ProductVariant.ProductId == productId);
+        if (!string.IsNullOrWhiteSpace(productVariantId))
+            orderItemsQuery = orderItemsQuery.Where(oi => oi.ProductVariantId == productVariantId);
+
+        var totalOrders = await orderItemsQuery.Select(oi => oi.OrderId).Distinct().CountAsync();
+        var totalItems = await orderItemsQuery.SumAsync(oi => oi.Quantity);
+        var deliveredItems = await orderItemsQuery.Where(oi => oi.Status == OrderStatus.Delivered).SumAsync(oi => oi.Quantity);
+        var cancelledItems = await orderItemsQuery.Where(oi => oi.Status == OrderStatus.Cancelled).SumAsync(oi => oi.Quantity);
+
+        // Approx revenue using current variant price
+        var deliveredRevenue = await orderItemsQuery
+            .Where(oi => oi.Status == OrderStatus.Delivered)
+            .Select(oi => oi.Quantity * oi.ProductVariant.Price)
+            .SumAsync();
+
+        // Last 30 days metrics (based on order's CreatedAt)
+        var since = DateTime.UtcNow.AddDays(-30);
+        IQueryable<OrderItem> last30Query = orderItemsQuery.Where(oi => oi.Order.CreatedAt >= since);
+
+        var last30Orders = await last30Query.Select(oi => oi.OrderId).Distinct().CountAsync();
+        var last30Items = await last30Query.SumAsync(oi => oi.Quantity);
+        var last30DeliveredItems = await last30Query
+            .Where(oi => oi.Status == OrderStatus.Delivered)
+            .SumAsync(oi => oi.Quantity);
+        var last30Revenue = await last30Query
+            .Where(oi => oi.Status == OrderStatus.Delivered)
+            .Select(oi => oi.Quantity * oi.ProductVariant.Price)
+            .SumAsync();
+
+        // New: Last 1 Day metrics
+        var since1Day = DateTime.UtcNow.AddDays(-1);
+        IQueryable<OrderItem> last1DayQuery = orderItemsQuery.Where(oi => oi.Order.CreatedAt >= since1Day);
+        var last1DayOrders = await last1DayQuery.Select(oi => oi.OrderId).Distinct().CountAsync();
+        var last1DayItems = await last1DayQuery.SumAsync(oi => oi.Quantity);
+        var last1DayDeliveredItems = await last1DayQuery.Where(oi => oi.Status == OrderStatus.Delivered).SumAsync(oi => oi.Quantity);
+        var last1DayRevenue = await last1DayQuery.Where(oi => oi.Status == OrderStatus.Delivered)
+            .Select(oi => oi.Quantity * oi.ProductVariant.Price)
+            .SumAsync();
+        
+        // New: Last 1 Year metrics
+        var since1Year = DateTime.UtcNow.AddYears(-1);
+        IQueryable<OrderItem> last1YearQuery = orderItemsQuery.Where(oi => oi.Order.CreatedAt >= since1Year);
+        var last1YearOrders = await last1YearQuery.Select(oi => oi.OrderId).Distinct().CountAsync();
+        var last1YearItems = await last1YearQuery.SumAsync(oi => oi.Quantity);
+        var last1YearDeliveredItems = await last1YearQuery.Where(oi => oi.Status == OrderStatus.Delivered).SumAsync(oi => oi.Quantity);
+        var last1YearRevenue = await last1YearQuery.Where(oi => oi.Status == OrderStatus.Delivered)
+            .Select(oi => oi.Quantity * oi.ProductVariant.Price)
+            .SumAsync();
+
+        // Ratings and favorites
+        var reviewsQuery = variantsQuery.SelectMany(v => v.Reviews);
+        var reviewsCount = await reviewsQuery.CountAsync();
+        decimal? averageRating = null;
+        if (reviewsCount > 0)
+        {
+            averageRating = Math.Round(await reviewsQuery.AverageAsync(r => (decimal)r.Rating), 2);
+        }
+        var favoritesCount = await variantsQuery.SelectMany(v => v.Favorites).CountAsync();
+
+        // Stock and price band
+        var stockAvailable = await variantsQuery.SumAsync(v => v.Stock);
+        var minPrice = await variantsQuery.MinAsync(v => (decimal?)v.Price) ?? 0m;
+        var maxPrice = await variantsQuery.MaxAsync(v => (decimal?)v.Price) ?? 0m;
+
+        // Latest reviews (top 20 most recent)
+        var latestReviews = await reviewsQuery
+            .OrderByDescending(r => r.CreatedAt)
+            .Select(r => new
+            {
+                r.Id,
+                r.ProductVariantId,
+                ProductVariantTitle = r.ProductVariant.Title,
+                r.Rating,
+                r.Comment,
+                r.CreatedAt,
+                r.Images,
+                Reviewer = new { r.BuyerProfileId }
+            })
+            .Take(20)
+            .ToListAsync();
+
+        // Top variants by delivered quantity (skipped if filtering by a specific variant)
+        List<object> topVariants;
+        if (string.IsNullOrWhiteSpace(productVariantId))
+        {
+            topVariants = await _context.OrderItems
+                .AsNoTracking()
+                .Where(oi => oi.ProductVariant.ProductId == productId && oi.Status == OrderStatus.Delivered)
+                .GroupBy(oi => new { oi.ProductVariantId, oi.ProductVariant.Title })
+                .Select(g => new { g.Key.ProductVariantId, g.Key.Title, Quantity = g.Sum(x => x.Quantity) })
+                .OrderByDescending(x => x.Quantity)
+                .Take(5)
+                .Cast<object>()
+                .ToListAsync();
+        }
+        else
+        {
+            // Return the specified variant with its delivered quantity summary
+            var singleVariantAgg = await _context.OrderItems
+                .AsNoTracking()
+                .Where(oi => oi.ProductVariantId == productVariantId && oi.Status == OrderStatus.Delivered)
+                .GroupBy(oi => new { oi.ProductVariantId, oi.ProductVariant.Title })
+                .Select(g => new { g.Key.ProductVariantId, g.Key.Title, Quantity = g.Sum(x => x.Quantity) })
+                .FirstOrDefaultAsync();
+            topVariants = new List<object>();
+            if (singleVariantAgg != null) topVariants.Add(singleVariantAgg);
+        }
+
+        var data = new
+        {
+            ProductId = productId,
+            ProductVariantId = productVariantId,
+            Totals = new
+            {
+                Orders = totalOrders,
+                Items = totalItems,
+                DeliveredItems = deliveredItems,
+                CancelledItems = cancelledItems,
+                Revenue = deliveredRevenue
+            },
+            Last1Day = new
+            {
+                Orders = last1DayOrders,
+                Items = last1DayItems,
+                DeliveredItems = last1DayDeliveredItems,
+                Revenue = last1DayRevenue
+            },
+            Last30Days = new
+            {
+                Orders = last30Orders,
+                Items = last30Items,
+                DeliveredItems = last30DeliveredItems,
+                Revenue = last30Revenue
+            },
+            Last1Year = new
+            {
+                Orders = last1YearOrders,
+                Items = last1YearItems,
+                DeliveredItems = last1YearDeliveredItems,
+                Revenue = last1YearRevenue
+            },
+            Ratings = new { Average = averageRating, Count = reviewsCount },
+            Reviews = new { Count = reviewsCount, Average = averageRating, Latest = latestReviews },
+            Favorites = favoritesCount,
+            Inventory = new { StockAvailable = stockAvailable, MinPrice = minPrice, MaxPrice = maxPrice },
+            TopVariants = topVariants
+        };
+
+        return TypedResult<object>.Success(data);
     }
 
     private static IEnumerable<string> GetDescendantIds(string rootId, IEnumerable<dynamic> flat)

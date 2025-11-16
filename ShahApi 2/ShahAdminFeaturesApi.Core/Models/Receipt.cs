@@ -6,8 +6,7 @@ namespace ShahAdminFeaturesApi.Core.Models
         public DateTime IssuedAt { get; set; } = DateTime.Now;
         public decimal Amount { get; set; }
         
-        public string FileUrl { get; set; }
-        public string OrderId { get; set; }
+        public string File { get; set; }
         public Order Order { get; set; } = null!;
     }
 }

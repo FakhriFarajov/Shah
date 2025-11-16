@@ -341,13 +341,6 @@ export default function Checkout() {
                             <span>{t('Total cost')}</span>
                             <span>{total.toFixed(2)}</span>
                         </div>
-                        <textarea
-                            className="w-full border rounded p-2 text-sm mb-3"
-                            placeholder={t('Order note (optional)')}
-                            value={checkoutNote}
-                            onChange={e => setCheckoutNote(e.target.value)}
-                            rows={2}
-                        />
                         <GooglePayButton
                             environment="TEST"
                             paymentRequest={{

@@ -19,8 +19,8 @@ namespace ShahSellerFeaturesApi.Core.Models
         public OrderPayment? OrderPayment { get; set; } = null;
         public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 
-        public string ReceiptId { get; set; }
-        public Receipt Receipt { get; set; } = null!;
+        public string? ReceiptId { get; set; } = null;
+        public Receipt? Receipt { get; set; } = null;
     }
 
 }

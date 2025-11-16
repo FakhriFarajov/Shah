@@ -41,6 +41,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IAttributeService, AttributeService>();
         services.AddScoped<IAttributeValueService, AttributeValueService>();
         services.AddScoped<IAdminOrderService, AdminOrderService>();
+        services.AddScoped<IProductService, ProductService>();
         
         // register mapping profiles from Infrastructure and Application assemblies
         services.AddAutoMapper(ops => ops.AddProfile(typeof(MappingProfile)));

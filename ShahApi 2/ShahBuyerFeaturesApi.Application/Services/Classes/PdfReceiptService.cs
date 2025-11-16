@@ -50,7 +50,12 @@ namespace ShahBuyerFeaturesApi.Application.Services.Classes
 
             // Load order with necessary relations (tracked to allow updates)
             var order = await _db.Orders
-                .Include(o => o.OrderItems).ThenInclude(oi => oi.ProductVariant)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.ProductVariant)
+                        .ThenInclude(pv => pv.Product)
+                            .ThenInclude(p => p.StoreInfo)
+                                .ThenInclude(si => si.SellerProfile)
+                                    .ThenInclude(sp => sp.User)
                 .Include(o => o.BuyerProfile).ThenInclude(bp => bp.User)
                 .Include(o => o.Receipt)
                 .FirstOrDefaultAsync(o => o.Id == orderId && o.BuyerProfileId == buyerProfileId);
@@ -129,12 +134,21 @@ namespace ShahBuyerFeaturesApi.Application.Services.Classes
             // We store only the object name (acts as filename/key in MinIO)
             var objectName = $"receipts/{order.Id}-{now:yyyyMMddHHmmss}.pdf";
 
+            // Derive seller and company info (assuming items from a single store)
+            var firstItem = order.OrderItems.FirstOrDefault();
+            var storeInfo = firstItem?.ProductVariant?.Product?.StoreInfo;
+            var sellerUser = storeInfo?.SellerProfile?.User;
+            var sellerName = sellerUser != null
+                ? ($"{sellerUser.Name} {sellerUser.Surname}").Trim()
+                : null;
+            var companyName = storeInfo?.StoreName;
+
             byte[] pdfBytes = BuildReceiptPdf(order.Id, now, order.TotalAmount, order.OrderItems.Select(i => new ItemRow
             {
                 Title = i.ProductVariant.Title,
                 UnitPrice = i.ProductVariant.Price,
                 Quantity = i.Quantity
-            }).ToList());
+            }).ToList(), sellerName, companyName);
 
             // Ensure bucket exists
             bool exists = await _minio.BucketExistsAsync(new BucketExistsArgs().WithBucket(_bucket));
@@ -241,7 +255,7 @@ namespace ShahBuyerFeaturesApi.Application.Services.Classes
             public decimal LineTotal => UnitPrice * Quantity;
         }
 
-        private static byte[] BuildReceiptPdf(string orderId, DateTime issuedAtUtc, decimal total, IList<ItemRow> items)
+        private static byte[] BuildReceiptPdf(string orderId, DateTime issuedAtUtc, decimal total, IList<ItemRow> items, string? sellerName, string? companyName)
         {
             using var ms = new MemoryStream();
 
@@ -260,6 +274,11 @@ namespace ShahBuyerFeaturesApi.Application.Services.Classes
                         col.Spacing(10);
                         col.Item().Text($"Order ID: {orderId}");
                         col.Item().Text($"Issued At (UTC): {issuedAtUtc:yyyy-MM-dd HH:mm:ss}");
+
+                        if (!string.IsNullOrWhiteSpace(companyName))
+                            col.Item().Text($"Company: {companyName}");
+                        if (!string.IsNullOrWhiteSpace(sellerName))
+                            col.Item().Text($"Seller: {sellerName}");
 
                         col.Item().LineHorizontal(0.5f);
 

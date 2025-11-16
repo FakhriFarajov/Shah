@@ -1,8 +1,8 @@
 import { authHttp } from "@/features/profile/Order/httpClient";
 
 // Get paginated orders (detailed or not)
-export async function getOrders() {
-    var result = await authHttp.get(`/getDetailed`);
+export async function getOrders(page: number, pageSize: number) {
+    var result = await authHttp.get(`/getDetailed?page=${page}&pageSize=${pageSize}`);
     return result;
 }
 

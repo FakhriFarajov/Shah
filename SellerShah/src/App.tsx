@@ -9,7 +9,7 @@ import ProductsPage from './pages/products'
 import OrdersPage from './pages/orders'
 import ReportPage from './pages/report'
 import { Toaster } from 'sonner';
-import ProductDetailsPage from './pages/productsPage'
+import ProductDetailsPage from './pages/productDetails'
 import AuthProvider from './features/auth/contexts/AuthProvider'
 import ProductsEditOrAddPage from './pages/productEditPage'
 

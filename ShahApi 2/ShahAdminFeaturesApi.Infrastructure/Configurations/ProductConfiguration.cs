@@ -1,6 +1,6 @@
+using ShahAdminFeaturesApi.Core.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using ShahAdminFeaturesApi.Core.Models;
 
 namespace ShahAdminFeaturesApi.Infrastructure.Configurations
 {
@@ -13,7 +13,6 @@ namespace ShahAdminFeaturesApi.Infrastructure.Configurations
             builder.Property(p => p.CategoryId).IsRequired().HasMaxLength(36);
             builder.Property(p => p.StoreInfoId).IsRequired().HasMaxLength(36).HasColumnType("nvarchar(36)");
 
-            
             builder.HasOne(p => p.StoreInfo)
                 .WithMany(si => si.Products)
                 .HasForeignKey(p => p.StoreInfoId)

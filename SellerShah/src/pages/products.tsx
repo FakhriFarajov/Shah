@@ -146,7 +146,7 @@ export default function ProductsPage() {
                     <div className="flex flex-wrap gap-3 mt-3 md:mt-0 md:w-1/3 justify-end">
                       <button
                         className="px-4 py-2 rounded-lg bg-gradient-to-tr from-green-400 to-green-600 text-white font-semibold shadow hover:from-green-500 hover:to-green-700 transition"
-                        onClick={() => navigate(`/statistics?productId=${product.id}`)}
+                        onClick={() => navigate(`/product-details?productId=${product.id}`)}
                         title="Statistics"
                       >
                         Statistics

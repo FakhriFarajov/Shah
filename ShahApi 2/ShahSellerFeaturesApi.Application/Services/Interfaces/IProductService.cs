@@ -16,7 +16,8 @@ public interface IProductService
     // Edit and delete
     Task<TypedResult<object>> EditProductAsync(string productId, EditProductRequestDTO request, string sellerProfileId);
     Task<Result> DeleteProductAsync(string productId, string sellerProfileId);
-
     // Sync product
     Task<TypedResult<object>> SyncProductAsync(string productId, SyncProductRequestDTO request, string sellerProfileId);
+    // Statistics
+    Task<TypedResult<object>> GetProductStatisticsAsync(string productId, string sellerProfileId, string? productVariantId = null);
 }

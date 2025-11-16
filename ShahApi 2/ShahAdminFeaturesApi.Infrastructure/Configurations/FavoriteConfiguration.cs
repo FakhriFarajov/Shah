@@ -18,7 +18,7 @@ namespace ShahAdminFeaturesApi.Infrastructure.Configurations
                    .HasForeignKey(f => f.BuyerProfileId)
                    .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasOne(f => f.ProductVariant)
+                   builder.HasOne(f => f.ProductVariant)
                    .WithMany(p => p.Favorites)
                    .HasForeignKey(f => f.ProductVariantId)
                    .OnDelete(DeleteBehavior.Cascade);

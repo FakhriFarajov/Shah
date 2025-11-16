@@ -22,4 +22,5 @@ namespace ShahAdminFeaturesApi.Infrastructure.Configurations
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }
+    
 }
