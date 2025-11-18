@@ -2,9 +2,8 @@ import { useEffect, useState } from "react";
 import Navbar from "../components/custom/Navbar/navbar";
 import { AppSidebar } from "@/components/custom/sidebar";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
-import type { Order, Warehouse } from "@/features/profile/DTOs/admin.interfaces";
+import type { Order } from "@/features/profile/DTOs/admin.interfaces";
 import type { PaginatedResult } from "@/features/profile/DTOs/admin.interfaces";
 import { getAllPaginatedOrders } from "@/features/profile/Warehouses/Warehouses.service";
 import { toast } from "sonner";
@@ -15,18 +14,13 @@ export default function WarehousesPage() {
     // Orders and items state
     const [warehouseOrders, setWarehouseOrders] = useState<Order[]>([]);
     const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-    const [orderItems, setOrderItems] = useState<any[]>([]);
-    const [orderItemsLoading, setOrderItemsLoading] = useState(false);
-
 
     const [searchParams] = useSearchParams();
     const warehouseIdFromUrl = searchParams.get("warehouseId");
     // Dialog for warehouse products
-    const [detailsOpen, setDetailsOpen] = useState(false);
-    const [selectedWarehouse, setSelectedWarehouse] = useState<Warehouse | null>(null);
     const [loading, setLoading] = useState(false);
     const [page, setPage] = useState(1);
-    const [pageSize, setPageSize] = useState(5);
+    const [pageSize] = useState(5);
     const [totalPages, setTotalPages] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
     const navigator = useNavigate();

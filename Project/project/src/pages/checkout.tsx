@@ -32,7 +32,6 @@ export default function Checkout() {
     const [countries, setCountries] = useState<any[]>([]);
     const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
     const [processingPayment, setProcessingPayment] = useState(false);
-    const [checkoutNote, setCheckoutNote] = useState('');
     const [loading, setLoading] = useState<boolean>(false);
 
 
@@ -50,6 +49,10 @@ export default function Checkout() {
                             : (res?.data?.data || []);
 
 
+                if(items.length === 0) {
+                    navigate('/main');
+                    toast.info(t('Your cart is empty.'));
+                }
 
                 if (Array.isArray(items)) {
                     // items is an array of cart entries. Each entry may have `productVariant.images`.
@@ -214,9 +217,7 @@ export default function Checkout() {
         // Perform backend checkout to create order, payment, receipt
         const res = await checkout({
             currency: 'USD',
-            // Let backend default PaymentMethod; or pass 'CreditCard' if needed
             gatewayTransactionId: '', // manual checkout has no gateway txn yet
-            note: checkoutNote.trim() || undefined,
         });
         if (!res.isSuccess) {
             toast.error(res.message || 'Checkout failed');
@@ -256,7 +257,6 @@ export default function Checkout() {
                 currency: 'USD',
                 method: 4,
                 gatewayTransactionId,
-                note: checkoutNote.trim() || undefined,
             });
             if (!checkoutRes.isSuccess) {
                 setPaymentStatus('Failed');
@@ -291,106 +291,112 @@ export default function Checkout() {
             <NavBar />
             <div className="container mx-auto px-4 py-6 min-h-screen">
                 <h1 className="text-2xl font-bold mb-6">{t('Your Cart')}</h1>
-                <div className="flex flex-col md:flex-row gap-8">
-                    <div className="flex-1 space-y-4">
-                        {cartItems.map((item, id) => {
-                            return (
-                                <CartItem
-                                    key={id}
-                                    item={item}
-                                />
-                            );
-                        })}
-                    </div>
-                    <div className="w-full md:w-96 bg-white rounded-lg shadow-md p-6 h-fit">
-                        <div className="flex items-center justify-between mb-1">
-                            <h2 className="text-xl font-bold">{t('Your cart')}</h2>
-                            <div className="text-xs">
-                                {!address || !address.street ? (
-                                    <button className="inline-flex items-center px-2 py-1 rounded bg-blue-100 text-blue-700" onClick={() => navigate('/profile')}>
-                                        {t('Add address in profile')}
-                                    </button>
-                                ) : addressConfirmed ? (
-                                    <span className="inline-flex items-center px-2 py-1 rounded bg-green-100 text-green-700">{t('Address confirmed')}</span>
-                                ) : (
-                                    <button className="inline-flex items-center px-2 py-1 rounded bg-yellow-100 text-yellow-700" onClick={() => setShowConfirmAddressDialog(true)}>
-                                        {t('Confirm address')}
-                                    </button>
-                                )}
+                <div className="w-full mx-auto max-w-7xl p-2 sm:p-6 bg-white rounded-lg mt-4">
+                    <div className="flex flex-col md:flex-row gap-4 md:gap-8">
+                        <div className="flex-1 w-full min-w-0 justify-center">
+                                {cartItems.map((item, id) => {
+                                    return (
+                                        <CartItem
+                                            key={id}
+                                            item={item}
+                                        />
+                                    );
+                                })}
+                        </div>
+                        <div className="w-full md:w-96 bg-white rounded-lg shadow-md p-2 sm:p-6 h-fit sticky top-2 self-start">
+                            <div className="flex items-center justify-between mb-1">
+                                <h2 className="text-xl font-bold">{t('Your cart')}</h2>
+                                <div className="text-xs">
+                                    {!address || !address.street ? (
+                                        <button className="inline-flex items-center px-2 py-1 rounded bg-blue-100 text-blue-700" onClick={() => navigate('/profile')}>
+                                            {t('Add address in profile')}
+                                        </button>
+                                    ) : addressConfirmed ? (
+                                        <span className="inline-flex items-center px-2 py-1 rounded bg-green-100 text-green-700">{t('Address confirmed')}</span>
+                                    ) : (
+                                        <button className="inline-flex items-center px-2 py-1 rounded bg-yellow-100 text-yellow-700" onClick={() => setShowConfirmAddressDialog(true)}>
+                                            {t('Confirm address')}
+                                        </button>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                        <div className="mb-2 flex justify-between">
-                            <span>{t('Products')} ({cartItems.length})</span>
-                            <span className="font-semibold">{productsSubtotal.toFixed(2)}</span>
-                        </div>
+                            <div className="mb-2 flex justify-between">
+                                <span>{t('Products')} ({cartItems.length})</span>
+                                <span className="font-semibold">{productsSubtotal.toFixed(2)}</span>
+                            </div>
 
 
-                        <div className="mb-2 flex justify-between">
-                            <span>{t('Shipping')}</span>
-                            <span className="font-semibold">{t('Free IMPLEMENTED!')}</span>
-                        </div>
+                            <div className="mb-2 flex justify-between">
+                                <span>{t('Shipping')}</span>
+                                <span className="font-semibold">{t('Free IMPLEMENTED!')}</span>
+                            </div>
 
-                        <div className="mb-2 flex justify-between text-red-500">
-                            <span>{t('Discount')}</span>
-                            <span>
-                                -{discountTotal.toFixed(2)}
-                            </span>
-                        </div>
+                            <div className="mb-2 flex justify-between text-red-500">
+                                <span>{t('Discount')}</span>
+                                <span>
+                                    -{discountTotal.toFixed(2)}
+                                </span>
+                            </div>
 
-                        <div className="mb-4 flex justify-between font-bold text-lg">
-                            <span>{t('Total cost')}</span>
-                            <span>{total.toFixed(2)}</span>
-                        </div>
-                        <GooglePayButton
-                            environment="TEST"
-                            paymentRequest={{
-                                apiVersion: 2,
-                                apiVersionMinor: 0,
-                                allowedPaymentMethods: [
-                                    {
-                                        type: 'CARD',
-                                        parameters: {
-                                            allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
-                                            allowedCardNetworks: ['MASTERCARD', 'VISA'],
-                                        },
-                                        tokenizationSpecification: {
-                                            type: 'PAYMENT_GATEWAY',
-                                            parameters: {
-                                                gateway: 'example',
-                                                gatewayMerchantId: 'exampleGatewayMerchantId',
+                            <div className="mb-4 flex justify-between font-bold text-lg">
+                                <span>{t('Total cost')}</span>
+                                <span>{total.toFixed(2)}</span>
+                            </div>
+                            {!addressConfirmed ? (
+                                <div className="flex justify-center">
+                                    <button className="px-4 py-2 bg-gray-300 text-gray-700 rounded" disabled>
+                                        {t('Confirm the address to proceed')}
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="justify-center flex">
+                                    <GooglePayButton
+                                        environment="TEST"
+                                        paymentRequest={{
+                                            apiVersion: 2,
+                                        apiVersionMinor: 0,
+                                        allowedPaymentMethods: [
+                                            {
+                                                type: 'CARD',
+                                                parameters: {
+                                                    allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
+                                                    allowedCardNetworks: ['MASTERCARD', 'VISA'],
+                                                },
+                                                tokenizationSpecification: {
+                                                    type: 'PAYMENT_GATEWAY',
+                                                    parameters: {
+                                                        gateway: 'example',
+                                                        gatewayMerchantId: 'exampleGatewayMerchantId',
+                                                    },
+                                                },
                                             },
+                                        ],
+                                        merchantInfo: {
+                                            merchantId: '12345678901234567890',
+                                            merchantName: 'Demo Merchant',
                                         },
-                                    },
-                                ],
-                                merchantInfo: {
-                                    merchantId: '12345678901234567890',
-                                    merchantName: 'Demo Merchant',
-                                },
-                                transactionInfo: {
-                                    totalPriceStatus: 'FINAL',
-                                    totalPriceLabel: 'Total',
-                                    totalPrice: total.toFixed(2),
-                                    currencyCode: 'USD',
-                                    countryCode: 'US',
-                                },
-                            }}
-                            onLoadPaymentData={paymentRequest => {
-                                console.log('Success', paymentRequest);
-                                handleGooglePaySuccess(paymentRequest);
-                            }}
-                            onError={error => {
-                                console.error('Error', error);
-                                toast.error('Payment failed to load. Please try again.');
-                            }}
-                            buttonColor="black"
-                            buttonType="buy"
-                            className="w-full flex"
-                        />
-                        {paymentStatus && (
-                            <span className="ml-2 text-[10px] px-2 py-1 rounded bg-gray-100 border">
-                                {processingPayment ? 'Processing...' : paymentStatus}
-                            </span>
-                        )}
+                                        transactionInfo: {
+                                            totalPriceStatus: 'FINAL',
+                                            totalPriceLabel: 'Total',
+                                            totalPrice: total.toFixed(2),
+                                            currencyCode: 'USD',
+                                            countryCode: 'US',
+                                        },
+                                    }}
+                                    onLoadPaymentData={paymentRequest => {
+                                        console.log('Success', paymentRequest);
+                                        handleGooglePaySuccess(paymentRequest);
+                                    }}
+                                    onError={error => {
+                                        console.error('Error', error);
+                                        toast.error('Payment failed to load. Please try again.');
+                                    }}
+                                    buttonColor="default"
+                                    buttonType="buy"
+                                />
+                            </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -426,17 +432,6 @@ export default function Checkout() {
                     </div>
                 </DialogContent>
             </Dialog>
-            <div className="container mx-auto px-4 pb-10">
-                <div className="max-w-md ml-auto md:w-96">
-                    <Button
-                        className="w-full mt-4"
-                        onClick={handleCheckout}
-                        disabled={cartItems.length === 0 || !address || !address.street || !addressConfirmed || processingPayment}
-                    >
-                        {processingPayment ? 'Processing...' : 'Checkout (Manual)'}
-                    </Button>
-                </div>
-            </div>
         </>
     );
 }

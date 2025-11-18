@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ShahSellerFeaturesApi.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class SyncAddressCountryConfig : Migration
+    public partial class New : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -59,21 +59,17 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ProductDetails",
+                name: "Receipts",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
-                    Title = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: false),
-                    WeightInGrams = table.Column<int>(type: "int", nullable: false),
-                    WidthInGrams = table.Column<int>(type: "int", nullable: false),
-                    HeightInGrams = table.Column<int>(type: "int", nullable: false),
-                    LengthInGrams = table.Column<int>(type: "int", nullable: false),
-                    ProductId = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false)
+                    IssuedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    File = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ProductDetails", x => x.Id);
+                    table.PrimaryKey("PK_Receipts", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -189,7 +185,8 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
-                    AddressId = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: true)
+                    AddressId = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: true),
+                    Capacity = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -275,13 +272,12 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                 {
                     Id = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
                     TotalAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     BuyerProfileId = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
                     WarehouseOrderId = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     OrderPaymentId = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ReceiptId = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    ReceiptId = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -291,6 +287,12 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                         column: x => x.BuyerProfileId,
                         principalTable: "BuyerProfiles",
                         principalColumn: "UserId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Orders_Receipts_ReceiptId",
+                        column: x => x.ReceiptId,
+                        principalTable: "Receipts",
+                        principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -327,7 +329,7 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                     Id = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
                     StoreName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     StoreDescription = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
-                    StoreLogoUrl = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true),
+                    StoreLogo = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true),
                     StoreEmail = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     StorePhone = table.Column<string>(type: "nvarchar(15)", maxLength: 15, nullable: false),
                     AddressId = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: true),
@@ -391,27 +393,6 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Receipts",
-                columns: table => new
-                {
-                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    IssuedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    FileUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    OrderId = table.Column<string>(type: "nvarchar(36)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Receipts", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Receipts_Orders_OrderId",
-                        column: x => x.OrderId,
-                        principalTable: "Orders",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "WarehouseOrders",
                 columns: table => new
                 {
@@ -443,7 +424,6 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
-                    ProductDetailsId = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
                     CategoryId = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
                     StoreInfoId = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false)
                 },
@@ -457,12 +437,6 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Products_ProductDetails_ProductDetailsId",
-                        column: x => x.ProductDetailsId,
-                        principalTable: "ProductDetails",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
                         name: "FK_Products_StoreInfos_StoreInfoId",
                         column: x => x.StoreInfoId,
                         principalTable: "StoreInfos",
@@ -471,36 +445,14 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Favorites",
-                columns: table => new
-                {
-                    Id = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
-                    BuyerProfileId = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
-                    ProductId = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Favorites", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Favorites_BuyerProfiles_BuyerProfileId",
-                        column: x => x.BuyerProfileId,
-                        principalTable: "BuyerProfiles",
-                        principalColumn: "UserId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Favorites_Products_ProductId",
-                        column: x => x.ProductId,
-                        principalTable: "Products",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "ProductVariants",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
                     ProductId = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    WeightInGrams = table.Column<int>(type: "int", nullable: false),
                     Stock = table.Column<int>(type: "int", nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
                 },
@@ -516,43 +468,13 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Reviews",
-                columns: table => new
-                {
-                    Id = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
-                    BuyerProfileId = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
-                    ProductId = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
-                    Images = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Rating = table.Column<int>(type: "int", nullable: false),
-                    Comment = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Reviews", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Reviews_BuyerProfiles_BuyerProfileId",
-                        column: x => x.BuyerProfileId,
-                        principalTable: "BuyerProfiles",
-                        principalColumn: "UserId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Reviews_Products_ProductId",
-                        column: x => x.ProductId,
-                        principalTable: "Products",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "CartItems",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
                     BuyerProfileId = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
-                    ProductId = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
-                    ProductVariantId = table.Column<string>(type: "nvarchar(36)", nullable: false)
+                    ProductVariantId = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -567,10 +489,29 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                         column: x => x.ProductVariantId,
                         principalTable: "ProductVariants",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Favorites",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
+                    BuyerProfileId = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
+                    ProductVariantId = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Favorites", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_CartItems_Products_ProductId",
-                        column: x => x.ProductId,
-                        principalTable: "Products",
+                        name: "FK_Favorites_BuyerProfiles_BuyerProfileId",
+                        column: x => x.BuyerProfileId,
+                        principalTable: "BuyerProfiles",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Favorites_ProductVariants_ProductVariantId",
+                        column: x => x.ProductVariantId,
+                        principalTable: "ProductVariants",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -582,7 +523,8 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                     Id = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
                     OrderId = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
-                    ProductVariantId = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false)
+                    ProductVariantId = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false, defaultValue: 0)
                 },
                 constraints: table =>
                 {
@@ -632,6 +574,7 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                 {
                     Id = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
                     ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsMain = table.Column<bool>(type: "bit", nullable: false),
                     ProductVariantId = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false)
                 },
                 constraints: table =>
@@ -641,6 +584,61 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                         name: "FK_ProductVariantImages_ProductVariants_ProductVariantId",
                         column: x => x.ProductVariantId,
                         principalTable: "ProductVariants",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Reviews",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
+                    BuyerProfileId = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
+                    ProductVariantId = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
+                    Images = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Rating = table.Column<int>(type: "int", nullable: false),
+                    Comment = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Reviews", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Reviews_BuyerProfiles_BuyerProfileId",
+                        column: x => x.BuyerProfileId,
+                        principalTable: "BuyerProfiles",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Reviews_ProductVariants_ProductVariantId",
+                        column: x => x.ProductVariantId,
+                        principalTable: "ProductVariants",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "WarehouseOrderItems",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
+                    WarehouseOrderId = table.Column<string>(type: "nvarchar(36)", nullable: false),
+                    OrderItemId = table.Column<string>(type: "nvarchar(36)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WarehouseOrderItems", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_WarehouseOrderItems_OrderItems_OrderItemId",
+                        column: x => x.OrderItemId,
+                        principalTable: "OrderItems",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_WarehouseOrderItems_WarehouseOrders_WarehouseOrderId",
+                        column: x => x.WarehouseOrderId,
+                        principalTable: "WarehouseOrders",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -670,11 +668,6 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                 column: "BuyerProfileId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_CartItems_ProductId",
-                table: "CartItems",
-                column: "ProductId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_CartItems_ProductVariantId",
                 table: "CartItems",
                 column: "ProductVariantId");
@@ -690,9 +683,9 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                 column: "BuyerProfileId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Favorites_ProductId",
+                name: "IX_Favorites_ProductVariantId",
                 table: "Favorites",
-                column: "ProductId");
+                column: "ProductVariantId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OrderItems_OrderId",
@@ -722,6 +715,13 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                 column: "BuyerProfileId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Orders_ReceiptId",
+                table: "Orders",
+                column: "ReceiptId",
+                unique: true,
+                filter: "[ReceiptId] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ProductAttributes_CategoryId",
                 table: "ProductAttributes",
                 column: "CategoryId");
@@ -735,12 +735,6 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                 name: "IX_Products_CategoryId",
                 table: "Products",
                 column: "CategoryId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Products_ProductDetailsId",
-                table: "Products",
-                column: "ProductDetailsId",
-                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Products_StoreInfoId",
@@ -768,20 +762,14 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Receipts_OrderId",
-                table: "Receipts",
-                column: "OrderId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Reviews_BuyerProfileId",
                 table: "Reviews",
                 column: "BuyerProfileId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Reviews_ProductId",
+                name: "IX_Reviews_ProductVariantId",
                 table: "Reviews",
-                column: "ProductId");
+                column: "ProductVariantId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SellerProfiles_UserId",
@@ -831,6 +819,17 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_WarehouseOrderItems_OrderItemId",
+                table: "WarehouseOrderItems",
+                column: "OrderItemId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WarehouseOrderItems_WarehouseOrderId_OrderItemId",
+                table: "WarehouseOrderItems",
+                columns: new[] { "WarehouseOrderId", "OrderItemId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_WarehouseOrders_OrderId",
                 table: "WarehouseOrders",
                 column: "OrderId",
@@ -865,9 +864,6 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                 name: "Favorites");
 
             migrationBuilder.DropTable(
-                name: "OrderItems");
-
-            migrationBuilder.DropTable(
                 name: "OrderPayments");
 
             migrationBuilder.DropTable(
@@ -877,25 +873,31 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                 name: "ProductVariantImages");
 
             migrationBuilder.DropTable(
-                name: "Receipts");
-
-            migrationBuilder.DropTable(
                 name: "Reviews");
 
             migrationBuilder.DropTable(
                 name: "SellerTaxInfos");
 
             migrationBuilder.DropTable(
-                name: "WarehouseOrders");
+                name: "WarehouseOrderItems");
 
             migrationBuilder.DropTable(
                 name: "ProductAttributeValues");
 
             migrationBuilder.DropTable(
-                name: "ProductVariants");
+                name: "Taxes");
 
             migrationBuilder.DropTable(
-                name: "Taxes");
+                name: "OrderItems");
+
+            migrationBuilder.DropTable(
+                name: "WarehouseOrders");
+
+            migrationBuilder.DropTable(
+                name: "ProductAttributes");
+
+            migrationBuilder.DropTable(
+                name: "ProductVariants");
 
             migrationBuilder.DropTable(
                 name: "Orders");
@@ -904,16 +906,13 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                 name: "Warehouses");
 
             migrationBuilder.DropTable(
-                name: "ProductAttributes");
-
-            migrationBuilder.DropTable(
                 name: "Products");
 
             migrationBuilder.DropTable(
                 name: "BuyerProfiles");
 
             migrationBuilder.DropTable(
-                name: "ProductDetails");
+                name: "Receipts");
 
             migrationBuilder.DropTable(
                 name: "StoreInfos");

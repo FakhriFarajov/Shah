@@ -14,6 +14,8 @@ namespace ShahSellerFeaturesApi.Core.Models
         public int WeightInGrams { get; set; }
         public int Stock { get; set; }
         public decimal Price { get; set; }
+        
+        public decimal DiscountPrice { get; set; }
 
         public IList<ProductVariantImage> Images { get; set; } = new List<ProductVariantImage>();
 

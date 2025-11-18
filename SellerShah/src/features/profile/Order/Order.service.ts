@@ -18,7 +18,3 @@ export async function updateOrderItemStatus(id: string, status: number) {
     return result;
 }
 
-export async function sendOrderToWarehouse(id: string, warehouseId: string) {
-    var result = await authHttp.put(`/${id}/sendToWarehouse`, { WarehouseId: warehouseId });
-    return result;
-}

@@ -19,6 +19,7 @@ import { getProfileImage } from '@/shared/utils/imagePost';
 import ProductCard from "@/components/custom/itemCard";
 import { useNavigate } from 'react-router-dom';
 import Spinner from '@/components/custom/Spinner';
+import { ImageZoom } from '@/components/ui/shadcn-io/image-zoom';
 
 
 
@@ -580,7 +581,7 @@ export default function ProductPage() {
   const [mainImageIdx, setMainImageIdx] = useState(0);
   const trackRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
-  const [slideWidth, setSlideWidth] = useState<number>(520);
+  const [slideWidth, setSlideWidth] = useState<number>(420);
 
 
 
@@ -605,8 +606,8 @@ export default function ProductPage() {
   // compute slide width from viewport for responsive behaviour
   useEffect(() => {
     const update = () => {
-      const w = viewportRef.current?.clientWidth ?? 520;
-      setSlideWidth(Math.max(0, Math.floor(w)) || 520);
+      const w = viewportRef.current?.clientWidth ?? 420;
+      setSlideWidth(Math.max(0, Math.floor(w)) || 420);
     };
     update();
     window.addEventListener('resize', update);
@@ -707,7 +708,7 @@ export default function ProductPage() {
       {
         loading && (
           <div className="fixed inset-0 bg-white bg-opacity-100 flex items-center justify-center z-50">
-              <Spinner />
+            <Spinner />
           </div>
         )
       }
@@ -732,15 +733,15 @@ export default function ProductPage() {
                 </div>
               )}
               {Array.isArray(images) && images.length > 0 ? (
-                <div className="relative w-full flex items-center justify-center" style={{ maxWidth: 520 }}>
+                <div className="relative w-full flex items-center justify-center" style={{ maxWidth: 420 }}>
                   <button
                     onClick={handlePrevImage}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 bg-white bg-opacity-80 rounded-full shadow p-2 z-10 hover:bg-gray-100"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 bg-white bg-opacity-80 rounded-full shadow p-2 z-10 hover:bg-gray-100 hidden lg:block"
                     aria-label="Previous image"
                   >
                     &#8592;
                   </button>
-                  <div ref={viewportRef} className="relative w-full h-[500px] overflow-hidden">
+                  <div ref={viewportRef} className="relative w-full h-[420px] overflow-hidden">
                     <div
                       ref={trackRef}
                       className="flex transition-transform duration-300 ease-in-out"
@@ -750,41 +751,43 @@ export default function ProductPage() {
                       }}
                     >
                       {images.map((img: any, idx: number) => (
-                        <img
-                          key={idx}
-                          src={img?.imageUrl ?? img?.url ?? img}
-                          alt={`Product ${idx + 1}`}
-                          className="object-cover bg-gray-100 rounded-2xl"
-                          style={{ width: slideWidth, height: 500, flexShrink: 0, transition: 'box-shadow 0.2s' }}
-                        />
+                        <ImageZoom key={idx}>
+                          <img
+                            src={img?.imageUrl ?? img?.url ?? img}
+                            alt={`Product ${idx + 1}`}
+                            className="object-cover bg-gray-100 rounded-2xl "
+                            style={{ width: slideWidth, height: 420, flexShrink: 0, transition: 'box-shadow 0.2s' }}
+                          />
+                        </ImageZoom>
                       ))}
                     </div>
                   </div>
                   <button
                     onClick={handleNextImage}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 bg-white bg-opacity-80 rounded-full shadow p-2 z-10 hover:bg-gray-100"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 bg-white bg-opacity-80 rounded-full shadow p-2 z-10 hover:bg-gray-100 hidden lg:block"
                     aria-label="Next image"
                   >
                     &#8594;
                   </button>
                 </div>
               ) : (
-                <div className="w-full h-64 w-[520px] bg-gray-200 flex items-center justify-center rounded-lg">
+                <div className="w-full h-64 w-[420px] bg-gray-200 flex items-center justify-center rounded-lg">
                   {t('No Image')}
                 </div>
               )}
               {Array.isArray(images) && images.length > 0 && (
                 <div className="flex sm:flex-row gap-2 md:mr-4 mb-4 md:mb-0 lg:hidden mt-4">
                   {images.map((img: any, idx: number) => (
-                    <img
-                      key={idx}
-                      src={img?.imageUrl ?? img?.url ?? img}
-                      alt={`Thumbnail ${idx + 1}`}
-                      className={`w-16 h-16 object-cover rounded border cursor-pointer select-none ${mainImageIdx === idx ? 'border-gray-800' : 'border-gray-200'}`}
-                      style={{ width: 64, height: 64, minWidth: 64, minHeight: 64, maxWidth: 64, maxHeight: 64, resize: 'none', userSelect: 'none', pointerEvents: 'auto' }}
-                      draggable={false}
-                      onClick={() => setMainImageIdx(idx)}
-                    />
+                    <ImageZoom key={idx}>
+                      <img
+                        src={img?.imageUrl ?? img?.url ?? img}
+                        alt={`Thumbnail ${idx + 1}`}
+                        className={`w-16 h-16 object-cover rounded border cursor-pointer select-none ${mainImageIdx === idx ? 'border-gray-800' : 'border-gray-200'}`}
+                        style={{ width: 64, height: 64, minWidth: 64, minHeight: 64, maxWidth: 64, maxHeight: 64, resize: 'none', userSelect: 'none', pointerEvents: 'auto' }}
+                        draggable={false}
+                        onClick={() => setMainImageIdx(idx)}
+                      />
+                    </ImageZoom>
                   ))}
                 </div>
               )}
@@ -922,7 +925,9 @@ export default function ProductPage() {
                     {Array.isArray(review.imageUrls) && review.imageUrls.length > 0 && (
                       <div className="flex flex-wrap gap-2 mt-2">
                         {review.imageUrls.map((u: string, i: number) => (
-                          <img key={i} src={u} alt={t('Review image')} className="w-16 h-16 object-cover rounded border" />
+                          <ImageZoom key={i}>
+                            <img src={u} alt={t('Review image')} className="w-16 h-16 object-cover rounded border" />
+                          </ImageZoom>
                         ))}
                       </div>
                     )}
@@ -963,7 +968,7 @@ export default function ProductPage() {
             </div>
           )}
           {(isEditingReview || !myReview) && (
-            <form ref={formRef} onSubmit={handleCreateReview} className="mt-4 bg-white rounded-lg shadow p-4 max-w-4xl max-h-[400px] w-full">
+            <form ref={formRef} onSubmit={handleCreateReview} className="mt-4 bg-white rounded-lg shadow p-4 max-w-4xl max-h-[470px] w-full">
               <h2 className="text-lg font-semibold mb-2">{t(isEditingReview && myReview ? 'Edit your comment' : 'Add your comment')}</h2>
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-sm text-gray-700">{t('Your rating')}:</span>
@@ -1077,8 +1082,7 @@ export default function ProductPage() {
         </div>
 
         <div className="w-full p-6 bg-white rounded-lg mt-8 flex justify-center">
-          <div className="grid grid-cols-2 xs:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
-
+          <div className="w-full max-w-7xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {Array.isArray(productData.variants) && productData.variants.length > 0 ? (
               relatedProducts.map((relatedProduct: any) => {
                 return (

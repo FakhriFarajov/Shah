@@ -49,7 +49,8 @@ public class ProductService : IProductService
                     Description = v.Description,
                     WeightInGrams = v.WeightInGrams,
                     Stock = v.Stock,
-                    Price = v.Price
+                    Price = v.Price,
+                    DiscountPrice = v.DiscountPrice
                 };
 
                 // Images (DTO now includes ImageUrl + IsMain)
@@ -121,6 +122,7 @@ public class ProductService : IProductService
                     v.WeightInGrams,
                     v.Stock,
                     v.Price,
+                    v.DiscountPrice,
                     Images = v.Images.Select(img => new { img.Id, img.ImageUrl, img.IsMain }).ToList(),
                     AttributeValueIds = v.ProductVariantAttributeValues.Select(x => x.ProductAttributeValueId).ToList()
                 }).ToList()

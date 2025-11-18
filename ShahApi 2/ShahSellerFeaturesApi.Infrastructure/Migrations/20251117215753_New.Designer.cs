@@ -12,8 +12,8 @@ using ShahSellerFeaturesApi.Infrastructure.Contexts;
 namespace ShahSellerFeaturesApi.Infrastructure.Migrations
 {
     [DbContext(typeof(ShahDbContext))]
-    [Migration("20251114201630_Producs")]
-    partial class Producs
+    [Migration("20251117215753_New")]
+    partial class New
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -250,11 +250,8 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ReceiptId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
 
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("decimal(18, 2)");
@@ -268,6 +265,10 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("BuyerProfileId");
+
+                    b.HasIndex("ReceiptId")
+                        .IsUnique()
+                        .HasFilter("[ReceiptId] IS NOT NULL");
 
                     b.ToTable("Orders");
                 });
@@ -515,26 +516,20 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
             modelBuilder.Entity("ShahSellerFeaturesApi.Core.Models.Receipt", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("FileUrl")
+                    b.Property<string>("File")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("IssuedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("OrderId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(36)");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("OrderId")
-                        .IsUnique();
 
                     b.ToTable("Receipts");
                 });
@@ -841,6 +836,33 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                     b.ToTable("WarehouseOrders");
                 });
 
+            modelBuilder.Entity("ShahSellerFeaturesApi.Core.Models.WarehouseOrderItem", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("OrderItemId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<string>("WarehouseOrderId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderItemId");
+
+                    b.HasIndex("WarehouseOrderId", "OrderItemId")
+                        .IsUnique();
+
+                    b.ToTable("WarehouseOrderItems");
+                });
+
             modelBuilder.Entity("ShahSellerFeaturesApi.Core.Models.Address", b =>
                 {
                     b.HasOne("ShahSellerFeaturesApi.Core.Models.CountryCode", "Country")
@@ -936,7 +958,14 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ShahSellerFeaturesApi.Core.Models.Receipt", "Receipt")
+                        .WithOne("Order")
+                        .HasForeignKey("ShahSellerFeaturesApi.Core.Models.Order", "ReceiptId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.Navigation("BuyerProfile");
+
+                    b.Navigation("Receipt");
                 });
 
             modelBuilder.Entity("ShahSellerFeaturesApi.Core.Models.OrderItem", b =>
@@ -1059,17 +1088,6 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                     b.Navigation("ProductVariant");
                 });
 
-            modelBuilder.Entity("ShahSellerFeaturesApi.Core.Models.Receipt", b =>
-                {
-                    b.HasOne("ShahSellerFeaturesApi.Core.Models.Order", "Order")
-                        .WithOne("Receipt")
-                        .HasForeignKey("ShahSellerFeaturesApi.Core.Models.Receipt", "OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Order");
-                });
-
             modelBuilder.Entity("ShahSellerFeaturesApi.Core.Models.Review", b =>
                 {
                     b.HasOne("ShahSellerFeaturesApi.Core.Models.BuyerProfile", "BuyerProfile")
@@ -1183,6 +1201,25 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                     b.Navigation("Warehouse");
                 });
 
+            modelBuilder.Entity("ShahSellerFeaturesApi.Core.Models.WarehouseOrderItem", b =>
+                {
+                    b.HasOne("ShahSellerFeaturesApi.Core.Models.OrderItem", "OrderItem")
+                        .WithMany()
+                        .HasForeignKey("OrderItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ShahSellerFeaturesApi.Core.Models.WarehouseOrder", "WarehouseOrder")
+                        .WithMany("WarehouseOrderItems")
+                        .HasForeignKey("WarehouseOrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("OrderItem");
+
+                    b.Navigation("WarehouseOrder");
+                });
+
             modelBuilder.Entity("ShahSellerFeaturesApi.Core.Models.Address", b =>
                 {
                     b.Navigation("BuyerProfile");
@@ -1229,9 +1266,6 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
 
                     b.Navigation("OrderPayment");
 
-                    b.Navigation("Receipt")
-                        .IsRequired();
-
                     b.Navigation("WarehouseOrder");
                 });
 
@@ -1265,6 +1299,12 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
                     b.Navigation("Reviews");
                 });
 
+            modelBuilder.Entity("ShahSellerFeaturesApi.Core.Models.Receipt", b =>
+                {
+                    b.Navigation("Order")
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("ShahSellerFeaturesApi.Core.Models.SellerProfile", b =>
                 {
                     b.Navigation("SellerTaxInfo");
@@ -1294,6 +1334,11 @@ namespace ShahSellerFeaturesApi.Infrastructure.Migrations
             modelBuilder.Entity("ShahSellerFeaturesApi.Core.Models.Warehouse", b =>
                 {
                     b.Navigation("WarehouseOrder");
+                });
+
+            modelBuilder.Entity("ShahSellerFeaturesApi.Core.Models.WarehouseOrder", b =>
+                {
+                    b.Navigation("WarehouseOrderItems");
                 });
 #pragma warning restore 612, 618
         }

@@ -43,47 +43,48 @@ export default function OrdersPage() {
   const pageSize = 5;
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [sellerIdFilter, setSellerIdFilter] = useState("");
 
-    async function fetchBySellerId(sellerId: string) {
-      setLoading(true);
-      try {
-        // Pass page and pageSize to getOrders
-        const res = await apiCallWithManualRefresh(() => getOrderId(page, sellerId));
-        const data = res?.data || [];
-        console.log("Fetched orders data:", data);
-        setTotalPages(res?.totalPages || 1);
-        // Resolve images for each order's items
-        const ordersWithImages = await Promise.all(
-          data.map(async (order: any) => {
-            const items = Array.isArray(order.items)
-              ? await Promise.all(
-                order.items.map(async (item: any) => {
-                  const resolvedImages = Array.isArray(item.images)
-                    ? await Promise.all(
-                      item.images.map(async (img: any) => {
-                        try {
-                          const url = await getProfileImage(img.imageUrl);
-                          return { ...img, imageUrl: url || img.imageUrl };
-                        } catch {
-                          return img;
-                        }
-                      })
-                    )
-                    : [];
-                  return { ...item, images: resolvedImages };
-                })
-              )
-              : [];
-            return { ...order, items };
-          })
-        );
-        if (!cancelled) setOrders(ordersWithImages);
-      } catch (e) {
-        if (!cancelled) setOrders([]);
-      } finally {
-        setLoading(false);
-      }
+  async function fetchBySellerId() {
+    setLoading(true);
+    try {
+      // Pass page and pageSize to getOrders
+      const res = await apiCallWithManualRefresh(() => getOrderId({page, sellerId: sellerIdFilter}));
+      const data = res?.data || [];
+      console.log("Fetched orders data:", data);
+      setTotalPages(res?.totalPages || 1);
+      // Resolve images for each order's items
+      const ordersWithImages = await Promise.all(
+        data.map(async (order: any) => {
+          const items = Array.isArray(order.items)
+            ? await Promise.all(
+              order.items.map(async (item: any) => {
+                const resolvedImages = Array.isArray(item.images)
+                  ? await Promise.all(
+                    item.images.map(async (img: any) => {
+                      try {
+                        const url = await getProfileImage(img.imageUrl);
+                        return { ...img, imageUrl: url || img.imageUrl };
+                      } catch {
+                        return img;
+                      }
+                    })
+                  )
+                  : [];
+                return { ...item, images: resolvedImages };
+              })
+            )
+            : [];
+          return { ...order, items };
+        })
+      );
+       setOrders(ordersWithImages);
+    } catch (e) {
+       setOrders([]);
+    } finally {
+      setLoading(false);
     }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -187,6 +188,24 @@ export default function OrdersPage() {
           <div className="max-w-6xl mx-auto mb-8">
             <h1 className="text-4xl font-extrabold text-gray-900 mb-2 tracking-tight">Orders</h1>
             <p className="text-lg text-gray-500 mb-4">View and manage all orders here.</p>
+          </div>
+                    {/* Seller ID live filter input */}
+          <div className="mb-4 flex items-center gap-2">
+            <label htmlFor="sellerIdFilter" className="font-medium text-gray-700">Filter by Seller ID:</label>
+            <input
+              id="sellerIdFilter"
+              type="text"
+              value={sellerIdFilter}
+              className="border rounded px-3 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              placeholder="Enter Seller ID..."
+              onChange={e => setSellerIdFilter(e.target.value)}
+            />
+            <button
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              onClick={() => fetchBySellerId()}
+            >
+              Apply Filter
+            </button>
           </div>
           <div className="max-w-6xl mx-auto mt-4">
             <div className="flex flex-col gap-6">

@@ -9,7 +9,7 @@ function useCountUp(target: number, duration = 1000, decimals = 0) {
     const [count, setCount] = useState(0);
     const startTimestamp = useRef<number | null>(null);
 
-    
+
     //Effect to handle the counting animation
     useEffect(() => {
         function step(timestamp: number) {
@@ -40,7 +40,7 @@ function useCountUp(target: number, duration = 1000, decimals = 0) {
 export default function LandingPage() {
     const animatedUsers = useCountUp(63500000, 2000);
     const animatedCommission = useCountUp(9, 2000, 1);
-        const features = [
+    const features = [
         {
             step: 'Step 1',
             title: 'Sign Up',
@@ -63,6 +63,11 @@ export default function LandingPage() {
 
     return (
         <>
+            {loading && (
+                <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "rgba(255,255,255,0.5)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Spinner />
+                </div>
+            )}
             <NavBar />
             <div className="relative bg-gradient-to-br from-[#e3f2fd] to-[#bbdefb] min-h-[600px] flex flex-col md:flex-row items-center justify-center px-8 py-20 gap-12 overflow-hidden">
                 <div className="flex-1 flex flex-col justify-center items-start max-w-2xl z-10">
@@ -197,7 +202,7 @@ export default function LandingPage() {
                     <FeatureSteps
                         features={features}
                         title="Your Journey Starts Here"
-                        autoPlayInterval={4000}/>
+                        autoPlayInterval={4000} />
                 </div>
             </div>
             <Footer></Footer>

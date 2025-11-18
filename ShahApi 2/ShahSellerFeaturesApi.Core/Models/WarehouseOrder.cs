@@ -11,4 +11,7 @@ public class WarehouseOrder
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? ShippedAt { get; set; }
+
+    // New navigation for item-level assignments
+    public ICollection<WarehouseOrderItem> WarehouseOrderItems { get; set; } = new List<WarehouseOrderItem>();
 }

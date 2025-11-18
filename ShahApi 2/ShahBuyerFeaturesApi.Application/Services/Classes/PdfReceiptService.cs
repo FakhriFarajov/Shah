@@ -101,7 +101,7 @@ namespace ShahBuyerFeaturesApi.Application.Services.Classes
                     _db.Orders.Update(order);
                     await _db.SaveChangesAsync();
                 }
-
+                
                 // Normalize stored File to object name (key)
                 var normalizedObjectName = ExtractObjectName(order.Receipt.File);
                 if (!string.Equals(order.Receipt.File, normalizedObjectName, StringComparison.Ordinal))

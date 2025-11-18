@@ -39,11 +39,10 @@ export default function FilterSidebar({
         onApply?.(payload as Partial<FilterValues>);
     }
 
-
     return (
         <div className="p-6 bg-white rounded-lg shadow-sm">
             <div className="mb-12">
-                <h3 className="text-lg font-semibold mb-3">Qiymət</h3>
+                <h3 className="text-lg font-semibold mb-3">Price</h3>
                 <div className="flex gap-3 mb-3">
                     <Input value={minInput} onChange={(e: any) => setMinInput(Number(e.target.value))} className="w-1/2" />
                     <Input value={maxInput} onChange={(e: any) => setMaxInput(Number(e.target.value))} className="w-1/2" />

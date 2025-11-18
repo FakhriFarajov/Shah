@@ -33,7 +33,7 @@ export default function Main() {
     const [loading, setLoading] = useState<boolean>(false);
 
     useEffect(() => {
-    const load = async () => {
+        const load = async () => {
             const tok: string | null = tokenStorage.get();
             const result = decodeUserFromToken(tok || "");
             console.log("Decoded user from token:", result);
@@ -92,21 +92,20 @@ export default function Main() {
 
     return (
         <>
-        {
-            loading &&
-            <div className="fixed inset-0 flex items-center justify-center bg-white bg-opacity-100 z-50">
-                <Spinner />
-            </div>
-        }
+            {
+                loading &&
+                <div className="fixed inset-0 flex items-center justify-center bg-white bg-opacity-100 z-50">
+                    <Spinner />
+                </div>
+            }
             <NavBar />
-            {/* Show user logo and name at the top */}
             <div className="min-h-screen w-full bg-gray-100">
                 <div className="w-full max-w-7xl mx-auto p-2 sm:p-4">
                     <Carousel slides={slides} size={250} />
                 </div>
                 <div className="w-full max-w-7xl mx-auto p-2 sm:p-4">
                     <Label className="text-2xl sm:text-4xl font-semibold mb-4 block text-center">{t('Featured Products')}</Label>
-                    <div className="grid grid-cols-2 xs:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 p-2 sm:p-4">
                         {loading ? (
                             <div className="col-span-full text-center p-8">{t('Loading...')}</div>
                         ) : products.length === 0 ? (

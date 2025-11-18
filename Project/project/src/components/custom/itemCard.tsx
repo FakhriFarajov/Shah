@@ -156,7 +156,12 @@ export default function ProductCard({ product }: { product: productCardDTO }) {
 
 
   return (
-    <Card className="w-full sm:max-w-sm md:max-w-xl p-0 border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition relative">
+    <Card
+      className="w-full sm:max-w-sm md:max-w-xl p-0 border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition relative cursor-pointer"
+      onClick={() => {
+        window.location.href = `/product?id=${product.id}&productVariantId=${product.representativeVariantId}`;
+      }}
+    >
       {/* Favourite Button */}
       <button
         onClick={isFavorite ? handleFavRemove : handleFavAdd}

@@ -12,7 +12,8 @@ import { useContext } from "react";
 import { AuthContext } from "@/features/auth/contexts/AuthProvider";
 import { useNavigate } from "react-router-dom"
 import { useEffect } from "react"
-import  Spinner  from "@/components/custom/Spinner";
+import Spinner from "@/components/custom/Spinner";
+import { Mail, Phone, UserRound } from "lucide-react"
 
 export default function RegForm({
   className,
@@ -104,7 +105,7 @@ export default function RegForm({
       }
     }
     finally {
-    setLoading(false);
+      setLoading(false);
 
     }
     console.log("Registering user:", user);
@@ -115,7 +116,7 @@ export default function RegForm({
       {
         loading && (
           <div className="fixed inset-0 bg-white bg-opacity-100 flex items-center justify-center z-50">
-              <Spinner />
+            <Spinner />
           </div>
         )
       }
@@ -146,49 +147,59 @@ export default function RegForm({
             <div className="flex flex-col gap-6">
               <div className="grid gap-3">
                 <Label htmlFor="name">{t("Name")}</Label>
-                <Input
-                  id="name"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                  placeholder="John"
-                />
+                <div className="relative">
+                  <Input
+                    id="name"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    placeholder="John"
+                  />
+                  <Mail className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500" />
+                </div>
               </div>
               <div className="grid gap-3">
                 <Label htmlFor="surname">{t("Surname")}</Label>
-                <Input
-                  id="surname"
-                  type="text"
-                  value={surname}
-                  onChange={(e) => setSurname(e.target.value)}
-                  required
-                  placeholder="Doe"
-                />
+                <div className="relative">
+                  <Input
+                    id="surname"
+                    type="text"
+                    value={surname}
+                    onChange={(e) => setSurname(e.target.value)}
+                    required
+                    placeholder="Doe"
+                  />
+                  <UserRound className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500" />
+                </div>
               </div>
               <div className="grid gap-3">
                 <Label htmlFor="email">{t("Email")}</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder={t("m@example.com")}
-                  required
-
-                />
+                <div className="relative">
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder={t("m@example.com")}
+                    required
+                  />
+                  <Mail className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500" />
+                </div>
               </div>
               <div className="grid gap-3">
                 <Label htmlFor="phone">{t("Phone")}</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  required
-                  placeholder="012 345 67 89"
-
-                />
+                <div className="relative">
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    required
+                    placeholder="0123456789"
+                  />
+                  <Phone className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500" />
+                </div>
               </div>
               <div className="grid gap-3">
                 <Label htmlFor="countryCode">{t("Country")}</Label>

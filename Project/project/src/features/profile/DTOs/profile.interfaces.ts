@@ -116,3 +116,62 @@ export interface ProductFilterRequest {
   valueIds?: string[];
   userId?: string | null;
 }
+
+export interface PaginatedResult<T> {
+    isSuccess: boolean;
+    message: string;
+    statusCode: number;
+    data: T[];
+    page: number;
+    contentPerPage: number;
+    totalItems: number;
+    totalPages: number;
+}export interface Warehouse {
+    id: string;
+    addressId: string;
+    address: Address;
+    capacity: number;
+    currentCapacity?: number;
+}
+
+export interface Order{
+    id: string;
+    totalAmount: number;
+    status: string;
+    createdAt: string;
+    buyerId: string;
+    sellerId: string;
+    itemsCount: number;
+}
+
+export interface WarehouseOrder {
+    id: string;
+    totalAmount: number;
+    status: string;
+    createdAt: string;
+    buyerId: string;
+    sellerId: string;
+    itemsCount: number;
+}
+
+// Warehouse order item DTO
+export interface WarehouseOrderItem {
+    id: string;
+    quantity: number;
+    orderId: string;
+    productVariantId: string;
+    variantPrice: number;
+    productId: string;
+    title: string;
+    imageUrl?: string;
+    buyerId: string;
+    sellerId: string;
+}
+
+export interface Address {
+    street: string;
+    city: string;
+    state: string;
+    postalCode: string;
+    countryId: number;
+}

@@ -7,6 +7,9 @@ import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
 import { getBuyerReviews } from "@/features/profile/ Reviews/Reviews.service";
 import { deleteReview as deleteReviewApi, editReview as editReviewApi } from "@/features/profile/ Reviews/Reviews.service";
 import { getProfileImage, uploadProfileImage } from "@/shared/utils/imagePost";
+import { ImageZoom } from "@/components/ui/shadcn-io/image-zoom";
+
+
 
 interface Review {
   id: string;
@@ -214,7 +217,9 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = (props) => {
                       {Array.isArray(r.imageUrls) && r.imageUrls.length > 0 && (
                         <div className="mt-2 flex gap-2 flex-wrap max-h-40 overflow-y-auto pr-1">
                           {r.imageUrls.map((u, i) => (
-                            <img key={i} src={u} alt={`review-${i}`} className="w-16 h-16 object-cover rounded border" />
+                            <ImageZoom key={i}>
+                              <img src={u} alt={`review-${i}`} className="w-16 h-16 object-cover rounded border" />
+                            </ImageZoom>
                           ))}
                         </div>
                       )}

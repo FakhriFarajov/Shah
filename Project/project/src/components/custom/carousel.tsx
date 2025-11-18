@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import useEmblaCarousel from 'embla-carousel-react'
 import Autoplay from 'embla-carousel-autoplay'
 
@@ -20,7 +20,7 @@ export default function ImageCarousel({ slides, size = 90 }: ImageCarouselProps)
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [scrollSnaps, setScrollSnaps] = useState<number[]>([])
 
-  const onSelect = useCallback((embla) => {
+  const onSelect = useCallback((embla:any) => {
     setSelectedIndex(embla.selectedScrollSnap())
   }, [])
 

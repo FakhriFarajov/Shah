@@ -233,9 +233,9 @@ export default function CategoryPage() {
       <NavBar />
       <div className="p-8 gap-6 flex justify-center">
         <section className="col-span-12 lg:col-span-9 w-full max-w-7xl">
-          <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between">
+          <div className="mb-6 flex flex-col lg:flex-row md:items-center md:justify-between">
             <h1 className="text-3xl font-bold mb-6 text-left">{t(categoryNameUrl)}</h1>
-            <div className='flex flex-col md:flex-row md:items-center xl:justify-between'>
+            <div className='flex flex-row justify-start md:items-center xl:justify-between'>
               <div className='flex justify-end mr-4 mb-4 flex xl:hidden'>
                 <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
                   <SheetTrigger asChild>
@@ -313,7 +313,7 @@ export default function CategoryPage() {
                 />
               </div>
               <div className="w-full max-w-7xl p-2 sm:p-4">
-                <div className="grid grid-cols-2 xl:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
                   {loading ? (
                     <div className="col-span-full text-center p-8">{t('Loading...')}</div>
                   ) : (
@@ -326,7 +326,6 @@ export default function CategoryPage() {
                     })
                   )}
                 </div>
-
                 <Pagination className="mt-6">
                   <PaginationContent>
                     <PaginationPrevious

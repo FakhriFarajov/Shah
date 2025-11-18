@@ -151,7 +151,7 @@ export default function CartItem({ item }: CartItemProps) {
 
 
   return (
-    <Card className="flex flex-col md:flex-row gap-4 p-4 items-center">
+    <Card className="flex flex-col lg:flex-row gap-4 p-4 items-center">
       <img src={image || 'https://picsum.photos/seed/product1/400/400'} alt={name} className="w-full md:w-32 h-auto rounded-md" onClick={() => navigator(`/product?id=${product.id}&productVariantId=${variant.id}`)}/>
       <CardContent className="flex flex-col flex-1 ml-4 mb-2">
         <h3 className="text-lg font-semibold flex items-center gap-2">

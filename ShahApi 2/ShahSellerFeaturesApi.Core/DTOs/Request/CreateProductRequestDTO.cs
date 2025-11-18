@@ -16,6 +16,8 @@ public class CreateProductVariantDTO
     public int WeightInGrams { get; set; }
     public int Stock { get; set; }
     public decimal Price { get; set; }
+    
+    public decimal DiscountPrice { get; set; }
     public List<CreateProductImageDTO> Images { get; set; } = new();
     public List<string> AttributeValueIds { get; set; } = new();
 }
