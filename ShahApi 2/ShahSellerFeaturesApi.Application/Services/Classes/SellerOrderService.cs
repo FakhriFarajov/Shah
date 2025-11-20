@@ -52,7 +52,16 @@ public class SellerOrderService : ISellerOrderService
                 o.Id,
                 o.CreatedAt,
                 o.TotalAmount,
+                // Seller-specific metrics discount-aware
                 ItemCount = o.OrderItems.Count(oi => oi.ProductVariant.Product.StoreInfoId == storeId),
+                SellerNetAmount = o.OrderItems
+                    .Where(oi => oi.ProductVariant.Product.StoreInfoId == storeId)
+                    .Select(oi => oi.Quantity * ((oi.ProductVariant.DiscountPrice > 0 && oi.ProductVariant.DiscountPrice < oi.ProductVariant.Price) ? oi.ProductVariant.DiscountPrice : oi.ProductVariant.Price))
+                    .Sum(),
+                SellerGrossAmount = o.OrderItems
+                    .Where(oi => oi.ProductVariant.Product.StoreInfoId == storeId)
+                    .Select(oi => oi.Quantity * oi.ProductVariant.Price)
+                    .Sum(),
                 PaymentStatus = o.OrderPayment.Status,
                 o.ReceiptId
             })
@@ -85,6 +94,14 @@ public class SellerOrderService : ISellerOrderService
                 o.CreatedAt,
                 o.UpdatedAt,
                 o.TotalAmount,
+                SellerNetAmount = o.OrderItems
+                    .Where(oi => oi.ProductVariant.Product.StoreInfoId == storeId && oi.Status == OrderStatus.Delivered)
+                    .Select(oi => oi.Quantity * ((oi.ProductVariant.DiscountPrice > 0 && oi.ProductVariant.DiscountPrice < oi.ProductVariant.Price) ? oi.ProductVariant.DiscountPrice : oi.ProductVariant.Price))
+                    .Sum(),
+                SellerGrossAmount = o.OrderItems
+                    .Where(oi => oi.ProductVariant.Product.StoreInfoId == storeId && oi.Status == OrderStatus.Delivered)
+                    .Select(oi => oi.Quantity * oi.ProductVariant.Price)
+                    .Sum(),
                 Receipt = o.Receipt != null ? new { o.Receipt.Id, File = o.Receipt.File, o.Receipt.IssuedAt } : null,
                 Payment = o.OrderPayment != null ? new { o.OrderPayment.Id, o.OrderPayment.Status, o.OrderPayment.Method, o.OrderPayment.TotalAmount, o.OrderPayment.Currency } : null,
                 Items = o.OrderItems
@@ -94,10 +111,12 @@ public class SellerOrderService : ISellerOrderService
                         oi.Id,
                         oi.ProductVariantId,
                         Title = oi.ProductVariant.Title,
-                        Price = oi.ProductVariant.Price,
+                        OriginalPrice = oi.ProductVariant.Price,
+                        DiscountPrice = oi.ProductVariant.DiscountPrice,
+                        EffectivePrice = (oi.ProductVariant.DiscountPrice > 0 && oi.ProductVariant.DiscountPrice < oi.ProductVariant.Price) ? oi.ProductVariant.DiscountPrice : oi.ProductVariant.Price,
                         oi.Quantity,
-                        Status = oi.Status, // Added item-level status
-                        LineTotal = oi.ProductVariant.Price * oi.Quantity,
+                        Status = oi.Status,
+                        LineTotal = oi.Quantity * ((oi.ProductVariant.DiscountPrice > 0 && oi.ProductVariant.DiscountPrice < oi.ProductVariant.Price) ? oi.ProductVariant.DiscountPrice : oi.ProductVariant.Price),
                         Images = oi.ProductVariant.Images.Select(i => new { i.ImageUrl, i.IsMain })
                     }).ToList()
             })
@@ -122,6 +141,14 @@ public class SellerOrderService : ISellerOrderService
                 o.CreatedAt,
                 o.UpdatedAt,
                 o.TotalAmount,
+                SellerNetAmount = o.OrderItems
+                    .Where(oi => oi.ProductVariant.Product.StoreInfoId == storeId && oi.Status == OrderStatus.Delivered)
+                    .Select(oi => oi.Quantity * ((oi.ProductVariant.DiscountPrice > 0 && oi.ProductVariant.DiscountPrice < oi.ProductVariant.Price) ? oi.ProductVariant.DiscountPrice : oi.ProductVariant.Price))
+                    .Sum(),
+                SellerGrossAmount = o.OrderItems
+                    .Where(oi => oi.ProductVariant.Product.StoreInfoId == storeId && oi.Status == OrderStatus.Delivered)
+                    .Select(oi => oi.Quantity * oi.ProductVariant.Price)
+                    .Sum(),
                 Receipt = o.Receipt != null ? new { o.Receipt.Id, File = o.Receipt.File, o.Receipt.IssuedAt } : null,
                 Payment = o.OrderPayment != null ? new { o.OrderPayment.Id, o.OrderPayment.Status, o.OrderPayment.Method, o.OrderPayment.TotalAmount, o.OrderPayment.Currency } : null,
                 Items = o.OrderItems
@@ -131,10 +158,12 @@ public class SellerOrderService : ISellerOrderService
                         oi.Id,
                         oi.ProductVariantId,
                         Title = oi.ProductVariant.Title,
-                        Price = oi.ProductVariant.Price,
+                        OriginalPrice = oi.ProductVariant.Price,
+                        DiscountPrice = oi.ProductVariant.DiscountPrice,
+                        EffectivePrice = (oi.ProductVariant.DiscountPrice > 0 && oi.ProductVariant.DiscountPrice < oi.ProductVariant.Price) ? oi.ProductVariant.DiscountPrice : oi.ProductVariant.Price,
                         oi.Quantity,
-                        Status = oi.Status, // Added item-level status
-                        LineTotal = oi.ProductVariant.Price * oi.Quantity,
+                        Status = oi.Status,
+                        LineTotal = oi.Quantity * ((oi.ProductVariant.DiscountPrice > 0 && oi.ProductVariant.DiscountPrice < oi.ProductVariant.Price) ? oi.ProductVariant.DiscountPrice : oi.ProductVariant.Price),
                         Images = oi.ProductVariant.Images.Select(i => new { i.ImageUrl, i.IsMain })
                     }).ToList()
             })
@@ -155,19 +184,16 @@ public class SellerOrderService : ISellerOrderService
         if (string.IsNullOrWhiteSpace(warehouseId))
             return TypedResult<object>.Error("warehouseId is required", 400);
 
-        // Ensure warehouse exists
-        var warehouseExists = await _context.Warehouses.AnyAsync(w => w.Id == warehouseId);
-        if (!warehouseExists)
+        var warehouse = await _context.Warehouses.FirstOrDefaultAsync(w => w.Id == warehouseId);
+        if (warehouse == null)
             return TypedResult<object>.Error("Warehouse not found", 404);
 
-        // Load order with items
         var order = await _context.Orders
             .Include(o => o.OrderItems).ThenInclude(oi => oi.ProductVariant).ThenInclude(pv => pv.Product)
             .FirstOrDefaultAsync(o => o.Id == orderId);
         if (order == null)
             return TypedResult<object>.Error("Order not found", 404);
 
-        // Verify seller owns all items in this order
         var sellerHasItems = order.OrderItems.Any(oi => oi.ProductVariant.Product.StoreInfoId == storeId);
         if (!sellerHasItems)
             return TypedResult<object>.Error("Seller not authorized for this order", 403);
@@ -175,10 +201,20 @@ public class SellerOrderService : ISellerOrderService
         if (!allItemsBelongToSeller)
             return TypedResult<object>.Error("Order contains items from other stores; cannot send to warehouse", 409);
 
-        // Ensure not already sent
         var existingWo = await _context.WarehouseOrders.AsNoTracking().FirstOrDefaultAsync(wo => wo.OrderId == orderId);
         if (existingWo != null)
             return TypedResult<object>.Error("Order already sent to warehouse", 409);
+
+        // Calculate total quantity for this seller's items in the order
+        var totalQuantity = order.OrderItems
+            .Where(oi => oi.ProductVariant.Product.StoreInfoId == storeId)
+            .Sum(oi => oi.Quantity);
+
+        if (warehouse.Capacity < totalQuantity)
+            return TypedResult<object>.Error("Warehouse does not have enough capacity", 409);
+
+        warehouse.Capacity -= totalQuantity;
+        _context.Warehouses.Update(warehouse);
 
         var warehouseOrder = new Core.Models.WarehouseOrder
         {
@@ -187,8 +223,6 @@ public class SellerOrderService : ISellerOrderService
             CreatedAt = DateTime.UtcNow
         };
         _context.WarehouseOrders.Add(warehouseOrder);
-
-        // Optionally reflect on Order model property (not the FK)
         order.WarehouseOrderId = warehouseOrder.Id;
         await _context.SaveChangesAsync();
 
@@ -213,12 +247,6 @@ public class SellerOrderService : ISellerOrderService
 
         if (item.Status == newStatus)
             return TypedResult<object>.Success(new { item.Id, item.Status }, "No change", 200);
-
-        // Disallow illegal regressions from terminal states
-        var terminal = item.Status == OrderStatus.Delivered || item.Status == OrderStatus.Cancelled || item.Status == OrderStatus.Returned;
-        if (terminal && newStatus < item.Status)
-            return TypedResult<object>.Error("Cannot revert a terminal status", 400);
-
         item.Status = newStatus;
         if (item.Order != null)
         {

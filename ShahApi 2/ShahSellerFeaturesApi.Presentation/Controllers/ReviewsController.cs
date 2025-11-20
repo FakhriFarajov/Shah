@@ -4,9 +4,9 @@ using ShahSellerFeaturesApi.Application.Services.Interfaces;
 
 namespace ShahSellerFeaturesApi.Presentation.Controllers;
 
-[ApiController]
+[ApiController]    [Authorize(Policy = "SellerPolicy")]
+
 [Route("api/[controller]")]
-[Authorize(Policy = "SellerPolicy")]
 public class ReviewsController : ControllerBase
 {
     private readonly ISellerReviewService _sellerReviewService;

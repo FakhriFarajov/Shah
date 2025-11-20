@@ -47,7 +47,10 @@ public class CheckoutService : ICheckoutService
             if (ci.ProductVariant.Stock < ci.Quantity)
                 return TypedResult<object>.Error($"Not enough stock for variant {ci.ProductVariant.Title}");
 
-            subtotal += ci.ProductVariant.Price * ci.Quantity;
+            decimal unitPrice = (ci.ProductVariant.DiscountPrice > 0 && ci.ProductVariant.DiscountPrice < ci.ProductVariant.Price)
+                ? ci.ProductVariant.DiscountPrice
+                : ci.ProductVariant.Price;
+            subtotal += unitPrice * ci.Quantity;
         }
 
         var currency = string.IsNullOrWhiteSpace(request.Currency) ? "USD" : request.Currency!;
@@ -81,17 +84,16 @@ public class CheckoutService : ICheckoutService
                 OrderId = order.Id
             };
 
-            // Link payment navigation
-            order.OrderPaymentId = orderPayment.Id;
-            order.OrderPayment = orderPayment;
-            orderPayment.Order = order;
-
             // Create order items and deduct stock
-            var orderItems = new List<OrderItem>(capacity: cartItems.Count);
+            var orderItems = new List<OrderItem>();
+            var uniqueVariants = new HashSet<string>();
             foreach (var ci in cartItems)
             {
+                if (!uniqueVariants.Add(ci.ProductVariantId))
+                    continue; // Skip duplicate ProductVariantId
                 orderItems.Add(new OrderItem
                 {
+                    Id = Guid.NewGuid().ToString(), // Ensure unique ID for each OrderItem
                     OrderId = order.Id,
                     ProductVariantId = ci.ProductVariantId,
                     Quantity = ci.Quantity
@@ -102,10 +104,18 @@ public class CheckoutService : ICheckoutService
             }
             order.OrderItems = orderItems;
 
-            // Persist order + payment + items, update variants, and clear cart
+            // Persist order first to generate its Id
             await _context.Orders.AddAsync(order);
+            await _context.SaveChangesAsync();
+
+            // Now set OrderId on payment and link navigation
+            orderPayment.OrderId = order.Id;
+            order.OrderPaymentId = orderPayment.Id;
+            order.OrderPayment = orderPayment;
+            orderPayment.Order = order;
+
+            // Always create a new payment
             await _context.OrderPayments.AddAsync(orderPayment);
-            _context.OrderItems.AddRange(orderItems);
             _context.ProductVariants.UpdateRange(cartItems.Select(ci => ci.ProductVariant!));
             _context.CartItems.RemoveRange(cartItems);
 
@@ -156,11 +166,18 @@ public class CheckoutService : ICheckoutService
                     Id = order.ReceiptId,
                     FileUrl = receiptFileName // MinIO object name (filename)
                 },
-                Items = orderItems.Select(oi => new
-                {
-                    oi.ProductVariantId,
-                    oi.Status,
-                    oi.Quantity
+                Items = orderItems.Select(oi => {
+                    var variant = cartItems.FirstOrDefault(ci => ci.ProductVariantId == oi.ProductVariantId)?.ProductVariant;
+                    decimal unitPrice = (variant != null && variant.DiscountPrice > 0 && variant.DiscountPrice < variant.Price)
+                        ? variant.DiscountPrice
+                        : (variant != null ? variant.Price : 0m);
+                    return new {
+                        oi.ProductVariantId,
+                        oi.Status,
+                        oi.Quantity,
+                        UnitPrice = unitPrice,
+                        LineTotal = unitPrice * oi.Quantity
+                    };
                 }).ToList(),
             };
 

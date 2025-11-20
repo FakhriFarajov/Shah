@@ -172,7 +172,8 @@ public class ProductService : IProductService
                     Description = v.Description,
                     WeightInGrams = v.WeightInGrams,
                     Stock = v.Stock,
-                    Price = v.Price
+                    Price = v.Price,
+                    DiscountPrice = v.DiscountPrice ?? 0m // Map DiscountPrice, default to 0 if null
                 };
 
                 if (v.Images != null && v.Images.Count > 0)
@@ -291,6 +292,7 @@ public class ProductService : IProductService
             if (vReq.WeightInGrams.HasValue) variant.WeightInGrams = vReq.WeightInGrams.Value;
             if (vReq.Stock.HasValue) variant.Stock = vReq.Stock.Value;
             if (vReq.Price.HasValue) variant.Price = vReq.Price.Value;
+            if (vReq.DiscountPrice.HasValue) variant.DiscountPrice = vReq.DiscountPrice.Value; // Map DiscountPrice
 
             if (vReq.Images != null)
             {
@@ -478,6 +480,7 @@ public class ProductService : IProductService
                 variant.WeightInGrams = vReq.WeightInGrams;
                 variant.Stock = vReq.Stock;
                 variant.Price = vReq.Price;
+                variant.DiscountPrice = vReq.DiscountPrice ?? 0m; // Map DiscountPrice, default to 0 if null
             }
             else
             {
@@ -488,7 +491,8 @@ public class ProductService : IProductService
                     Description = vReq.Description,
                     WeightInGrams = vReq.WeightInGrams,
                     Stock = vReq.Stock,
-                    Price = vReq.Price
+                    Price = vReq.Price,
+                    DiscountPrice = vReq.DiscountPrice ?? 0m // Map DiscountPrice, default to 0 if null
                 };
                 product.ProductVariants.Add(variant);
             }

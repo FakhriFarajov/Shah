@@ -15,7 +15,8 @@ public class AdminOrderService : IAdminOrderService
         _context = context;
     }
 
-    private async Task<(string? storeId, string? errorMessage, int errorCode)> ResolveSellerStoreAsync(string sellerProfileId)
+    private async Task<(string? storeId, string? errorMessage, int errorCode)> ResolveSellerStoreAsync(
+        string sellerProfileId)
     {
         if (string.IsNullOrWhiteSpace(sellerProfileId))
             return (null, "sellerProfileId is required", 400);
@@ -61,7 +62,8 @@ public class AdminOrderService : IAdminOrderService
         return PaginatedResult<object>.Success(result.Cast<object>(), total, page, pageSize);
     }
 
-    public async Task<PaginatedResult<object>> GetDetailedOrdersForSellerAsync(string sellerProfileId, int page, int pageSize)
+    public async Task<PaginatedResult<object>> GetDetailedOrdersForSellerAsync(string sellerProfileId, int page,
+        int pageSize)
     {
         if (page <= 0) page = 1;
         if (pageSize <= 0) pageSize = 20;
@@ -86,7 +88,13 @@ public class AdminOrderService : IAdminOrderService
                 o.UpdatedAt,
                 o.TotalAmount,
                 Receipt = o.Receipt != null ? new { o.Receipt.Id, File = o.Receipt.File, o.Receipt.IssuedAt } : null,
-                Payment = o.OrderPayment != null ? new { o.OrderPayment.Id, o.OrderPayment.Status, o.OrderPayment.Method, o.OrderPayment.TotalAmount, o.OrderPayment.Currency } : null,
+                Payment = o.OrderPayment != null
+                    ? new
+                    {
+                        o.OrderPayment.Id, o.OrderPayment.Status, o.OrderPayment.Method, o.OrderPayment.TotalAmount,
+                        o.OrderPayment.Currency
+                    }
+                    : null,
                 Items = o.OrderItems
                     .Where(oi => oi.ProductVariant.Product.StoreInfoId == storeId)
                     .Select(oi => new
@@ -94,10 +102,16 @@ public class AdminOrderService : IAdminOrderService
                         oi.Id,
                         oi.ProductVariantId,
                         Title = oi.ProductVariant.Title,
-                        Price = oi.ProductVariant.Price,
+                        Price = (oi.ProductVariant.DiscountPrice > 0 &&
+                                 oi.ProductVariant.DiscountPrice < oi.ProductVariant.Price)
+                            ? oi.ProductVariant.DiscountPrice
+                            : oi.ProductVariant.Price,
                         oi.Quantity,
                         Status = oi.Status, // Added item-level status
-                        LineTotal = oi.ProductVariant.Price * oi.Quantity,
+                        LineTotal = ((oi.ProductVariant.DiscountPrice > 0 &&
+                                      oi.ProductVariant.DiscountPrice < oi.ProductVariant.Price)
+                            ? oi.ProductVariant.DiscountPrice
+                            : oi.ProductVariant.Price) * oi.Quantity,
                         Images = oi.ProductVariant.Images.Select(i => new { i.ImageUrl, i.IsMain })
                     }).ToList()
             })
@@ -107,7 +121,8 @@ public class AdminOrderService : IAdminOrderService
     }
 
     // Admin-wide: list all orders, optional seller filter, detailed or summary
-    public async Task<PaginatedResult<object>> GetOrdersAsync(int page, int pageSize, bool detailed = true, string? sellerProfileId = null)
+    public async Task<PaginatedResult<object>> GetOrdersAsync(int page, int pageSize, bool detailed = true,
+        string? sellerProfileId = null)
     {
         if (page <= 0) page = 1;
         if (pageSize <= 0) pageSize = 20;
@@ -133,11 +148,16 @@ public class AdminOrderService : IAdminOrderService
                     o.Id,
                     o.CreatedAt,
                     o.TotalAmount,
-                    ItemCount = o.OrderItems
-                        .Where(oi => string.IsNullOrWhiteSpace(sellerProfileId) || oi.ProductVariant.Product.StoreInfo.SellerProfileId == sellerProfileId)
-                        .Count(),
+                    ItemCount = o.OrderItems.Count(),
                     PaymentStatus = o.OrderPayment.Status,
-                    o.ReceiptId
+                    o.ReceiptId,
+                    Buyer = o.BuyerProfile != null ? new { o.BuyerProfile.Id, o.BuyerProfile.UserId } : null,
+                    Sellers = o.OrderItems
+                        .Select(oi => oi.ProductVariant.Product.StoreInfo.SellerProfile)
+                        .Where(sp => sp != null)
+                        .Select(sp => new { sp.Id, sp.UserId })
+                        .Distinct()
+                        .ToList()
                 })
                 .ToListAsync();
             return PaginatedResult<object>.Success(rows.Cast<object>(), total, page, pageSize);
@@ -154,19 +174,40 @@ public class AdminOrderService : IAdminOrderService
                     o.CreatedAt,
                     o.UpdatedAt,
                     o.TotalAmount,
+                    Buyer = o.BuyerProfile != null ? new { o.BuyerProfile.Id, o.BuyerProfile.UserId } : null,
+                    Sellers = o.OrderItems
+                        .Select(oi => oi.ProductVariant.Product.StoreInfo.SellerProfile)
+                        .Where(sp => sp != null)
+                        .Select(sp => new { sp.Id, sp.UserId })
+                        .Distinct()
+                        .ToList(),
                     Receipt = o.Receipt != null ? new { o.Receipt.Id, File = o.Receipt.File, o.Receipt.IssuedAt } : null,
-                    Payment = o.OrderPayment != null ? new { o.OrderPayment.Id, o.OrderPayment.Status, o.OrderPayment.Method, o.OrderPayment.TotalAmount, o.OrderPayment.Currency } : null,
+                    Payment = o.OrderPayment != null
+                        ? new
+                        {
+                            o.OrderPayment.Id, o.OrderPayment.Status, o.OrderPayment.Method, o.OrderPayment.TotalAmount,
+                            o.OrderPayment.Currency
+                        }
+                        : null,
                     Items = o.OrderItems
-                        .Where(oi => string.IsNullOrWhiteSpace(sellerProfileId) || oi.ProductVariant.Product.StoreInfo.SellerProfileId == sellerProfileId)
+                        .Where(oi =>
+                            string.IsNullOrWhiteSpace(sellerProfileId) ||
+                            oi.ProductVariant.Product.StoreInfo.SellerProfileId == sellerProfileId)
                         .Select(oi => new
                         {
                             oi.Id,
                             oi.ProductVariantId,
                             Title = oi.ProductVariant.Title,
-                            Price = oi.ProductVariant.Price,
+                            Price = (oi.ProductVariant.DiscountPrice > 0 &&
+                                     oi.ProductVariant.DiscountPrice < oi.ProductVariant.Price)
+                                ? oi.ProductVariant.DiscountPrice
+                                : oi.ProductVariant.Price,
                             oi.Quantity,
                             Status = oi.Status,
-                            LineTotal = oi.ProductVariant.Price * oi.Quantity,
+                            LineTotal = ((oi.ProductVariant.DiscountPrice > 0 &&
+                                          oi.ProductVariant.DiscountPrice < oi.ProductVariant.Price)
+                                ? oi.ProductVariant.DiscountPrice
+                                : oi.ProductVariant.Price) * oi.Quantity,
                             Images = oi.ProductVariant.Images.Select(i => new { i.ImageUrl, i.IsMain })
                         }).ToList()
                 })
@@ -193,7 +234,13 @@ public class AdminOrderService : IAdminOrderService
                 o.UpdatedAt,
                 o.TotalAmount,
                 Receipt = o.Receipt != null ? new { o.Receipt.Id, File = o.Receipt.File, o.Receipt.IssuedAt } : null,
-                Payment = o.OrderPayment != null ? new { o.OrderPayment.Id, o.OrderPayment.Status, o.OrderPayment.Method, o.OrderPayment.TotalAmount, o.OrderPayment.Currency } : null,
+                Payment = o.OrderPayment != null
+                    ? new
+                    {
+                        o.OrderPayment.Id, o.OrderPayment.Status, o.OrderPayment.Method, o.OrderPayment.TotalAmount,
+                        o.OrderPayment.Currency
+                    }
+                    : null,
                 Items = o.OrderItems
                     .Where(oi => oi.ProductVariant.Product.StoreInfoId == storeId)
                     .Select(oi => new
@@ -201,10 +248,16 @@ public class AdminOrderService : IAdminOrderService
                         oi.Id,
                         oi.ProductVariantId,
                         Title = oi.ProductVariant.Title,
-                        Price = oi.ProductVariant.Price,
+                        Price = (oi.ProductVariant.DiscountPrice > 0 &&
+                                 oi.ProductVariant.DiscountPrice < oi.ProductVariant.Price)
+                            ? oi.ProductVariant.DiscountPrice
+                            : oi.ProductVariant.Price,
                         oi.Quantity,
                         Status = oi.Status, // Added item-level status
-                        LineTotal = oi.ProductVariant.Price * oi.Quantity,
+                        LineTotal = ((oi.ProductVariant.DiscountPrice > 0 &&
+                                      oi.ProductVariant.DiscountPrice < oi.ProductVariant.Price)
+                            ? oi.ProductVariant.DiscountPrice
+                            : oi.ProductVariant.Price) * oi.Quantity,
                         Images = oi.ProductVariant.Images.Select(i => new { i.ImageUrl, i.IsMain })
                     }).ToList()
             })
@@ -232,16 +285,28 @@ public class AdminOrderService : IAdminOrderService
                 o.UpdatedAt,
                 o.TotalAmount,
                 Receipt = o.Receipt != null ? new { o.Receipt.Id, File = o.Receipt.File, o.Receipt.IssuedAt } : null,
-                Payment = o.OrderPayment != null ? new { o.OrderPayment.Id, o.OrderPayment.Status, o.OrderPayment.Method, o.OrderPayment.TotalAmount, o.OrderPayment.Currency } : null,
+                Payment = o.OrderPayment != null
+                    ? new
+                    {
+                        o.OrderPayment.Id, o.OrderPayment.Status, o.OrderPayment.Method, o.OrderPayment.TotalAmount,
+                        o.OrderPayment.Currency
+                    }
+                    : null,
                 Items = o.OrderItems.Select(oi => new
                 {
                     oi.Id,
                     oi.ProductVariantId,
                     Title = oi.ProductVariant.Title,
-                    Price = oi.ProductVariant.Price,
+                    Price = (oi.ProductVariant.DiscountPrice > 0 &&
+                             oi.ProductVariant.DiscountPrice < oi.ProductVariant.Price)
+                        ? oi.ProductVariant.DiscountPrice
+                        : oi.ProductVariant.Price,
                     oi.Quantity,
                     Status = oi.Status,
-                    LineTotal = oi.ProductVariant.Price * oi.Quantity,
+                    LineTotal = ((oi.ProductVariant.DiscountPrice > 0 &&
+                                  oi.ProductVariant.DiscountPrice < oi.ProductVariant.Price)
+                        ? oi.ProductVariant.DiscountPrice
+                        : oi.ProductVariant.Price) * oi.Quantity,
                     Images = oi.ProductVariant.Images.Select(i => new { i.ImageUrl, i.IsMain })
                 }).ToList()
             })
@@ -253,7 +318,8 @@ public class AdminOrderService : IAdminOrderService
         return TypedResult<object>.Success(order);
     }
 
-    public async Task<TypedResult<object>> SendOrderToWarehouseAsync(string orderId, string sellerProfileId, string warehouseId)
+    public async Task<TypedResult<object>> SendOrderToWarehouseAsync(string orderId, string sellerProfileId,
+        string warehouseId)
     {
         var (storeId, err, code) = await ResolveSellerStoreAsync(sellerProfileId);
         if (!string.IsNullOrEmpty(err)) return TypedResult<object>.Error(err, code);
@@ -262,9 +328,9 @@ public class AdminOrderService : IAdminOrderService
         if (string.IsNullOrWhiteSpace(warehouseId))
             return TypedResult<object>.Error("warehouseId is required", 400);
 
-        // Ensure warehouse exists
-        var warehouseExists = await _context.Warehouses.AnyAsync(w => w.Id == warehouseId);
-        if (!warehouseExists)
+        // Ensure warehouse exists and fetch entity
+        var warehouse = await _context.Warehouses.FirstOrDefaultAsync(w => w.Id == warehouseId);
+        if (warehouse == null)
             return TypedResult<object>.Error("Warehouse not found", 404);
 
         // Load order with items
@@ -287,6 +353,14 @@ public class AdminOrderService : IAdminOrderService
         if (existingWo != null)
             return TypedResult<object>.Error("Order already sent to warehouse", 409);
 
+        // Calculate total quantity for all items in this order
+        var totalQuantity = order.OrderItems.Sum(oi => oi.Quantity);
+        if (warehouse.Capacity < totalQuantity)
+            return TypedResult<object>.Error("Warehouse does not have enough capacity", 409);
+
+        warehouse.Capacity -= totalQuantity;
+        _context.Warehouses.Update(warehouse);
+
         var warehouseOrder = new Core.Models.WarehouseOrder
         {
             OrderId = order.Id,
@@ -294,14 +368,14 @@ public class AdminOrderService : IAdminOrderService
             CreatedAt = DateTime.UtcNow
         };
         _context.WarehouseOrders.Add(warehouseOrder);
-
-        // Optionally reflect on Order model property (not the FK)
         order.WarehouseOrderId = warehouseOrder.Id;
         await _context.SaveChangesAsync();
 
-        return TypedResult<object>.Success(new { warehouseOrder.Id, warehouseOrder.OrderId, warehouseOrder.WarehouseId, warehouseOrder.CreatedAt }, "Sent to warehouse");
+        return TypedResult<object>.Success(
+            new { warehouseOrder.Id, warehouseOrder.OrderId, warehouseOrder.WarehouseId, warehouseOrder.CreatedAt },
+            "Sent to warehouse");
     }
-
+    
     public async Task<TypedResult<object>> UpdateOrderItemStatusAsync(string orderItemId, OrderStatus newStatus)
     {
         var item = await _context.OrderItems
@@ -313,18 +387,77 @@ public class AdminOrderService : IAdminOrderService
 
         if (item.Status == newStatus)
             return TypedResult<object>.Success(new { item.Id, item.Status }, "No change", 200);
-
-        // Disallow illegal regressions from terminal states
-        var terminal = item.Status == OrderStatus.Delivered || item.Status == OrderStatus.Cancelled || item.Status == OrderStatus.Returned;
-        if (terminal && newStatus < item.Status)
-            return TypedResult<object>.Error("Cannot revert a terminal status", 400);
-
+        
         item.Status = newStatus;
+
         if (item.Order != null)
         {
             item.Order.UpdatedAt = DateTime.UtcNow;
         }
         await _context.SaveChangesAsync();
         return TypedResult<object>.Success(new { item.Id, item.Status }, "Item status updated", 200);
+    }
+
+    public async Task<PaginatedResult<object>> GetOrdersByUserIdAsync(string userId, int page, int pageSize)
+    {
+        if (string.IsNullOrWhiteSpace(userId))
+            return PaginatedResult<object>.Error("userId is required", 400);
+        if (page <= 0) page = 1;
+        if (pageSize <= 0) pageSize = 20;
+        if (pageSize > 200) pageSize = 200;
+
+        var baseQuery = _context.Orders
+            .AsNoTracking()
+            .Where(o =>
+                (o.BuyerProfile != null && o.BuyerProfile.UserId == userId) ||
+                o.OrderItems.Any(oi => oi.ProductVariant.Product.StoreInfo.SellerProfile != null && oi.ProductVariant.Product.StoreInfo.SellerProfile.UserId == userId)
+            );
+
+        var total = await baseQuery.CountAsync();
+
+        var rows = await baseQuery
+            .OrderByDescending(o => o.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(o => new
+            {
+                o.Id,
+                o.CreatedAt,
+                o.UpdatedAt,
+                o.TotalAmount,
+                Buyer = o.BuyerProfile != null ? new { o.BuyerProfile.Id, o.BuyerProfile.UserId } : null,
+                Sellers = o.OrderItems
+                    .Select(oi => oi.ProductVariant.Product.StoreInfo.SellerProfile)
+                    .Where(sp => sp != null)
+                    .Select(sp => new { sp.UserId })
+                    .Distinct()
+                    .ToList(),
+                Receipt = o.Receipt != null ? new { o.Receipt.Id, File = o.Receipt.File, o.Receipt.IssuedAt } : null,
+                Payment = o.OrderPayment != null
+                    ? new
+                    {
+                        o.OrderPayment.Id, o.OrderPayment.Status, o.OrderPayment.Method, o.OrderPayment.TotalAmount,
+                        o.OrderPayment.Currency
+                    }
+                    : null,
+                Items = o.OrderItems.Select(oi => new
+                {
+                    oi.Id,
+                    oi.ProductVariantId,
+                    Title = oi.ProductVariant.Title,
+                    Price = (oi.ProductVariant.DiscountPrice > 0 && oi.ProductVariant.DiscountPrice < oi.ProductVariant.Price)
+                        ? oi.ProductVariant.DiscountPrice
+                        : oi.ProductVariant.Price,
+                    oi.Quantity,
+                    Status = oi.Status,
+                    LineTotal = ((oi.ProductVariant.DiscountPrice > 0 && oi.ProductVariant.DiscountPrice < oi.ProductVariant.Price)
+                        ? oi.ProductVariant.DiscountPrice
+                        : oi.ProductVariant.Price) * oi.Quantity,
+                    Images = oi.ProductVariant.Images.Select(i => new { i.ImageUrl, i.IsMain })
+                }).ToList()
+            })
+            .ToListAsync();
+
+        return PaginatedResult<object>.Success(rows.Cast<object>(), total, page, pageSize);
     }
 }

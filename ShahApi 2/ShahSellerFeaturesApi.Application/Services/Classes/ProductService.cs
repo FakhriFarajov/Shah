@@ -162,6 +162,7 @@ public class ProductService : IProductService
                 v.Description,
                 v.Stock,
                 v.Price,
+                v.DiscountPrice,
                 Images = v.Images.Select(img => new { img.ImageUrl, img.IsMain }).ToList(),
                 MainImageUrl = v.Images.FirstOrDefault(i => i.IsMain)?.ImageUrl
             }),
@@ -230,6 +231,7 @@ public class ProductService : IProductService
                 RepresentativeVariantId = p.ProductVariants.Select(v => v.Id).FirstOrDefault(),
                 StoreName = p.StoreInfo.StoreName,
                 Price = p.ProductVariants.Select(v => (decimal?)v.Price).Min() ?? 0m,
+                DiscountPrice = p.ProductVariants.Select(v => (decimal?)v.DiscountPrice).Min() ?? 0m,
                 Category = p.Category,
                 ReviewsCount = p.ProductVariants.Sum(v => v.Reviews.Count)
             })
@@ -253,6 +255,7 @@ public class ProductService : IProductService
                 MainImage = (p.RepresentativeVariantId != null && mainLookup.TryGetValue(p.RepresentativeVariantId, out var url)) ? url : null,
                 p.StoreName,
                 p.Price,
+                p.DiscountPrice,
                 CategoryName = p.Category.CategoryName,
                 CategoryChain = CategoryUtils.GetCategoryChain(p.Category),
                 p.ReviewsCount
@@ -281,6 +284,7 @@ public class ProductService : IProductService
                 p.Id,
                 StoreName = p.StoreInfo.StoreName,
                 Price = p.ProductVariants.Select(v => (decimal?)v.Price).Min() ?? 0m,
+                DiscountPrice = p.ProductVariants.Select(v => (decimal?)v.DiscountPrice).Min() ?? 0m,
                 CategoryName = p.Category.CategoryName,
                 CategoryChain = CategoryUtils.GetCategoryChain(p.Category),
                 ReviewsCount = p.ProductVariants.Sum(v => v.Reviews.Count)
@@ -301,6 +305,7 @@ public class ProductService : IProductService
             p.Id,
             StoreName = p.StoreInfo.StoreName,
             Price = p.ProductVariants.Select(v => (decimal?)v.Price).Min() ?? 0m,
+            DiscountPrice = p.ProductVariants.Select(v => (decimal?)v.DiscountPrice).Min() ?? 0m,
             CategoryName = p.Category.CategoryName,
             CategoryChain = CategoryUtils.GetCategoryChain(p.Category),
             ReviewsCount = p.ProductVariants.Sum(v => v.Reviews.Count)
@@ -363,6 +368,7 @@ public class ProductService : IProductService
             if (vReq.WeightInGrams.HasValue) variant.WeightInGrams = vReq.WeightInGrams.Value;
             if (vReq.Stock.HasValue) variant.Stock = vReq.Stock.Value;
             if (vReq.Price.HasValue) variant.Price = vReq.Price.Value;
+            if (vReq.DiscountPrice.HasValue) variant.DiscountPrice = vReq.DiscountPrice.Value;
 
             // Treat provided images as the final set to keep (sync behavior)
             if (vReq.Images != null)
@@ -428,6 +434,7 @@ public class ProductService : IProductService
                 v.WeightInGrams,
                 v.Stock,
                 v.Price,
+                v.DiscountPrice,
                 Images = v.Images.Select(img => new { img.Id, img.ImageUrl, img.IsMain }).ToList(),
                 AttributeValueIds = v.ProductVariantAttributeValues.Select(x => x.ProductAttributeValueId).ToList()
             }).ToList()
@@ -514,6 +521,7 @@ public class ProductService : IProductService
                 v.WeightInGrams,
                 v.Stock,
                 v.Price,
+                v.DiscountPrice,
                 Images = v.Images.Select(img => new { img.Id, img.ImageUrl, img.IsMain }).ToList(),
                 AttributeValueIds = v.ProductVariantAttributeValues.Select(x => x.ProductAttributeValueId).ToList()
             }).ToList()
@@ -587,6 +595,7 @@ public class ProductService : IProductService
                 variant.WeightInGrams = vReq.WeightInGrams;
                 variant.Stock = vReq.Stock;
                 variant.Price = vReq.Price;
+                variant.DiscountPrice = vReq.DiscountPrice;
             }
             else
             {
@@ -597,7 +606,8 @@ public class ProductService : IProductService
                     Description = vReq.Description,
                     WeightInGrams = vReq.WeightInGrams,
                     Stock = vReq.Stock,
-                    Price = vReq.Price
+                    Price = vReq.Price,
+                    DiscountPrice = vReq.DiscountPrice
                 };
                 product.ProductVariants.Add(variant);
             }
@@ -687,6 +697,7 @@ public class ProductService : IProductService
                 v.WeightInGrams,
                 v.Stock,
                 v.Price,
+                v.DiscountPrice,
                 Images = v.Images.Select(img => new { img.Id, img.ImageUrl, img.IsMain }).ToList(),
                 AttributeValueIds = v.ProductVariantAttributeValues.Select(x => x.ProductAttributeValueId).ToList()
             }).ToList()
@@ -702,7 +713,6 @@ public class ProductService : IProductService
         if (string.IsNullOrWhiteSpace(sellerProfileId))
             return TypedResult<object>.Error("sellerProfileId is required", 400);
 
-        // Verify ownership and fetch minimal info
         var ownership = await _context.Products
             .AsNoTracking()
             .Where(p => p.Id == productId)
@@ -714,7 +724,6 @@ public class ProductService : IProductService
         if (ownership.SellerProfileId != sellerProfileId)
             return TypedResult<object>.Error("Forbidden", 403);
 
-        // If variantId provided, validate it's part of this product
         if (!string.IsNullOrWhiteSpace(productVariantId))
         {
             var belongs = await _context.ProductVariants.AsNoTracking()
@@ -723,14 +732,12 @@ public class ProductService : IProductService
                 return TypedResult<object>.Error("Variant does not belong to product", 400);
         }
 
-        // Base variant set for this product (optionally narrowed to one variant)
         IQueryable<ProductVariant> variantsQuery = _context.ProductVariants
             .AsNoTracking()
             .Where(v => v.ProductId == productId);
         if (!string.IsNullOrWhiteSpace(productVariantId))
             variantsQuery = variantsQuery.Where(v => v.Id == productVariantId);
 
-        // Aggregate counts from order items (by item status)
         IQueryable<OrderItem> orderItemsQuery = _context.OrderItems
             .AsNoTracking()
             .Where(oi => oi.ProductVariant.ProductId == productId);
@@ -742,13 +749,14 @@ public class ProductService : IProductService
         var deliveredItems = await orderItemsQuery.Where(oi => oi.Status == OrderStatus.Delivered).SumAsync(oi => oi.Quantity);
         var cancelledItems = await orderItemsQuery.Where(oi => oi.Status == OrderStatus.Cancelled).SumAsync(oi => oi.Quantity);
 
-        // Approx revenue using current variant price
+        // Helper: effective price considering discount
+        // If DiscountPrice > 0 and < Price, use DiscountPrice, else Price
+        // Gross revenue keeps original Price-based total for reference (not returned unless needed later)
         var deliveredRevenue = await orderItemsQuery
             .Where(oi => oi.Status == OrderStatus.Delivered)
-            .Select(oi => oi.Quantity * oi.ProductVariant.Price)
+            .Select(oi => oi.Quantity * ((oi.ProductVariant.DiscountPrice > 0 && oi.ProductVariant.DiscountPrice < oi.ProductVariant.Price) ? oi.ProductVariant.DiscountPrice : oi.ProductVariant.Price))
             .SumAsync();
 
-        // Last 30 days metrics (based on order's CreatedAt)
         var since = DateTime.UtcNow.AddDays(-30);
         IQueryable<OrderItem> last30Query = orderItemsQuery.Where(oi => oi.Order.CreatedAt >= since);
 
@@ -759,30 +767,27 @@ public class ProductService : IProductService
             .SumAsync(oi => oi.Quantity);
         var last30Revenue = await last30Query
             .Where(oi => oi.Status == OrderStatus.Delivered)
-            .Select(oi => oi.Quantity * oi.ProductVariant.Price)
+            .Select(oi => oi.Quantity * ((oi.ProductVariant.DiscountPrice > 0 && oi.ProductVariant.DiscountPrice < oi.ProductVariant.Price) ? oi.ProductVariant.DiscountPrice : oi.ProductVariant.Price))
             .SumAsync();
 
-        // New: Last 1 Day metrics
         var since1Day = DateTime.UtcNow.AddDays(-1);
         IQueryable<OrderItem> last1DayQuery = orderItemsQuery.Where(oi => oi.Order.CreatedAt >= since1Day);
         var last1DayOrders = await last1DayQuery.Select(oi => oi.OrderId).Distinct().CountAsync();
         var last1DayItems = await last1DayQuery.SumAsync(oi => oi.Quantity);
         var last1DayDeliveredItems = await last1DayQuery.Where(oi => oi.Status == OrderStatus.Delivered).SumAsync(oi => oi.Quantity);
         var last1DayRevenue = await last1DayQuery.Where(oi => oi.Status == OrderStatus.Delivered)
-            .Select(oi => oi.Quantity * oi.ProductVariant.Price)
+            .Select(oi => oi.Quantity * ((oi.ProductVariant.DiscountPrice > 0 && oi.ProductVariant.DiscountPrice < oi.ProductVariant.Price) ? oi.ProductVariant.DiscountPrice : oi.ProductVariant.Price))
             .SumAsync();
-        
-        // New: Last 1 Year metrics
+
         var since1Year = DateTime.UtcNow.AddYears(-1);
         IQueryable<OrderItem> last1YearQuery = orderItemsQuery.Where(oi => oi.Order.CreatedAt >= since1Year);
         var last1YearOrders = await last1YearQuery.Select(oi => oi.OrderId).Distinct().CountAsync();
         var last1YearItems = await last1YearQuery.SumAsync(oi => oi.Quantity);
         var last1YearDeliveredItems = await last1YearQuery.Where(oi => oi.Status == OrderStatus.Delivered).SumAsync(oi => oi.Quantity);
         var last1YearRevenue = await last1YearQuery.Where(oi => oi.Status == OrderStatus.Delivered)
-            .Select(oi => oi.Quantity * oi.ProductVariant.Price)
+            .Select(oi => oi.Quantity * ((oi.ProductVariant.DiscountPrice > 0 && oi.ProductVariant.DiscountPrice < oi.ProductVariant.Price) ? oi.ProductVariant.DiscountPrice : oi.ProductVariant.Price))
             .SumAsync();
 
-        // Ratings and favorites
         var reviewsQuery = variantsQuery.SelectMany(v => v.Reviews);
         var reviewsCount = await reviewsQuery.CountAsync();
         decimal? averageRating = null;
@@ -792,12 +797,14 @@ public class ProductService : IProductService
         }
         var favoritesCount = await variantsQuery.SelectMany(v => v.Favorites).CountAsync();
 
-        // Stock and price band
         var stockAvailable = await variantsQuery.SumAsync(v => v.Stock);
-        var minPrice = await variantsQuery.MinAsync(v => (decimal?)v.Price) ?? 0m;
-        var maxPrice = await variantsQuery.MaxAsync(v => (decimal?)v.Price) ?? 0m;
+        var minPrice = await variantsQuery
+            .Select(v => (decimal?)((v.DiscountPrice > 0 && v.DiscountPrice < v.Price) ? v.DiscountPrice : v.Price))
+            .MinAsync() ?? 0m;
+        var maxPrice = await variantsQuery
+            .Select(v => (decimal?)((v.DiscountPrice > 0 && v.DiscountPrice < v.Price) ? v.DiscountPrice : v.Price))
+            .MaxAsync() ?? 0m;
 
-        // Latest reviews (top 20 most recent)
         var latestReviews = await reviewsQuery
             .OrderByDescending(r => r.CreatedAt)
             .Select(r => new
@@ -814,7 +821,6 @@ public class ProductService : IProductService
             .Take(20)
             .ToListAsync();
 
-        // Top variants by delivered quantity (skipped if filtering by a specific variant)
         List<object> topVariants;
         if (string.IsNullOrWhiteSpace(productVariantId))
         {
@@ -830,7 +836,6 @@ public class ProductService : IProductService
         }
         else
         {
-            // Return the specified variant with its delivered quantity summary
             var singleVariantAgg = await _context.OrderItems
                 .AsNoTracking()
                 .Where(oi => oi.ProductVariantId == productVariantId && oi.Status == OrderStatus.Delivered)
@@ -851,7 +856,7 @@ public class ProductService : IProductService
                 Items = totalItems,
                 DeliveredItems = deliveredItems,
                 CancelledItems = cancelledItems,
-                Revenue = deliveredRevenue
+                Revenue = deliveredRevenue // Discount-aware (net revenue)
             },
             Last1Day = new
             {

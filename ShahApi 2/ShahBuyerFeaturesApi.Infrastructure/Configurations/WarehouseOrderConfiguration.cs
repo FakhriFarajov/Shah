@@ -22,6 +22,11 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Configurations
                    .WithMany(w => w.WarehouseOrder)
                    .HasForeignKey(wo => wo.WarehouseId)
                    .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(w => w.WarehouseOrderItems)
+                   .WithOne(woi => woi.WarehouseOrder)
+                   .HasForeignKey(woi => woi.WarehouseOrderId)
+                   .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

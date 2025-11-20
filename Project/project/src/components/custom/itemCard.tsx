@@ -63,7 +63,7 @@ export default function ProductCard({ product }: { product: productCardDTO }) {
       if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
         toast.error('Network error: could not reach server. Check your connection or backend.');
       } else if (error.response) {
-        if(error.response.status === 401){
+        if (error.response.status === 401) {
           toast.error(`Unauthorized: Please log in to manage favourites.`);
           navigator('/login');
         } else {
@@ -115,13 +115,13 @@ export default function ProductCard({ product }: { product: productCardDTO }) {
       if (error.response.code === 'ERR_NETWORK' || error.message === 'Network Error') {
         toast.error('Network error: could not reach server. Check your connection or backend.');
       } else if (error.response) {
-        if(error.response.status === 401){
+        if (error.response.status === 401) {
           toast.error(`Unauthorized: Please log in to manage cart.`);
           navigator('/login');
         } else {
           console.error("Failed to update cart:", error.response);
           toast.error(`Server error: ${error.response.status} ${error.response.statusText}`);
-        }
+        } ƒ
       } else {
         toast.error('Failed to update favourites');
       }
@@ -158,9 +158,6 @@ export default function ProductCard({ product }: { product: productCardDTO }) {
   return (
     <Card
       className="w-full sm:max-w-sm md:max-w-xl p-0 border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition relative cursor-pointer"
-      onClick={() => {
-        window.location.href = `/product?id=${product.id}&productVariantId=${product.representativeVariantId}`;
-      }}
     >
       {/* Favourite Button */}
       <button
@@ -177,11 +174,16 @@ export default function ProductCard({ product }: { product: productCardDTO }) {
       {/* Product Image */}
       <CardHeader
         className="p-0"
-        onClick={() =>
-          navigator(`/product?id=${product.id}&productVariantId=${product.representativeVariantId}`)
-        }
       >
-        <div className="w-full aspect-square overflow-hidden rounded-t-xl bg-gray-200">
+        <div className="w-full aspect-square overflow-hidden rounded-t-xl bg-gray-200" onClick={() => {
+          navigator(`/product?id=${product.id}&productVariantId=${product.representativeVariantId}`);
+          window.location.reload();
+        }}>
+          {typeof product.discountPrice === 'number' && product.discountPrice > 0 && product.discountPrice < product.price && (
+            <div className="absolute top-3 left-3 z-10 px-3 py-1 rounded-full bg-red-600 text-white text-sm font-medium">
+              -{Math.round(((product.price - product.discountPrice) / product.price) * 100)}% OFF
+            </div>
+          )}
           <img
             src={product.mainImage}
             alt={product.productTitle}
@@ -213,9 +215,17 @@ export default function ProductCard({ product }: { product: productCardDTO }) {
 
         {/* Price + Stock */}
         <div className="flex justify-between items-center pt-2">
-          <span className="text-lg font-bold text-gray-900">
-            {product.price}$
-          </span>
+          {typeof product.discountPrice === 'number' && product.discountPrice > 0 && product.discountPrice < product.price ? (
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold text-red-600">{product.discountPrice}$</span>
+              <span className="text-sm line-through text-gray-500">{product.price}$</span>
+              <span className="text-xs font-semibold text-green-600 bg-green-100 px-2 py-1 rounded">
+                -{Math.round(100 - (product.discountPrice / product.price) * 100)}%
+              </span>
+            </div>
+          ) : (
+            <span className="text-lg font-bold text-gray-900">{product.price}$</span>
+          )}
         </div>
 
         {/* Rating */}
@@ -242,7 +252,8 @@ export default function ProductCard({ product }: { product: productCardDTO }) {
           </div>
         ) : (
           <Button
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               isInCart ? handleCartRemove() : handleCartAdd();
             }}
             className={`flex-1 px-3 py-2 rounded-xl flex justify-center text-sm font-medium text-white ${isInCart ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}

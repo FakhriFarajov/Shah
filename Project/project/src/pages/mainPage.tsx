@@ -5,7 +5,6 @@ import { Label } from "@/components/ui/label";
 import ProductCard from "@/components/custom/itemCard";
 import "../i18n"; // Import i18n configuration
 import { useTranslation } from "react-i18next";
-import Grid from "@/components/custom/ProductGrid";
 import { useEffect, useState } from "react";
 import { getRandomPaginated } from "@/features/profile/product/profile.service";
 import { getProfileImage } from "@/shared/utils/imagePost";
@@ -13,6 +12,7 @@ import { decodeUserFromToken } from "@/shared/utils/decodeToken";
 import { tokenStorage } from "@/shared/tokenStorage";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
 import Spinner from "@/components/custom/Spinner";
+import { getProductDetailsById } from "@/features/profile/product/profile.service";
 
 // Type for subcategory filter
 
@@ -32,6 +32,57 @@ export default function Main() {
     const [hasMore, setHasMore] = useState<boolean>(true);
     const [loading, setLoading] = useState<boolean>(false);
 
+    // Load product history from localStorage
+    const [historyProducts, setHistoryProducts] = useState<any[]>([]);
+    useEffect(() => {
+        const historyKey = 'productHistory';
+        let history: Array<{ productId: string, variantId: string | null, timestamp: number }> = [];
+        try {
+            const raw = localStorage.getItem(historyKey);
+            if (raw) history = JSON.parse(raw);
+        } catch { }
+        // Remove duplicates from history (keep most recent)
+        const seen = new Set();
+        history = history.filter(item => {
+            const key = item.productId + ':' + (item.variantId ?? '');
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
+        // Fetch product details for each history entry (limit to 8 most recent)
+        const fetchHistoryProducts = async () => {
+            const results: any[] = [];
+            for (const entry of history.slice(0, 8)) {
+                try {
+                    const res = await apiCallWithManualRefresh(() => getProductDetailsById(entry.productId));
+                    const productData = res && res.data ? res.data : res;
+                    // Optionally, set mainImage from variant if variantId is present
+                    let imageUrl = productData.mainImage;
+                    if (entry.variantId && Array.isArray(productData.variants)) {
+                        const variant = productData.variants.find((v: any) => String(v.productVariantId ?? v.id) === String(entry.variantId));
+                        if (variant && variant.images && variant.images.length > 0) {
+                            imageUrl = variant.images[0].imageUrl ?? variant.images[0].url ?? variant.images[0];
+                        }
+                    }
+                    // Resolve image if it's an ID or needs fetching
+                    if (imageUrl) {
+                        try {
+                            const resolved = await getProfileImage(imageUrl);
+                            productData.mainImage = resolved || imageUrl;
+                        } catch {
+                            productData.mainImage = imageUrl;
+                        }
+                    } else {
+                        productData.mainImage = "https://via.placeholder.com/300x200";
+                    }
+                    results.push(productData);
+                } catch { }
+            }
+            setHistoryProducts(results);
+        };
+        fetchHistoryProducts();
+    }, []);
+
     useEffect(() => {
         const load = async () => {
             const tok: string | null = tokenStorage.get();
@@ -42,6 +93,7 @@ export default function Main() {
                 const userId = (result?.buyer_profile_id || result?.id) ?? null;
                 console.log("Fetching products for page:", currentPage, "with pageSize:", pageSize, "and userId:", userId);
                 const fetched = await apiCallWithManualRefresh(() => getRandomPaginated(currentPage, pageSize, userId as any));
+                console.log("Fetched Products response:", fetched);
                 const payload: any = (fetched as any)?.data ?? fetched;
                 console.log("Fetched Products payload:", payload);
 
@@ -57,7 +109,6 @@ export default function Main() {
                                 : Array.isArray(payload?.data?.data)
                                     ? payload.data.data
                                     : [];
-
                 // Resolve images in parallel and attach `mainImageUrl` (or placeholder)
                 if (Array.isArray(items) && items.length > 0) {
                     await Promise.all(
@@ -80,6 +131,7 @@ export default function Main() {
                 // If API doesn't provide totals, fall back to infinite-scroll style: hasMore when we received a full page
                 setHasMore(items.length >= pageSize);
                 setProducts(prev => currentPage > 1 ? [...prev, ...items] : items);
+                console.log("Updated products state:", products);
             } catch (e) {
                 console.error('Fetch failed', e);
             } finally {
@@ -88,7 +140,6 @@ export default function Main() {
         };
         load();
     }, [currentPage, pageSize]);
-
 
     return (
         <>
@@ -103,6 +154,7 @@ export default function Main() {
                 <div className="w-full max-w-7xl mx-auto p-2 sm:p-4">
                     <Carousel slides={slides} size={250} />
                 </div>
+
                 <div className="w-full max-w-7xl mx-auto p-2 sm:p-4">
                     <Label className="text-2xl sm:text-4xl font-semibold mb-4 block text-center">{t('Featured Products')}</Label>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 p-2 sm:p-4">
@@ -112,6 +164,7 @@ export default function Main() {
                             <div className="col-span-full text-center p-8 text-gray-600">{t('No products found')}</div>
                         ) : (
                             products.map((product: any) => (
+                                console.log("Rendering product:", product),
                                 <ProductCard key={product.id || product.representativeVariantId} product={product} />
                             ))
                         )}
@@ -127,13 +180,17 @@ export default function Main() {
                             {loading ? t('Loading...') : (!hasMore ? t('No more items') : t('See more'))}
                         </button>
                     </div>
-                    <div className="flex flex-col items-center justify-center w-full p-2 sm:p-6 mt-4 sm:mt-6">
-                        <Label className="text-2xl sm:text-4xl text-center font-semibold mb-4">{t('Explore More')}</Label>
-                    </div>
 
-                    <div className="flex flex-col items-center justify-center w-full p-2 sm:p-6 mt-4 sm:mt-6">
-                        <div className="w-full max-w-full">
-                            <Grid />
+                    <div className="w-full max-w-7xl mx-auto p-2 sm:p-4">
+                        <Label className="text-2xl sm:text-4xl font-semibold mb-4 block text-center">{t('Recently Viewed')}</Label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 p-2 sm:p-4">
+                            {historyProducts.length === 0 ? (
+                                <div className="col-span-full text-center p-8 text-gray-600">{t('No recently viewed products')}</div>
+                            ) : (
+                                historyProducts.map((product: any) => (
+                                    <ProductCard key={product.id || product.representativeVariantId} product={product} />
+                                ))
+                            )}
                         </div>
                     </div>
                 </div>

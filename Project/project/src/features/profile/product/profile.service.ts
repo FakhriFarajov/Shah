@@ -95,7 +95,7 @@ export async function decreaseQuantity(productVariantId: string): Promise<any> {
   return data;
 }
 
-export async function addReview(productVariantId?: string, rating?: number, comment:string, images?: string[]): Promise<any> {
+export async function addReview(productVariantId?: string, rating?: number, comment?: string, images?: string[]): Promise<any> {
   // send both fields when available; backend can use productVariantId preferentially
   const payload: any = { productVariantId, rating, comment, images };
   console.log("Add review payload:", payload);
@@ -121,3 +121,8 @@ export async function getReviewsByProductVariantId(productVariantId: string): Pr
   return data;
 }
 
+export async function getSearched(params: { title: string; page: number; pageSize: number }): Promise<any> {
+  console.log("getSearched called with params:", params);
+  const data = await authHttp.get(`Product/search-by-title?title=${params.title}&page=${params.page}&pageSize=${params.pageSize}`);
+  return data;
+}

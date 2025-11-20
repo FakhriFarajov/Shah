@@ -1,4 +1,4 @@
-namespace ShahSellerFeaturesApi.Application.DTOs;
+namespace ShahSellerFeaturesApi.Core.DTOs.Request;
 
 public class AssignOrderItemsRequest
 {

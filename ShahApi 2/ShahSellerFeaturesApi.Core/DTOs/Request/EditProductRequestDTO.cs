@@ -14,6 +14,7 @@ public class EditProductVariantDTO
     public int? WeightInGrams { get; set; }
     public int? Stock { get; set; }
     public decimal? Price { get; set; }
+    public decimal? DiscountPrice { get; set; }
     public List<EditProductImageDTO> Images { get; set; } = new();
 }
 

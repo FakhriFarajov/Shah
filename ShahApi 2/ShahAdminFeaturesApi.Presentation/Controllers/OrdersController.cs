@@ -22,9 +22,9 @@ public class OrdersController : ControllerBase
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 5,
         [FromQuery] bool detailed = true,
-        [FromQuery] string? sellerProfileId = null)
+        [FromQuery] string? userId = null)
     {
-        var result = await _sellerOrderService.GetOrdersAsync(page, pageSize, detailed, sellerProfileId);
+        var result = await _sellerOrderService.GetOrdersAsync(page, pageSize, detailed, userId);
         return StatusCode(result.StatusCode, result);
     }
     
@@ -54,6 +54,17 @@ public class OrdersController : ControllerBase
     public async Task<IActionResult> UpdateItemStatus(string orderItemId, [FromBody] OrderStatusDto status)
     {
         var result = await _sellerOrderService.UpdateOrderItemStatusAsync(orderItemId, status.Status);
+        return StatusCode(result.StatusCode, result);
+    }
+    
+    // GET api/orders?detailed=true&page=1&pageSize=20&sellerProfileId=optional
+    [HttpGet("userId")]
+    public async Task<IActionResult> GetOrdersByUserId(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 5,
+        [FromQuery] string? userId = null)
+    {
+        var result = await _sellerOrderService.GetOrdersByUserIdAsync(userId ?? "", page, pageSize);
         return StatusCode(result.StatusCode, result);
     }
 }

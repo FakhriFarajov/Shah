@@ -7,8 +7,9 @@ using ShahBuyerFeaturesApi.Core.DTOs.Request;
 namespace ShahBuyerFeaturesApi.Presentation.Controllers;
 
 [ApiController]
-[Authorize(Policy = "BuyerPolicy")] // We need to send a Bearer token in the header to access this endpoint
-[Route("api/[controller]")]
+// [Authorize(Policy = "BuyerPolicy")] // We need to send a Bearer token in the header to access this endpoint
+[Route("api/[controller]")]        [Authorize(Policy = "BuyerPolicy")] //We need to send a Bearer token in the header to access this endpoint
+
 public class CartController : ControllerBase
 {
     private readonly ICartService _cartService;

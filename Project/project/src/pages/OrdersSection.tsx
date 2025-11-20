@@ -88,7 +88,6 @@ const OrdersSection: React.FC<OrdersSectionProps> = ({ orderStatusFilter, setOrd
             ? (res as any).data
             : [];
 
-            
         const details: OrderData[] = await Promise.all(
           summaries.map(async (s: any) => {
             const id = s?.id ?? s?.orderId ?? s?.ID;
@@ -196,6 +195,7 @@ const OrdersSection: React.FC<OrdersSectionProps> = ({ orderStatusFilter, setOrd
 
 
           <div className="max-h-[60vh] overflow-y-auto">
+
             <ul className="divide-y">
               {filteredOrders.map((order) => (
                 <li key={order.id} className="py-2">

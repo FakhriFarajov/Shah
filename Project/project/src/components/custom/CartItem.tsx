@@ -138,9 +138,9 @@ export default function CartItem({ item }: CartItemProps) {
     clearHolds();
     if (!variant?.id) return;
     if (!wasActive) {
-  if (outOfStock) return;
-  if (mode === 'inc') await handleQuantityIncrease();
-  else await handleQuantityDecrease();
+      if (outOfStock) return;
+      if (mode === 'inc') await handleQuantityIncrease();
+      else await handleQuantityDecrease();
     }
   }
 
@@ -148,20 +148,34 @@ export default function CartItem({ item }: CartItemProps) {
     return () => clearHolds();
   }, []);
 
-
-
   return (
-    <Card className="flex flex-col lg:flex-row gap-4 p-4 items-center">
-      <img src={image || 'https://picsum.photos/seed/product1/400/400'} alt={name} className="w-full md:w-32 h-auto rounded-md" onClick={() => navigator(`/product?id=${product.id}&productVariantId=${variant.id}`)}/>
+    <Card className="flex flex-col lg:flex-row gap-4 p-4 items-center mb-4">
+      <img src={image || 'https://picsum.photos/seed/product1/400/400'} alt={name} className="w-full md:w-32 h-auto rounded-md" onClick={() => navigator(`/product?id=${product.id}&productVariantId=${variant.id}`)} />
       <CardContent className="flex flex-col flex-1 ml-4 mb-2">
         <h3 className="text-lg font-semibold flex items-center gap-2">
-          {t(name)} - ${price}
+          {t(name)} -
+          {typeof variant?.discountPrice === 'number' && variant.discountPrice < price ? (
+            <>
+              <span className="text-gray-500 line-through mr-2">${price}</span>
+              <span className="font-bold">${variant.discountPrice}</span>
+              <span className="text-xs font-semibold text-green-600 bg-green-100 px-2 py-1 rounded">
+                -{Math.round(100 - (variant.discountPrice / price) * 100)}%
+              </span>
+            </>
+          ) : (
+            <span className="font-bold">${price}</span>
+          )}
           {outOfStock && (
             <Badge className="bg-red-100 text-red-700">{t('Out of stock')}</Badge>
           )}
         </h3>
         <div className="flex items-center gap-2 mb-2">
-          <Label>{t('Subtotal')}: ${(price * quantity).toFixed(2)}</Label>
+          <Label>
+            {t('Subtotal')}: $
+            {typeof variant?.discountPrice === 'number' && variant.discountPrice < price
+              ? (variant.discountPrice * quantity).toFixed(2)
+              : (price * quantity).toFixed(2)}
+          </Label>
         </div>
 
         {/* Attributes */}
@@ -174,8 +188,8 @@ export default function CartItem({ item }: CartItemProps) {
         )}
 
         <Label className="mb-2">{t('Quantity')}: {quantity}</Label>
-  <Label className="mb-2">{t('In Stock')}: {Math.max(0, stock)}</Label>
-  <Label className="text-red-500">{!outOfStock && stock <= 3 ? `${t('Left')} ${stock} ${t('pcs')}` : ""}</Label>
+        <Label className="mb-2">{t('In Stock')}: {Math.max(0, stock)}</Label>
+        <Label className="text-red-500">{!outOfStock && stock <= 3 ? `${t('Left')} ${stock} ${t('pcs')}` : ""}</Label>
       </CardContent>
       <CardFooter className="flex flex-col md:items-end gap-3">
         <div className="flex items-center gap-2">

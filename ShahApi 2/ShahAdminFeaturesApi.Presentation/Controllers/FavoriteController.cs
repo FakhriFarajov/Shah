@@ -15,14 +15,12 @@ namespace ShahAdminFeaturesApi.Presentation.Controllers
         }
         
         
-        [Authorize]
         [HttpPost("add")]
         public async Task<IActionResult> AddToFavorites([FromQuery] string buyerId, [FromQuery] string productId)
         {
             await _favoriteService.AddToFavorites(buyerId, productId);
             return Ok();
         }
-        [Authorize]
 
         [HttpDelete("remove")]
         public async Task<IActionResult> RemoveFromFavorites([FromQuery] string buyerId, [FromQuery] string productId)
@@ -31,7 +29,6 @@ namespace ShahAdminFeaturesApi.Presentation.Controllers
             return Ok();
         }
 
-        [Authorize]
         [HttpGet("is-favorite")]
         public async Task<IActionResult> IsFavorite([FromQuery] string buyerId, [FromQuery] string productId)
         {
@@ -39,7 +36,6 @@ namespace ShahAdminFeaturesApi.Presentation.Controllers
             return Ok(result);
         }
 
-        [Authorize]
         [HttpGet("all")]
         public async Task<IActionResult> GetAllFavorites([FromQuery] string buyerId)
         {

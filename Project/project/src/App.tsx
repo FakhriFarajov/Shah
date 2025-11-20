@@ -13,8 +13,7 @@ import AuthProvider from './features/auth/contexts/AuthProvider';
 import ProfilePage from './pages/profile';
 import NotFound from './pages/notFound';
 import Checkout from './pages/checkout';
-
-
+import SearchPage from './pages/SearchPage';
 
 function App() {
   return (
@@ -31,6 +30,7 @@ function App() {
           <Route path='/' element={<Main />} />
           <Route path='/category' element={<CategoryPage />} />
           <Route path='/product' element={<ProductPage />} />
+          <Route path='/search' element={<SearchPage />} />
           <Route path='*' element={<NotFound />} />
         </Routes>
       </BrowserRouter>

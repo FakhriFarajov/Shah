@@ -7,7 +7,8 @@ using ShahSellerFeaturesApi.Infrastructure.Contexts;
 
 namespace ShahSellerFeaturesApi.Presentation.Controllers
 {
-    [ApiController]
+    [ApiController]    [Authorize(Policy = "SellerPolicy")]
+
     [Route("api/[controller]")]
     public class ProductController : ControllerBase
     {
@@ -19,8 +20,6 @@ namespace ShahSellerFeaturesApi.Presentation.Controllers
             _productService = productService;
             _db = db;
         }
-
-        [Authorize(Policy = "SellerPolicy")]
         [HttpPost("add")]
         public async Task<IActionResult> AddProduct([FromBody] CreateProductRequestDTO request)
         {
@@ -44,7 +43,6 @@ namespace ShahSellerFeaturesApi.Presentation.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
-        [Authorize(Policy = "SellerPolicy")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetProductDetailsById(string id)
         {
@@ -61,7 +59,6 @@ namespace ShahSellerFeaturesApi.Presentation.Controllers
             return Ok(result);
         }
         
-        [Authorize(Policy = "SellerPolicy")]
         [HttpGet("Random")]
         public async Task<IActionResult> GetRandomProducts([FromQuery] int count = 45)
         {
@@ -69,7 +66,6 @@ namespace ShahSellerFeaturesApi.Presentation.Controllers
             return Ok(result);
         }
 
-        [Authorize(Policy = "SellerPolicy")]
         [HttpPut("edit/{id}")]
         public async Task<IActionResult> EditProduct(string id, [FromBody] EditProductRequestDTO request)
         {
@@ -80,7 +76,6 @@ namespace ShahSellerFeaturesApi.Presentation.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
-        [Authorize(Policy = "SellerPolicy")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProduct(string id)
         {
@@ -91,7 +86,6 @@ namespace ShahSellerFeaturesApi.Presentation.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
-        [Authorize(Policy = "SellerPolicy")]
         [HttpGet("edit-payload/{id}")]
         public async Task<IActionResult> GetEditPayload(string id)
         {
@@ -113,7 +107,6 @@ namespace ShahSellerFeaturesApi.Presentation.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
-        [Authorize(Policy = "SellerPolicy")]
         [HttpPut("sync/{id}")]
         public async Task<IActionResult> SyncProduct(string id, [FromBody] SyncProductRequestDTO request)
         {
@@ -125,7 +118,6 @@ namespace ShahSellerFeaturesApi.Presentation.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
-        [Authorize(Policy = "SellerPolicy")]
         [HttpGet("mine")]
         public async Task<IActionResult> GetMyProducts([FromQuery] int page = 1, [FromQuery] int pageSize = 15, [FromQuery] string? categoryId = null, [FromQuery] bool includeChildCategories = true)
         {
@@ -141,7 +133,6 @@ namespace ShahSellerFeaturesApi.Presentation.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
-        [Authorize(Policy = "SellerPolicy")]
         [HttpGet("{id}/stats")]
         public async Task<IActionResult> GetProductStatistics(string id, [FromQuery] string? productVariantId = null)
         {

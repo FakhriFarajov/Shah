@@ -33,9 +33,8 @@ public class CheckoutController : ControllerBase
             return string.Empty;
 
         return User.FindFirst("id")?.Value
-            ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-            ?? User.FindFirst("sub")?.Value
-            ?? string.Empty;
+               ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+               ?? string.Empty;
     }
 }
 

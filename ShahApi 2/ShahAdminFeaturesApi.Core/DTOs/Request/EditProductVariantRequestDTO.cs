@@ -4,7 +4,7 @@ public class EditProductVariantRequestDto
 {
     public int? Stock { get; set; }
     public decimal? Price { get; set; }
+    public decimal? DiscountPrice { get; set; } // Added for discount support
     // If provided, replace the variant's attribute values with this set
     public List<string>? AttributeValueIds { get; set; }
 }
-

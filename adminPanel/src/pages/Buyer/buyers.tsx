@@ -73,7 +73,7 @@ export default function BuyersPage() {
 
     async function handleSearch() {
         if (!buyerToSearchId.trim()) {
-            toast.error('Please enter a Buyer ID to search.');
+            toast.error('Please enter a User ID to search.');
             return;
         }
 
@@ -85,13 +85,11 @@ export default function BuyersPage() {
             setTotalPages(1);
         } catch (error) {
             console.error("Failed to fetch buyer profile:", error);
-            toast.error('Failed to fetch buyer profile. Please check the ID and try again.');
+            toast.error('Failed to fetch buyer profile. Please check the UserID and try again.');
         } finally {
             setLoading(false);
         }
     }
-
-
     // Fetch buyers for the given page
     async function fetchBuyersPaginated(newPage = page) {
         setLoading(true);
@@ -107,9 +105,6 @@ export default function BuyersPage() {
             setLoading(false);
         }
     }
-
-
-
     async function fetchCountries() {
         setLoading(true);
         try {
@@ -147,13 +142,13 @@ export default function BuyersPage() {
                         <h1 className="text-4xl font-extrabold text-gray-900 mb-2 tracking-tight">Buyers</h1>
                         <p className="text-lg text-gray-500 mb-4">View and manage all buyers here.</p>
                         <div className="mb-4 flex items-center gap-2">
-                            <label htmlFor="filterId" className="font-medium text-gray-700">Filter by ID:</label>
+                            <label htmlFor="filterId" className="font-medium text-gray-700">Filter by UserID:</label>
                             <input
                                 id="filterId"
                                 type="text"
                                 value={buyerToSearchId}
                                 className="border rounded px-3 py-2 w-32 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                                placeholder="Enter ID"
+                                placeholder="Enter UserID"
                                 onChange={e => setBuyerToSearchId(e.target.value)}
                             />
                             <Button onClick={handleSearch} variant="outline">Search</Button>
@@ -173,7 +168,7 @@ export default function BuyersPage() {
                                                     ? (buyer.name + " " + buyer.surname).slice(0, 10) + "..."
                                                     : buyer.name + " " + buyer.surname}
                                             </div>
-                                            <div className="text-gray-500 text-sm mt-1">ID: {buyer.id}</div>
+                                            <div className="text-gray-500 text-sm mt-1">UserID: {buyer.id}</div>
                                         </div>
                                         <div className="flex flex-col gap-1 md:w-1/4">
                                             <div className="flex items-center gap-2 text-gray-700"><span className="font-medium">Email:</span> <span className="truncate">{buyer.email.length > 10 ? buyer.email.slice(0, 10) + "..." : buyer.email}</span></div>
@@ -186,20 +181,6 @@ export default function BuyersPage() {
                                                 title="Profile"
                                             >
                                                 Profile
-                                            </button>
-                                            <button
-                                                className="px-4 py-2 rounded-lg bg-gradient-to-tr from-blue-400 to-blue-600 text-white font-semibold shadow hover:from-blue-500 hover:to-blue-700 transition"
-                                                onClick={() => navigate(`/ordersBuyer?id=${buyer.id}`)}
-                                                title="Check Orders"
-                                            >
-                                                Check Orders
-                                            </button>
-                                            <button
-                                                className="px-4 py-2 rounded-lg bg-gradient-to-tr from-purple-400 to-purple-600 text-white font-semibold shadow hover:from-purple-500 hover:to-purple-700 transition"
-                                                onClick={() => navigate(`/reviewsBuyer?id=${buyer.id}`)}
-                                                title="Check Reviews"
-                                            >
-                                                Check Reviews
                                             </button>
                                             <button
                                                 className="px-4 py-2 rounded-lg bg-gradient-to-tr from-red-400 to-red-600 text-white font-semibold shadow hover:from-red-500 hover:to-red-700 transition"

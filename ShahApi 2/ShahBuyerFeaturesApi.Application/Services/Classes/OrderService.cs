@@ -56,7 +56,8 @@ public class OrderService : IOrderService
                     oi.Quantity,
                     oi.Status,
                     Images = oi.ProductVariant.Images.Select(i => new { i.ImageUrl, i.IsMain }),
-                    LineTotal = oi.ProductVariant.Price * oi.Quantity
+                    EffectivePrice = (oi.ProductVariant != null && oi.ProductVariant.DiscountPrice > 0 && oi.ProductVariant.DiscountPrice < oi.ProductVariant.Price) ? oi.ProductVariant.DiscountPrice : (oi.ProductVariant != null ? oi.ProductVariant.Price : 0m),
+                    LineTotal = oi.Quantity * ((oi.ProductVariant != null && oi.ProductVariant.DiscountPrice > 0 && oi.ProductVariant.DiscountPrice < oi.ProductVariant.Price) ? oi.ProductVariant.DiscountPrice : (oi.ProductVariant != null ? oi.ProductVariant.Price : 0m))
                 }).ToList()
             })
             .FirstOrDefaultAsync();
@@ -79,22 +80,26 @@ public class OrderService : IOrderService
         return TypedResult<object>.Success(shaped);
     }
 
-    public async Task<TypedResult<object>> GetOrdersForBuyerAsync(string buyerProfileId)
+    public async Task<TypedResult<object>> GetOrdersForBuyerAsync(string userId)
     {
-        if (string.IsNullOrWhiteSpace(buyerProfileId))
-            return TypedResult<object>.Error("buyerProfileId is required", 400);
+        if (string.IsNullOrWhiteSpace(userId))
+            return TypedResult<object>.Error("userId is required in JWT claims. Please check your token.", 400);
+
+        var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
+        if (!userExists)
+            return TypedResult<object>.Error($"User not found for id: {userId}", 404);
 
         var orders = await _context.Orders
             .AsNoTracking()
-            .Where(o => o.BuyerProfileId == buyerProfileId)
+            .Where(o => o.BuyerProfileId == userId)
             .OrderByDescending(o => o.CreatedAt)
             .Select(o => new
             {
                 o.Id,
                 o.CreatedAt,
                 o.TotalAmount,
-                ItemCount = o.OrderItems.Count,
-                PaymentStatus = o.OrderPayment.Status,
+                ItemCount = o.OrderItems != null ? o.OrderItems.Count : 0,
+                PaymentStatus = o.OrderPayment != null ? o.OrderPayment.Status : PaymentStatus.Pending,
                 ReceiptId = o.ReceiptId,
                 HasReceipt = o.ReceiptId != null
             })

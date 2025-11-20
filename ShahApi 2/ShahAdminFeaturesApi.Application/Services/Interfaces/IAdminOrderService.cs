@@ -5,11 +5,8 @@ namespace ShahAdminFeaturesApi.Application.Services.Interfaces;
 
 public interface IAdminOrderService
 {
-    Task<PaginatedResult<object>> GetOrdersForSellerAsync(string sellerProfileId, int page, int pageSize);
-    Task<PaginatedResult<object>> GetDetailedOrdersForSellerAsync(string sellerProfileId, int page, int pageSize);
-    
     // Admin-wide: list all orders, optional seller filter, detailed or summary
-    Task<PaginatedResult<object>> GetOrdersAsync(int page, int pageSize, bool detailed = true, string? sellerProfileId = null);
+    Task<PaginatedResult<object>> GetOrdersAsync(int page, int pageSize, bool detailed = true, string? userId = null);
     
     // Single order operations
     Task<TypedResult<object>> GetOrderByIdForSellerAsync(string orderId, string sellerProfileId);
@@ -21,5 +18,7 @@ public interface IAdminOrderService
 
     // Update a single OrderItem status with ownership checks
     Task<TypedResult<object>> UpdateOrderItemStatusAsync(string orderItemId, OrderStatus newStatus);
+    
+    Task<PaginatedResult<object>> GetOrdersByUserIdAsync(string userId, int page, int pageSize);
     
 }

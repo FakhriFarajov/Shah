@@ -8,7 +8,9 @@ using System.Security.Claims;
 namespace ShahBuyerFeaturesApi.Presentation.Controllers;
 
 
-[ApiController]
+[ApiController] 
+[Authorize(Policy = "BuyerPolicy")] //We need to send a Bearer token in the header to access this endpoint
+
 [Route("api/[controller]")]
 public class ReviewsController : ControllerBase
 {
@@ -45,7 +47,6 @@ public class ReviewsController : ControllerBase
 
     // Create review - must be buyer
     [HttpPost("create")]
-    [Authorize(Policy = "BuyerPolicy")]
     public async Task<IActionResult> Create([FromBody] CreateReviewRequestDto request)
     {
         var buyerId = User.FindFirst("id")?.Value ?? string.Empty;
@@ -55,7 +56,6 @@ public class ReviewsController : ControllerBase
 
     // Update - author only
     [HttpPut("update/{id}")]
-    [Authorize(Policy = "BuyerPolicy")]
     public async Task<IActionResult> Update(string id, [FromBody] UpdateReviewRequestDto request)
     {
         var buyerId = User.FindFirst("id")?.Value ?? string.Empty;
@@ -65,7 +65,6 @@ public class ReviewsController : ControllerBase
 
     // Delete - author only
     [HttpDelete("delete/{id}")]
-    [Authorize(Policy = "BuyerPolicy")]
     public async Task<IActionResult> Delete(string id)
     {
         var buyerId = User.FindFirst("id")?.Value ?? string.Empty;

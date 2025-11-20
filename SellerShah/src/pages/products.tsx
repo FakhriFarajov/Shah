@@ -17,6 +17,7 @@ interface Product {
   mainImage: string | null;
   storeName: string;
   price: number;
+  discountPrice: number | null;
   categoryName: string;
   categoryChain: string[];
   reviewsCount: number;
@@ -140,6 +141,7 @@ export default function ProductsPage() {
                     </div>
                     <div className="flex flex-col gap-1 md:w-1/3">
                       <div className="flex items-center gap-2 text-gray-700"><span className="font-medium">Price:</span> <span>{product.price}$</span></div>
+                      <div className="flex items-center gap-2 text-gray-700"><span className="font-medium">Discount Price:</span> <span>{product.discountPrice}$</span></div>
                       <div className="flex items-center gap-2 text-gray-700"><span className="font-medium">Category:</span> <span>{product.categoryName}</span></div>
                       <div className="flex items-center gap-2 text-gray-700"><span className="font-medium">Reviews:</span> <span>{product.reviewsCount}</span></div>
                     </div>

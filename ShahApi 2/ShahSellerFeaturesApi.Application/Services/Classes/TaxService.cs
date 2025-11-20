@@ -19,9 +19,4 @@ public class TaxService
         
         return TypedResult<object>.Success(taxes, "Taxes retrieved successfully");
     }
-    
-    
-    
-    
 }
-

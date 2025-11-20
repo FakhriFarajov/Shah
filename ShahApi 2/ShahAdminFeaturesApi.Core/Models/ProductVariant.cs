@@ -14,6 +14,8 @@ namespace ShahAdminFeaturesApi.Core.Models
         public int WeightInGrams { get; set; }
         public int Stock { get; set; }
         public decimal Price { get; set; }
+        public decimal DiscountPrice { get; set; }
+        public decimal EffectivePrice => (DiscountPrice > 0 && DiscountPrice < Price) ? DiscountPrice : Price;
 
         public IList<ProductVariantImage> Images { get; set; } = new List<ProductVariantImage>();
 

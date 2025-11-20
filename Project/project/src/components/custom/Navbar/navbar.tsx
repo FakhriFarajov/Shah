@@ -18,9 +18,11 @@ import { jwtDecode } from "jwt-decode";
 import { logout } from '@/features/auth/services/auth.service';
 import { getCountries } from "@/features/profile/Country/country.service";
 import { getCategories } from "@/features/profile/Category/category.service";
-import { getCartItems, getFavouritesByUserId } from "@/features/profile/product/profile.service";
+import { getCartItems, getFavouritesByUserId, getSearched } from "@/features/profile/product/profile.service";
 import type { Category } from '@/features/profile/DTOs/profile.interfaces';
+import { getProfileImage } from '@/shared/utils/imagePost';
 import type { Country } from '@/features/profile/DTOs/profile.interfaces';
+import { apiCallWithManualRefresh } from '@/shared/apiWithManualRefresh';
 
 
 
@@ -38,7 +40,6 @@ export default function Navbar() {
 
     const navigate = useNavigate();
     // Fallback products list (some projects inject a global products array). Use empty array if not present.
-    const products: any[] = (typeof window !== 'undefined' && (window as any).products) ? (window as any).products : [];
 
     useEffect(() => {
         const token = tokenStorage.get();
@@ -56,7 +57,7 @@ export default function Navbar() {
             }
         }
 
-    const fetchCountries = async () => {
+        const fetchCountries = async () => {
             const fetchedCountries = await getCountries();
             const anyFetched: any = fetchedCountries;
             let arr = Array.isArray(anyFetched)
@@ -178,7 +179,7 @@ export default function Navbar() {
         setFlag(flagUrl);
         localStorage.setItem('flag', flagUrl);
         // Only switch to supported app locales; normalize to lowercase
-        const supported = ['en','az','ru'];
+        const supported = ['en', 'az', 'ru'];
         const nextLng = supported.includes(selectedLanguage.toLowerCase()) ? selectedLanguage.toLowerCase() : 'en';
         i18n.changeLanguage(nextLng);
     };
@@ -186,52 +187,60 @@ export default function Navbar() {
     const handleSearch = (e: any) => {
         e.preventDefault();
         if (!searchTerm.trim()) return;
-        if (!Array.isArray(products) || products.length === 0) {
-            toast.error(t('no_products_found'));
-            return;
-        }
-        const found = products.find(
-            (p: any) => p.name.toLowerCase() === searchTerm.trim().toLowerCase()
-        );
-        if (found) {
-            // Redirect to product details page
-            navigate(`/product/${found.id}`);
-        } else {
-            toast.error(t('no_products_found'));
-        }
+        // Redirect to search page with query
+        navigate(`/search?query=${encodeURIComponent(searchTerm.trim())}`);
+        setSearchResults([]);
+        setSearchTerm("");
+        window.location.reload();
     };
 
-    const handleSearchChange = (e: any) => {
+    const handleSearchChange = async (e: any) => {
         const value = e.target.value;
         setSearchTerm(value);
         if (value.trim()) {
-            if (!Array.isArray(products) || products.length === 0) {
+            // Make API request to search products by title
+            try {
+                const result = await apiCallWithManualRefresh(() => getSearched({ title: value, page: 1, pageSize: 10 }));
+                console.log("Search results:", result);
+                const items = Array.isArray(result?.data)
+                    ? result.data
+                    : Array.isArray(result?.data?.data)
+                        ? result.data.data
+                        : [];
+
+
+                // Resolve images in parallel and attach `mainImageUrl` (or placeholder)
+                if (Array.isArray(items) && items.length > 0) {
+                    await Promise.all(
+                        items.map(async (element: any) => {
+                            try {
+                                if (element.mainImage) {
+                                    const url = await getProfileImage(element.mainImage);
+                                    element.mainImage = url || element.mainImage || "https://via.placeholder.com/300x200";
+                                } else {
+                                    element.mainImage = "https://via.placeholder.com/300x200";
+                                }
+                            } catch (error) {
+                                console.warn("Error resolving product image:", error);
+                                element.mainImage = "https://via.placeholder.com/300x200";
+                            }
+                        })
+                    );
+                }
+
+
+                const results = items.filter((p: any) =>
+                    p.productTitle && p.productTitle.toLowerCase().includes(value.trim().toLowerCase())
+                );
+                setSearchResults(results);
+            } catch {
                 setSearchResults([]);
-                return;
             }
-            const results = products.filter((p: any) =>
-                p.name.toLowerCase().includes(value.trim().toLowerCase())
-            );
-            setSearchResults(results);
         } else {
             setSearchResults([]);
         }
     };
-
-    const handleProductClick = (product: any) => {
-        const category = categories.find((cat: any) => cat.id === product.categoryId);
-        if (category) {
-            if (product.subcategoryId) {
-                navigate(`/category/${category.id}/${product.subcategoryId}`);
-            } else {
-                navigate(`/category/${category.id}`);
-            }
-        }
-        setSearchResults([]);
-        setSearchTerm(product.name);
-    };
-
-
+    
     const isLoggedIn = !!tokenStorage.get();
     const handleLogout = async () => {
         await logout();
@@ -247,40 +256,62 @@ export default function Navbar() {
                     alt="Company Logo"
                     onClick={() => { navigate("/") }}
                 />
-                <form className="relative w-full sm:ml-6 mb-2 sm:mb-0" onSubmit={handleSearch}>
+                <form className="relative w-full sm:ml-6 mb-2 sm:mb-0" onSubmit={handleSearch} autoComplete="off">
                     <Input
                         value={searchTerm}
                         onChange={handleSearchChange}
                         placeholder={t('Search on Shah')}
                         className='bg-white pl-10 pr-4 py-2 w-full text-gray-800 rounded-100 rounded-4xl'
                     />
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition duration-200">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition duration-200" onClick={handleSearch}>
                         <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"
                             strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                             <circle cx="11" cy="11" r="8" />
                             <line x1="21" y1="21" x2="16.65" y2="16.65" />
                         </svg>
                     </span>
-                    {searchResults.length > 0 && (
-                        <div className="absolute z-10 left-0 right-0 mt-2 bg-white text-gray-800 rounded shadow-lg max-h-60 overflow-y-auto">
+                    {searchResults.length > 0 && searchTerm.trim() !== "" && (
+                        <div className="absolute z-20 left-0 right-0 mt-2 bg-white text-gray-800 rounded shadow-lg max-h-60 overflow-y-auto border border-gray-200">
                             {searchResults.map((product: any) => (
                                 <div
                                     key={product.id}
-                                    className="px-4 py-2 cursor-pointer hover:bg-gray-200"
-                                    onClick={() => handleProductClick(product)}
+                                    className="flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 border-b"
+                                    onClick={() => {
+                                        navigate(`/product?id=${product.id}&productVariantId=${product.representativeVariantId}`);
+                                        setSearchResults([]);
+                                        setSearchTerm("");
+                                        window.location.reload();
+                                    }}
                                 >
-                                    {product.image && (
-                                        <img src={product.image} alt={t(product.name)} className="w-10 h-10 ml-2 inline-block" />
+                                    {product.mainImage && product.mainImage !== "none" && (
+                                        <img
+                                            src={product.mainImage}
+                                            alt={t(product.productTitle)}
+                                            className="w-10 h-10 object-cover rounded mr-3"
+                                            onError={e => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/40x40'; }}
+                                        />
                                     )}
-                                    {t(product.name)}
+                                    <div className="flex flex-col">
+                                        <span className="font-semibold text-base">{product.productTitle}</span>
+                                        {product.categoryName && product.categoryName !== "none" && <span className="text-xs text-gray-500">{product.categoryName}</span>}
+                                        {product.storeName && product.storeName !== "none" && <span className="text-xs text-gray-500">{product.storeName}</span>}
+                                    </div>
+                                    <span className="ml-auto text-sm font-bold text-blue-600">
+                                        {product.discountPrice && product.discountPrice > 0 && product.discountPrice < product.price ? (
+                                            <>
+                                                <span className="text-red-600 font-bold mr-2">{product.discountPrice}₼</span>
+                                                <span className="line-through text-gray-400">{product.price}₼</span>
+                                            </>
+                                        ) : (
+                                            <span>{product.price}$</span>
+                                        )}
+                                    </span>
                                 </div>
                             ))}
                         </div>
                     )}
                 </form>
                 <div className="flex items-center justify-center w-full sm:w-auto gap-2">
-
-
                     <Button className="relative text-white bg-inherit h-12 cursor-pointer ml-2 hover:bg-gray-700" onClick={navigateToFavourites}>
                         <div id='Favourites' className="flex items-center justify-center rounded-full p-2 relative">
                             <TfiHeart className=" w-2" />

@@ -2,12 +2,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ShahAdminFeaturesApi.Application.Services.Interfaces;
 using ShahAdminFeaturesApi.Core.DTOs.Request;
+using ShahSellerFeaturesApi.Core.DTOs.Request;
 
 namespace ShahAdminFeaturesApi.Presentation.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Policy = "AdminPolicy")]
     public class WarehouseController : ControllerBase
     {
         private readonly IWarehouseService _warehouseService;
@@ -54,7 +54,8 @@ namespace ShahAdminFeaturesApi.Presentation.Controllers
 
         // New: Get orders for a warehouse (paginated)
         [HttpGet("{warehouseId}/orders")]
-        public async Task<IActionResult> GetWarehouseOrders(string warehouseId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 5)
+        public async Task<IActionResult> GetWarehouseOrders(string warehouseId, [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 5)
         {
             var result = await _warehouseService.GetOrdersForWarehouseAsync(warehouseId, pageNumber, pageSize);
             return Ok(result);
@@ -65,6 +66,23 @@ namespace ShahAdminFeaturesApi.Presentation.Controllers
         public async Task<IActionResult> GetWarehouseOrderItems(string warehouseId, string orderId)
         {
             var result = await _warehouseService.GetWarehouseOrderItemsAsync(warehouseId, orderId);
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [HttpPost("{warehouseId}/assign-order/{orderId}")]
+        public async Task<IActionResult> AssignOrderToWarehouse(string warehouseId, string orderId)
+        {
+            var result = await _warehouseService.AssignOrderItemsToWarehouseAsync(warehouseId, orderId);
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [HttpPost("{warehouseId}/assign-order-items/{orderId}")]
+        public async Task<IActionResult> AssignSpecificOrderItems(string warehouseId, string orderId,
+            [FromBody] AssignOrderItemsRequest request)
+        {
+            var result =
+                await _warehouseService.AssignSpecificOrderItemsToWarehouseAsync(warehouseId, orderId,
+                    request.OrderItemIds);
             return StatusCode(result.StatusCode, result);
         }
     }

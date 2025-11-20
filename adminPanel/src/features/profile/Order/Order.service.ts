@@ -1,9 +1,10 @@
 import { authHttp } from "@/features/profile/Order/httpClient";
 
 // Get order by ID
-export async function getOrderId(page, sellerId: string | null = null) {
-    const path = sellerId ? `/getAll/?page=${page}&pageSize=5&sellerId=${sellerId}` : `/getAll?page=${page}&pageSize=5`;
+export async function getOrderId(page, userId: string | null = null) {
+    const path = userId ? `/getAll/?page=${page}&pageSize=5&userId=${userId}` : `/getAll?page=${page}&pageSize=5`;
     var result = await authHttp.get(path);
+    console.log("API response:", result);
     return result;
 }
 
@@ -15,5 +16,10 @@ export async function updateOrderItemStatus(id: string, status: number) {
 
 export async function sendOrderToWarehouse(id: string, warehouseId: string) {
     var result = await authHttp.put(`/${id}/sendToWarehouse`, { WarehouseId: warehouseId });
+    return result;
+}
+
+export async function getByUserId(userId: string, page: number = 1, pageSize: number = 5) {
+    var result = await authHttp.get(`/userId?page=${page}&pageSize=${pageSize}&userId=${userId}`);
     return result;
 }

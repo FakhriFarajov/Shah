@@ -5,8 +5,9 @@ using ShahBuyerFeaturesApi.Core.DTOs.Request;
 
 namespace ShahBuyerFeaturesApi.Presentation.Controllers
 {
-    [ApiController]
-    [Authorize(Policy = "BuyerPolicy")] //We need to send a Bearer token in the header to access this endpoint
+    [ApiController]        [Authorize(Policy = "BuyerPolicy")] //We need to send a Bearer token in the header to access this endpoint
+
+    // [Authorize(Policy = "BuyerPolicy")] //We need to send a Bearer token in the header to access this endpoint
     [Route("api/[controller]")]
     public class FavoriteController : ControllerBase
     {

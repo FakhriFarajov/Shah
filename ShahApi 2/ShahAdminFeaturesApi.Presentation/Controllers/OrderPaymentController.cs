@@ -19,22 +19,18 @@ namespace ShahAdminFeaturesApi.Presentation.Controllers
             _orderPaymentService = orderPaymentService;
         }
         
-        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetOrderPaymentByIdAsync(string id) 
             => Ok(await _orderPaymentService.GetOrderPaymentByIdAsync(id));
         
-        [Authorize]
         [HttpGet("Buyer/{buyerId}")]
         public async Task<IActionResult> GetBuyerOrderPaymentsAsync(string buyerId) 
             => Ok(await _orderPaymentService.GetBuyerOrderPaymentsAsync(buyerId));
 
-        [Authorize]
         [HttpPost("Upsert")]
         public async Task<IActionResult> UpsertOrderPaymentAsync(UpsertOrderPaymentRequestDTO request)
             => Ok(await _orderPaymentService.UpsertOrderPaymentAsync(request));
         
-        [Authorize]
         [HttpDelete("Remove/{id}")]
         public async Task<IActionResult> DeleteOrderPaymentAsync(string id)
             => Ok(await _orderPaymentService.DeleteOrderPaymentAsync(id));

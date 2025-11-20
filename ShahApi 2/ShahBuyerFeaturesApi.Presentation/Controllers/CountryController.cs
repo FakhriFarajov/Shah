@@ -8,6 +8,7 @@ using ShahBuyerFeaturesApi.Core.Models;
 namespace ShahBuyerFeaturesApi.Presentation.Controllers
 {
     [ApiController]
+
     [Route("api/[controller]")]
     public class CountryController : ControllerBase
     {
@@ -20,11 +21,17 @@ namespace ShahBuyerFeaturesApi.Presentation.Controllers
         }
         
         [HttpGet("all")]
-        public async Task<IActionResult> GetAllCountryCodesAsync() 
-            => Ok(await _countryCodeService.GetAllCountryCodesAsync());
-        
-        
-        
+        public async Task<IActionResult> GetAllCountryCodesAsync()
+        {
+            try
+            {
+                var result = await _countryCodeService.GetAllCountryCodesAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, error = ex.InnerException?.Message ?? ex.Message });
+            }
+        }
     }
 }
-

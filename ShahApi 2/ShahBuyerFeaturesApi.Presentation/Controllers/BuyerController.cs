@@ -7,7 +7,8 @@ using ShahBuyerFeaturesApi.Core.DTOs.Request;
 
 namespace ShahBuyerAuthApi.Presentation.Controllers;
 
-[ApiController]
+[ApiController]         //We need to send a Bearer token in the header to access this endpoint
+
 [Route("api/[controller]")]
 public class BuyerController : ControllerBase
 {
@@ -20,18 +21,15 @@ public class BuyerController : ControllerBase
         _buyerService = buyerService;
     }
     
-    [Authorize(Policy = "BuyerPolicy")] //We need to send a Bearer token in the header to access this endpoint
     [HttpGet("getIdByEmail/{email}")]
     public async Task<IActionResult> GetIdByEmailAsync(string email)
         => Ok(await _buyerService.GetIdByEmailAsync(email));
     
     
-    [Authorize(Policy = "BuyerPolicy")] //We need to send a Bearer token in the header to access this endpoint
     [HttpGet("getProfile/{buyerId}")]
     public async Task<IActionResult> GetBuyerProfileByIdAsync(string buyerId)
         => Ok(await _buyerService.GetBuyerByIdAsync(buyerId));
     
-    [Authorize(Policy = "BuyerPolicy")] //We need to send a Bearer token in the header to access this endpoint
     [HttpPut("editProfile/{buyerId}")]
     public async Task<IActionResult> EditBuyerProfileAsync(string buyerId, [FromBody] EditBuyerRequestDTO dto)
     {

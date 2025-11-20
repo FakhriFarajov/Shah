@@ -15,5 +15,9 @@ namespace ShahBuyerFeaturesApi.Core.Models
 
         // Per-item status
         public OrderStatus Status { get; set; } = OrderStatus.Pending;
+
+        public ICollection<WarehouseOrderItem> WarehouseOrderItems { get; set; } = new List<WarehouseOrderItem>();
+        public decimal EffectivePrice => (ProductVariant != null && ProductVariant.DiscountPrice > 0 && ProductVariant.DiscountPrice < ProductVariant.Price) ? ProductVariant.DiscountPrice : (ProductVariant != null ? ProductVariant.Price : 0m);
+        public decimal LineTotal => Quantity * EffectivePrice;
     }
 }

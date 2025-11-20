@@ -30,6 +30,7 @@ public class ShahDbContext : DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<Warehouse> Warehouses { get; set; }
     public DbSet<WarehouseOrder> WarehouseOrders { get; set; }
+    public DbSet<WarehouseOrderItem> WarehouseOrderItems { get; set; }
     public DbSet<Receipt> Receipts { get; set; }
     public DbSet<CountryCode> CountryCodes { get; set; }
     public DbSet<Tax> Taxes { get; set; }

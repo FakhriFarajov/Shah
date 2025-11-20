@@ -21,7 +21,6 @@ export async function getAllPaginatedOrders(warehouseId: string, pageNumber: num
   return response;
 }
 
-
 export async function assignOrderItemsToWarehouse(warehouseId: string, orderId: string, orderItemIds: string[]): Promise<void> {
   await authHttp.post(`/${warehouseId}/assign-order-items/${orderId}`, {
     OrderItemIds: orderItemIds

@@ -144,6 +144,16 @@ namespace ShahAdminFeaturesApi.Infrastructure.MappingConfigurations
             var taxMap = CreateMap<EditSellerRequestDTO, SellerTaxInfo>();
             taxMap.ForAllMembers(opt => opt.Condition((src, dest, srcMember, ctx) => ShouldMap(srcMember)));
             taxMap.ForMember(d => d.TaxId, o => o.Condition((src, dest, srcMember, ctx) => src.TaxId.HasValue));
+
+            CreateMap<WarehouseOrderItem, WarehouseOrderItem>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.WarehouseOrderId, opt => opt.MapFrom(src => src.WarehouseOrderId))
+                .ForMember(dest => dest.OrderItemId, opt => opt.MapFrom(src => src.OrderItemId))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt));
+
+            CreateMap<OrderItem, OrderItem>()
+                .ForMember(dest => dest.EffectivePrice, opt => opt.MapFrom(src => src.EffectivePrice))
+                .ForMember(dest => dest.LineTotal, opt => opt.MapFrom(src => src.LineTotal));
         }
     }
 }

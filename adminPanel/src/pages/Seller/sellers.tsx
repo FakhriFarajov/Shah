@@ -68,7 +68,7 @@ export default function SellersPage() {
     }
     async function handleSearch() {
         if (!sellerToSearchId.trim()) {
-            toast.error('Please enter a Seller ID to search.');
+            toast.error('Please enter a User ID to search.');
             return;
         }
 
@@ -81,7 +81,7 @@ export default function SellersPage() {
             setTotalPages(1);
         } catch (error) {
             console.error("Failed to fetch seller profile:", error);
-            toast.error('Failed to fetch seller profile. Please check the ID and try again.');
+            toast.error('Failed to fetch seller profile. Please check the User ID and try again.');
         } finally {
             setLoading(false);
         }
@@ -133,13 +133,13 @@ export default function SellersPage() {
                         <h1 className="text-4xl font-extrabold text-gray-900 mb-2 tracking-tight">Sellers</h1>
                         <p className="text-lg text-gray-500 mb-4">View and manage all sellers here.</p>
                         <div className="mb-4 flex items-center gap-2">
-                            <label htmlFor="filterId" className="font-medium text-gray-700">Filter by ID:</label>
+                            <label htmlFor="filterId" className="font-medium text-gray-700">Filter by UserID:</label>
                             <input
                                 id="filterId"
                                 type="text"
                                 value={sellerToSearchId}
                                 className="border rounded px-3 py-2 w-32 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                                placeholder="Enter ID"
+                                placeholder="Enter UserID"
                                 onChange={e => setSellerToSearchId(e.target.value)}
                             />
                             <Button onClick={handleSearch} variant="outline">Search</Button>
@@ -159,7 +159,7 @@ export default function SellersPage() {
                                                     ? (seller.name + " " + seller.surname).slice(0, 10) + "..."
                                                     : seller.name + " " + seller.surname}
                                             </div>
-                                            <div className="text-gray-500 text-sm mt-1">ID: {seller.id}</div>
+                                            <div className="text-gray-500 text-sm mt-1">UserID: {seller.id}</div>
                                             <div className="text-gray-500 text-sm mt-1">Company: {seller.storeName}</div>
                                         </div>
                                         <div className="flex flex-col gap-1 md:w-1/4">
@@ -173,20 +173,6 @@ export default function SellersPage() {
                                                 title="Profile"
                                             >
                                                 Profile
-                                            </button>
-                                            <button
-                                                className="px-4 py-2 rounded-lg bg-gradient-to-tr from-blue-400 to-blue-600 text-white font-semibold shadow hover:from-blue-500 hover:to-blue-700 transition"
-                                                onClick={() => navigate(`/ordersSeller?id=${seller.id}`)}
-                                                title="Check Orders"
-                                            >
-                                                Check Orders
-                                            </button>
-                                            <button
-                                                className="px-4 py-2 rounded-lg bg-gradient-to-tr from-purple-400 to-purple-600 text-white font-semibold shadow hover:from-purple-500 hover:to-purple-700 transition"
-                                                onClick={() => navigate(`/reviewsSeller?id=${seller.id}`)}
-                                                title="Check Reviews"
-                                            >
-                                                Check Reviews
                                             </button>
                                             <button
                                                 className="px-4 py-2 rounded-lg bg-gradient-to-tr from-red-400 to-red-600 text-white font-semibold shadow hover:from-red-500 hover:to-red-700 transition"

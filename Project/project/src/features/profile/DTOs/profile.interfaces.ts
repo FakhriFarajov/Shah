@@ -93,6 +93,7 @@ export interface productCardDTO {
   productTitle: string;
   representativeVariantId: string;
   price: number;
+  discountPrice?: number;
   mainImage: string;
   categoryName: string;
   storeName: string;

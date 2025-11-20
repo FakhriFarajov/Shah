@@ -86,12 +86,14 @@ public class WarehouseService : IWarehouseService
                 oi.OrderId,
                 oi.ProductVariantId,
                 oi.Status,
-                VariantPrice = oi.ProductVariant.Price,
-                ProductId = oi.ProductVariant.ProductId,
-                Title = oi.ProductVariant.Title,
-                ImageUrl = oi.ProductVariant.Images.Select(i => i.ImageUrl).FirstOrDefault(),
+                VariantPrice = (oi.ProductVariant != null && oi.ProductVariant.Price > 0) ?
+                    ((oi.ProductVariant.DiscountPrice > 0 && oi.ProductVariant.DiscountPrice < oi.ProductVariant.Price) ? oi.ProductVariant.DiscountPrice : oi.ProductVariant.Price)
+                    : 0,
+                ProductId = oi.ProductVariant != null ? oi.ProductVariant.ProductId : null,
+                Title = oi.ProductVariant != null ? oi.ProductVariant.Title : null,
+                ImageUrl = (oi.ProductVariant != null && oi.ProductVariant.Images != null) ? oi.ProductVariant.Images.Select(i => i.ImageUrl).FirstOrDefault() : null,
                 BuyerId = order.BuyerProfileId,
-                SellerId = oi.ProductVariant.Product.StoreInfo.SellerProfileId
+                SellerId = (oi.ProductVariant != null && oi.ProductVariant.Product != null && oi.ProductVariant.Product.StoreInfo != null) ? oi.ProductVariant.Product.StoreInfo.SellerProfileId : null
             }).ToList();
             return TypedResult<object>.Success(alreadyItems, "Order already assigned to this warehouse");
         }
@@ -126,12 +128,14 @@ public class WarehouseService : IWarehouseService
             oi.OrderId,
             oi.ProductVariantId,
             oi.Status,
-            VariantPrice = oi.ProductVariant.Price,
-            ProductId = oi.ProductVariant.ProductId,
-            Title = oi.ProductVariant.Title,
-            ImageUrl = oi.ProductVariant.Images.Select(i => i.ImageUrl).FirstOrDefault(),
+            VariantPrice = (oi.ProductVariant != null && oi.ProductVariant.Price > 0) ?
+                ((oi.ProductVariant.DiscountPrice > 0 && oi.ProductVariant.DiscountPrice < oi.ProductVariant.Price) ? oi.ProductVariant.DiscountPrice : oi.ProductVariant.Price)
+                : 0,
+            ProductId = oi.ProductVariant != null ? oi.ProductVariant.ProductId : null,
+            Title = oi.ProductVariant != null ? oi.ProductVariant.Title : null,
+            ImageUrl = (oi.ProductVariant != null && oi.ProductVariant.Images != null) ? oi.ProductVariant.Images.Select(i => i.ImageUrl).FirstOrDefault() : null,
             BuyerId = order.BuyerProfileId,
-            SellerId = oi.ProductVariant.Product.StoreInfo.SellerProfileId
+            SellerId = (oi.ProductVariant != null && oi.ProductVariant.Product != null && oi.ProductVariant.Product.StoreInfo != null) ? oi.ProductVariant.Product.StoreInfo.SellerProfileId : null
         }).ToList();
 
         return TypedResult<object>.Success(new

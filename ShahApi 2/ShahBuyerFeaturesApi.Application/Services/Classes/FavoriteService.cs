@@ -57,7 +57,8 @@ namespace ShahBuyerFeaturesApi.Application.Services.Classes
                      Id = f.ProductVariant.Product != null ? f.ProductVariant.Product.Id : null,
                      ProductTitle = f.ProductVariant != null ? f.ProductVariant.Title : null,
                      Description = f.ProductVariant != null ? f.ProductVariant.Description : null,
-                     Price = f.ProductVariant != null ? f.ProductVariant.Price : 0m,
+                        Price = f.ProductVariant != null ? f.ProductVariant.Price : 0m,
+                     DiscountPrice = (f.ProductVariant != null && f.ProductVariant.DiscountPrice > 0 && f.ProductVariant.DiscountPrice < f.ProductVariant.Price) ? f.ProductVariant.DiscountPrice : (f.ProductVariant != null ? f.ProductVariant.Price : 0m),
                      Stock = f.ProductVariant != null ? f.ProductVariant.Stock : 0,
                      MainImage = f.ProductVariant != null
                          ? f.ProductVariant.Images.Where(i => i.IsMain).Select(i => i.ImageUrl).FirstOrDefault()

@@ -21,10 +21,33 @@ import { useNavigate } from 'react-router-dom';
 import Spinner from '@/components/custom/Spinner';
 import { ImageZoom } from '@/components/ui/shadcn-io/image-zoom';
 
-
-
-
 export default function ProductPage() {
+  // Save productId and productVariantId to localStorage as history
+  useEffect(() => {
+    if (!productId) return;
+    const historyKey = 'productHistory';
+    const variantId = productVariantIdParam || null;
+    // Get existing history
+    let history: Array<{ productId: string, variantId: string | null, timestamp: number }> = [];
+    try {
+      const raw = localStorage.getItem(historyKey);
+      if (raw) history = JSON.parse(raw);
+    } catch {}
+    // Add new entry
+    history.unshift({ productId, variantId, timestamp: Date.now() });
+    // Remove duplicates (keep most recent)
+    const seen = new Set();
+    history = history.filter(item => {
+      const key = item.productId + ':' + (item.variantId ?? '');
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    // Limit history size
+    history = history.slice(0, 50);
+    localStorage.setItem(historyKey, JSON.stringify(history));
+  }, []);
+
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const productId = searchParams.get("id");
@@ -161,8 +184,12 @@ export default function ProductPage() {
     ? activeVariant.images
     : (Array.isArray(productData.images) ? productData.images : []);
   // Prefer variant price/oldPrice when available
+  const displayDiscountPrice = (activeVariant && typeof activeVariant.discountPrice !== 'undefined') ? activeVariant.discountPrice : productData.discountPrice;
   const displayPrice = (activeVariant && typeof activeVariant.price !== 'undefined') ? activeVariant.price : productData.price;
   const displayOldPrice = (activeVariant && typeof activeVariant.oldPrice !== 'undefined') ? activeVariant.oldPrice : productData.oldPrice;
+  const hasDiscount = typeof displayDiscountPrice === 'number' && displayDiscountPrice < displayPrice;
+  const discountPercent = hasDiscount && displayPrice > 0 ? Math.round(100 * (displayPrice - displayDiscountPrice) / displayPrice) : 0;
+  const showDiscount = hasDiscount && discountPercent > 0;
   const displayTitle = (activeVariant && typeof activeVariant.title !== 'undefined') ? activeVariant.title : productData.title;
   const displayDescriptionRaw = (activeVariant && typeof activeVariant.description !== 'undefined') ? activeVariant.description : productData.description;
 
@@ -799,11 +826,18 @@ export default function ProductPage() {
               </div>
               <p className="text-muted-foreground">{t(productData.categoryName ?? productData.category ?? '')}</p>
               <div>
-                <Label className='text-3xl font-bold'>{displayPrice}$</Label>
-                {typeof displayOldPrice !== 'undefined' && displayOldPrice !== null && (
-                  <Badge className="bg-red-600 line-through ml-2">{t('Old Price')}: ${displayOldPrice}</Badge>
+                {showDiscount && displayDiscountPrice != 0? (
+                  <>
+                    <Label className='text-3xl font-bold text-red-600'>{displayDiscountPrice}₼</Label>
+                    <span className="text-lg line-through text-gray-400 ml-2">{displayPrice}₼</span>
+                    <Badge className="bg-red-500 text-white text-xs px-2 py-1 rounded shadow ml-2">-{discountPercent}%</Badge>
+                  </>
+                ) : (
+                  <Label className='text-3xl font-bold'>{displayPrice}₼</Label>
                 )}
-
+                {typeof displayOldPrice !== 'undefined' && displayOldPrice !== null && displayOldPrice > displayPrice && (
+                  <Badge className="bg-red-600 line-through ml-2">{t('Old Price')}: {displayOldPrice}₼</Badge>
+                )}
               </div>
               <div>
                 <span className="text-sm m-0 text-muted-foreground">{t('Description')}:</span>

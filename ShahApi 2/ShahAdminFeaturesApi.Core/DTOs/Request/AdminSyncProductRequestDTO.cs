@@ -14,6 +14,7 @@ public class AdminSyncVariantDTO
     public int WeightInGrams { get; set; }
     public int Stock { get; set; }
     public decimal Price { get; set; }
+    public decimal? DiscountPrice { get; set; } // Added for discount support
     public List<string> AttributeValueIds { get; set; } = new();
     public List<AdminSyncProductImageDTO> Images { get; set; } = new();
 }

@@ -184,52 +184,23 @@ export default function Checkout() {
         };
     }, []);
 
-    const linePrice = (item: any) => {
-        const variant = item.productVariant ?? item.variant ?? {};
-        const price = Number(variant.price ?? item.price ?? 0);
-        return price * Number(item.quantity || 0);
-    };
-    const lineOldPrice = (item: any) => {
-        const variant = item.productVariant ?? item.variant ?? {};
-        const oldPrice = Number(variant.oldPrice ?? item.oldPrice ?? variant.price ?? item.price ?? 0);
-        return oldPrice * Number(item.quantity || 0);
-    };
-    const productsSubtotal = useMemo(() => cartItems.reduce((sum, it) => sum + lineOldPrice(it), 0), [cartItems]);
-    const discountTotal = useMemo(() => cartItems.reduce((sum, it) => sum + Math.max(0, lineOldPrice(it) - linePrice(it)), 0), [cartItems]);
-    const total: number = useMemo(() => cartItems.reduce((sum, it) => sum + linePrice(it), 0), [cartItems]);
+    const productsSubtotal = useMemo(() => cartItems.reduce((sum, it) => {
+        const variant = it.productVariant ?? it.variant ?? {};
+        const discountPrice = Number(variant.discountPrice ?? variant.price ?? it.price ?? 0);
+        return sum + (discountPrice * Number(it.quantity || 0));
+    }, 0), [cartItems]);
+    const discountTotal = useMemo(() => cartItems.reduce((sum, it) => {
+        const variant = it.productVariant ?? it.variant ?? {};
+        const price = Number(variant.price ?? it.price ?? 0);
+        const discountPrice = Number(variant.discountPrice ?? price);
+        return sum + Math.max(0, (price - discountPrice) * Number(it.quantity || 0));
+    }, 0), [cartItems]);
+    const total: number = useMemo(() => cartItems.reduce((sum, it) => {
+        const variant = it.productVariant ?? it.variant ?? {};
+        const discountPrice = Number(variant.discountPrice ?? variant.price ?? it.price ?? 0);
+        return sum + (discountPrice * Number(it.quantity || 0));
+    }, 0), [cartItems]);
 
-    const handleCheckout = async () => {
-        setLoading(true);
-        if (!address || !address.street) {
-            toast.info('Please add your shipping address first.');
-            navigate('/profile');
-            return;
-        }
-        if (!addressConfirmed) {
-            toast.info('Please confirm your address before checkout.');
-            setShowConfirmAddressDialog(true);
-            return;
-        }
-        if (!buyer) {
-            toast.error('Buyer missing');
-            return;
-        }
-        // Perform backend checkout to create order, payment, receipt
-        const res = await checkout({
-            currency: 'USD',
-            gatewayTransactionId: '', // manual checkout has no gateway txn yet
-        });
-        if (!res.isSuccess) {
-            toast.error(res.message || 'Checkout failed');
-            return;
-        }
-        const summary = res.data!;
-        toast.success(`Order ${summary.OrderId} created!`);
-        // Clear cart UI
-        window.dispatchEvent(new CustomEvent('cart:updated'));
-        setLoading(false);
-        navigate('/');
-    };
 
     const handleConfirmAddress = () => {
         if (!buyer) return;
@@ -322,25 +293,25 @@ export default function Checkout() {
                             </div>
                             <div className="mb-2 flex justify-between">
                                 <span>{t('Products')} ({cartItems.length})</span>
-                                <span className="font-semibold">{productsSubtotal.toFixed(2)}</span>
+                                <span className="font-semibold">{productsSubtotal.toFixed(2)}$</span>
                             </div>
 
 
                             <div className="mb-2 flex justify-between">
                                 <span>{t('Shipping')}</span>
-                                <span className="font-semibold">{t('Free IMPLEMENTED!')}</span>
+                                <span className="font-semibold">{t('Free')}</span>
                             </div>
 
                             <div className="mb-2 flex justify-between text-red-500">
                                 <span>{t('Discount')}</span>
                                 <span>
-                                    -{discountTotal.toFixed(2)}
+                                    -{discountTotal.toFixed(2)}$
                                 </span>
                             </div>
 
                             <div className="mb-4 flex justify-between font-bold text-lg">
                                 <span>{t('Total cost')}</span>
-                                <span>{total.toFixed(2)}</span>
+                                <span>{total.toFixed(2)}$</span>
                             </div>
                             {!addressConfirmed ? (
                                 <div className="flex justify-center">

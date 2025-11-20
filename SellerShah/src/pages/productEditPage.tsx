@@ -110,6 +110,7 @@ export default function ProductsEditOrAddPage() {
                                 weight: v.weightInGrams,
                                 stock: v.stock,
                                 price: v.price,
+                                discountPrice: v.discountPrice ?? 0,
                                 images,
                                 mainImageIdx: images.findIndex((img: any) => img.isMain),
                                 attributeValues
@@ -205,7 +206,7 @@ export default function ProductsEditOrAddPage() {
         }));
     }
     function handleVariantChange(idx: number, field: keyof any, value: any) {
-        // For price, stock, weight: store as string for editing
+        // For price, stock, weight, discountPrice: store as string for editing
         const updated = (variants || []).map((v: any, i: number) => {
             if (i !== idx) return v;
             return { ...v, [field]: value };
@@ -235,6 +236,7 @@ export default function ProductsEditOrAddPage() {
             stock: null,
             price: null,
             weight: null,
+            discountPrice: null,
             attributeValues: allAttributes.map((attr: any) => ({ productVariantId: newId, attributeValueId: attr.id + "___" })),
             images: [],
         };
@@ -289,6 +291,10 @@ export default function ProductsEditOrAddPage() {
                 }
                 if (!variant.price || isNaN(Number(variant.price))) {
                     toast.error(`Please enter a valid price for variant ${variantIdx + 1}.`);
+                    return;
+                }
+                if (variant.discountPrice && (isNaN(Number(variant.discountPrice)) || Number(variant.discountPrice) > Number(variant.price))) {
+                    toast.error(`Discount price for variant ${variantIdx + 1} must be a valid number and not higher than the price.`);
                     return;
                 }
                 if (!variant.stock || isNaN(Number(variant.stock))) {
@@ -383,6 +389,7 @@ export default function ProductsEditOrAddPage() {
                             weightInGrams: v.weight ? Number(v.weight) : 0,
                             stock: v.stock ? Number(v.stock) : 0,
                             price: v.price ? Number(v.price) : 0,
+                            discountPrice: v.discountPrice != null ? Number(v.discountPrice) : 0,
                             images: imagesWithMain,
                             attributeValueIds: (v.attributeValues || [])
                                 .map((av: any) => {
@@ -410,6 +417,7 @@ export default function ProductsEditOrAddPage() {
                         weightInGrams: Number(v.weight),
                         stock: Number(v.stock),
                         price: parseFloat(v.price),
+                        discountPrice: v.discountPrice != null ? parseFloat(v.discountPrice) : 0,
                         images: v.images
                             .map((img: any, idx: number) => {
                                 const imageUrl = img.objectName || img.imageUrl || "";
@@ -536,6 +544,26 @@ export default function ProductsEditOrAddPage() {
                                                             if (/^\d*\.?\d*$/.test(val) || val === "") {
                                                                 if (val !== "" && Number(val) > 9999) val = "9999";
                                                                 handleVariantChange(idx, "price", val);
+                                                            }
+                                                        }}
+                                                    />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <Label className="mb-2">Discount Price</Label>
+                                                    <input
+                                                        className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                                                        placeholder="Discount Price"
+                                                        type="text"
+                                                        inputMode="decimal"
+                                                        pattern="^[0-9]*\.?[0-9]*$"
+                                                        maxLength={5}
+                                                        value={typeof variant.discountPrice === "string" ? variant.discountPrice : (typeof variant.discountPrice === "number" && !isNaN(variant.discountPrice) ? String(variant.discountPrice) : "")}
+                                                        onChange={e => {
+                                                            let val = e.target.value;
+                                                            // Allow digits and dot, but max 9999
+                                                            if (/^\d*\.?\d*$/.test(val) || val === "") {
+                                                                if (val !== "" && Number(val) > 9999) val = "9999";
+                                                                handleVariantChange(idx, "discountPrice", val);
                                                             }
                                                         }}
                                                     />

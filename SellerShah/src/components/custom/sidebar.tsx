@@ -21,7 +21,7 @@ export function AppSidebar() {
                 <AvatarImage src={"/src/assets/images/ShahLogo2.png"} alt="Navigate to Interface" onClick={() => navigator('/home')} className="cursor-pointer" />
                 <AvatarFallback>SS</AvatarFallback>
             </Avatar>
-            <div className="font-semibold text-lg mb-8">{t("Seller Name")}</div>
+            <div className="font-semibold text-lg mb-8">{t("Seller Dashboard")}</div>
             <nav className="w-full flex flex-col gap-2">
                 {sidebarItems.map((item, idx) => (
                     <button

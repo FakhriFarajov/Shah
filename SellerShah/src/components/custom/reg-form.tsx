@@ -19,10 +19,6 @@ import { getCategories } from "@/features/profile/Category/category.service";
 import { AuthContext } from "@/features/auth/contexts/AuthProvider";
 import Spinner from "@/components/custom/loader";
 
-
-
-
-
 // Category and Tax ID Type lists (same as profile)
 export default function RegForm({
   className,

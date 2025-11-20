@@ -63,11 +63,6 @@ export default function LandingPage() {
 
     return (
         <>
-            {loading && (
-                <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "rgba(255,255,255,0.5)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <Spinner />
-                </div>
-            )}
             <NavBar />
             <div className="relative bg-gradient-to-br from-[#e3f2fd] to-[#bbdefb] min-h-[600px] flex flex-col md:flex-row items-center justify-center px-8 py-20 gap-12 overflow-hidden">
                 <div className="flex-1 flex flex-col justify-center items-start max-w-2xl z-10">

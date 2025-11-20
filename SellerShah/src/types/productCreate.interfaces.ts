@@ -11,6 +11,7 @@ export interface ProductVariant {
   weightInGrams: number;
   stock: number;
   price: number;
+  discountPrice: number | null;
   images: ProductImage[];
   attributeValueIds: string[];
 }
@@ -34,6 +35,7 @@ export interface ProductVariantSync {
   weightInGrams: number;
   stock: number;
   price: number;
+  discountPrice: number | null;
   images: ProductImageSync[];
   attributeValueIds: string[];
 }

@@ -7,8 +7,10 @@ using ShahBuyerFeaturesApi.Core.Enums;
 namespace ShahBuyerFeaturesApi.Presentation.Controllers;
 
 [ApiController]
-[Authorize(Policy = "BuyerPolicy")] // requires Buyer token
-[Route("api/[controller]")]
+// [Authorize(Policy = "BuyerPolicy")] // requires Buyer token
+[Route("api/[controller]")] 
+[Authorize(Policy = "BuyerPolicy")] //We need to send a Bearer token in the header to access this endpoint
+
 public class OrderController : ControllerBase
 {
     private readonly IOrderService _orderService;

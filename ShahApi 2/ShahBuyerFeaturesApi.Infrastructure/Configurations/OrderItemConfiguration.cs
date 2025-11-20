@@ -28,6 +28,11 @@ namespace ShahBuyerFeaturesApi.Infrastructure.Configurations
             builder.Property(oi => oi.Status)
                    .HasConversion<int>()
                    .HasDefaultValue(OrderStatus.Pending);
+
+            builder.HasMany(oi => oi.WarehouseOrderItems)
+                   .WithOne(woi => woi.OrderItem)
+                   .HasForeignKey(woi => woi.OrderItemId)
+                   .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

@@ -29,8 +29,4 @@
       <ProjectReference Include="..\ShahBuyerFeaturesApi.Core\ShahBuyerFeaturesApi.Core.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-        <Folder Include="Migrations\" />
-    </ItemGroup>
-
 </Project>

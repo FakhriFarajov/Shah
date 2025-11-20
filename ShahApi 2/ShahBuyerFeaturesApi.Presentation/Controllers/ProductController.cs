@@ -6,9 +6,10 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace ShahBuyerFeaturesApi.Presentation.Controllers
 {
-    [ApiController] 
-    [Route("api/[controller]")]
+    [ApiController]
+    [Authorize(Policy = "BuyerPolicy")] //We need to send a Bearer token in the header to access this endpoint
     
+    [Route("api/[controller]")]       
     public class ProductController : ControllerBase
     {
         private readonly IProductService _productService;
@@ -51,6 +52,8 @@ namespace ShahBuyerFeaturesApi.Presentation.Controllers
             {
                 pageSize = count.Value;
             }
+            userId = User.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
+            
             // Prefer identity user id claim when available
             var result = await _productService.GetRandomProductsAsync(page, pageSize, userId);
              return Ok(result);
@@ -67,6 +70,26 @@ namespace ShahBuyerFeaturesApi.Presentation.Controllers
 
             var claimUserId = User.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
             var result = await _productService.GetVariantByAttributesAsync(productId, attributeValueIds, claimUserId);
+            return Ok(result);
+        }
+
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchProductsByName([FromQuery] string title)
+        {
+            if (string.IsNullOrWhiteSpace(title))
+                return BadRequest("Product name is required");
+            var claimUserId = User.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
+            var result = await _productService.SearchProductsByTitleAsync(title, 1, 20, claimUserId);
+            return Ok(result);
+        }
+
+        [HttpGet("search-by-title")]
+        public async Task<IActionResult> SearchProductsByTitle([FromQuery] string title, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+        {
+            if (string.IsNullOrWhiteSpace(title))
+                return BadRequest("Product title is required");
+            var claimUserId = User.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
+            var result = await _productService.SearchProductsByTitleAsync(title, page, pageSize, claimUserId);
             return Ok(result);
         }
     }

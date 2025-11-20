@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using ShahSellerFeaturesApi.Application.Services.Interfaces;
-using ShahSellerFeaturesApi.Application.DTOs;
+using ShahSellerFeaturesApi.Core.DTOs.Request;
 
 namespace ShahSellerFeaturesApi.Presentation.Controllers
 {

@@ -19,6 +19,8 @@ namespace ShahAdminFeaturesApi.Core.Models
 
         public string? ReceiptId { get; set; } = null;
         public Receipt? Receipt { get; set; } = null;
+
+        public ICollection<WarehouseOrderItem> WarehouseOrderItems { get; set; } = new List<WarehouseOrderItem>();
     }
 
 }

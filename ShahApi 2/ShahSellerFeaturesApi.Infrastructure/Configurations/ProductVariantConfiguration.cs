@@ -13,6 +13,7 @@ namespace ShahSellerFeaturesApi.Infrastructure.Configurations
             builder.Property(pv => pv.ProductId).IsRequired().HasMaxLength(36);
             builder.Property(pv => pv.Stock).IsRequired();
             builder.Property(pv => pv.Price).IsRequired().HasColumnType("decimal(18,2)");
+                builder.Property(pv => pv.DiscountPrice).IsRequired().HasColumnType("decimal(18,2)");
 
             builder.HasOne(pv => pv.Product)
                    .WithMany(p => p.ProductVariants)

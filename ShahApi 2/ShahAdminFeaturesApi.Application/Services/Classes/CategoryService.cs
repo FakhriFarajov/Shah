@@ -248,6 +248,7 @@ public class CategoryService
                 ProductId = v.ProductId,
                 Stock = v.Stock,
                 Price = v.Price,
+                DiscountPrice = (v.DiscountPrice > 0 && v.DiscountPrice < v.Price) ? v.DiscountPrice : v.Price,
                 Attributes = v.ProductVariantAttributeValues
                     .Select(pvav => new ProductVariantAttributeDto
                     {

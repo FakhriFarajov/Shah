@@ -7,6 +7,7 @@ namespace ShahBuyerFeaturesApi.Core.DTOs.Request;
         public string? ProductTitle { get; set; }
         public string? Description { get; set; }
         public decimal Price { get; set; }
+        public decimal DiscountPrice { get; set; }
         public int Stock { get; set; }
         public string? MainImage { get; set; }
         public string? StoreName { get; set; }

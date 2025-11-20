@@ -14,6 +14,7 @@ public class AdminCreateVariantDTO
     public int WeightInGrams { get; set; }
     public int Stock { get; set; }
     public decimal Price { get; set; }
+    public decimal? DiscountPrice { get; set; } // Added for discount support
     public List<AdminCreateProductImageDTO> Images { get; set; } = new();
     public List<string> AttributeValueIds { get; set; } = new();
 }
@@ -23,4 +24,3 @@ public class AdminCreateProductImageDTO
     public string ImageUrl { get; set; } = null!;
     public bool IsMain { get; set; }
 }
-

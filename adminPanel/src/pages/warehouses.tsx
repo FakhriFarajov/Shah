@@ -230,7 +230,7 @@ export default function WarehousesPage() {
                                     <div className="flex gap-2">
                                         <Button variant="outline" onClick={() => openModal(w)}>Edit</Button>
                                         <Button variant="destructive" onClick={() => handleDelete(w.id)}>Delete</Button>
-                                        <Button onClick={() => navigator("/warehouse-orders?warehouseId=" + w.id)} className="text-white bg-indigo-500">Products</Button>
+                                        <Button onClick={() => navigator("/warehouse-orders?warehouseId=" + w.id)} className="text-white bg-indigo-500">Orders</Button>
                                     </div>
                                 </div>
                             ))}

@@ -7,7 +7,6 @@ import BuyersPage from './pages/Buyer/buyers';
 import SellersPage from './pages/Seller/sellers';
 import ProfileBuyer from './pages/Buyer/profileBuyer';
 import ProfileSeller from './pages/Seller/profileSeller';
-import ReviewsPage from './pages/reviews';
 import ProductsPage from './pages/products';
 import WarehousesPage from './pages/warehouses';
 import CategoryManager from './pages/categoriesPage';
@@ -37,8 +36,6 @@ function App() {
             <Route path='/orders-buyer' element={<OrdersPage />} />//by id
             <Route path='/orders-seller' element={<OrdersPage />} />//By id
             <Route path='/orders' element={<OrdersPage />} />//All of them with filter
-            <Route path='/reviews' element={<ReviewsPage />} />
-            <Route path='/reviews-buyer' element={<ReviewsPage />} />//by id
             <Route path='/products' element={<ProductsPage />} />//by id
             <Route path='/productsEditOrAdd' element={<ProductsEditOrAddPage />} />
             <Route path='/product-details' element={<ProductDetailsPage />} />

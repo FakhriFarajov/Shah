@@ -9,4 +9,5 @@ public interface IProductService
     Task<PaginatedResult<object>> GetAllPaginatedProductsFilteredAsync(ProductFilterRequestDTO request);
     Task<TypedResult<object>> GetProductDetailsByIdAsync(string productId, string? userId = null);
     Task<TypedResult<object>> GetVariantByAttributesAsync(string productId, List<string> attributeValueIds, string? userId = null);
+    Task<PaginatedResult<object>> SearchProductsByTitleAsync(string title, int page = 1, int pageSize = 20, string? userId = null);
 }

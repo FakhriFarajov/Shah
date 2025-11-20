@@ -137,19 +137,41 @@ namespace ShahBuyerFeaturesApi.Application.Services.Classes
             // Derive seller and company info (assuming items from a single store)
             var firstItem = order.OrderItems.FirstOrDefault();
             var storeInfo = firstItem?.ProductVariant?.Product?.StoreInfo;
-            var sellerUser = storeInfo?.SellerProfile?.User;
+            var sellerProfile = storeInfo?.SellerProfile;
+            var sellerUser = sellerProfile?.User;
             var sellerName = sellerUser != null
                 ? ($"{sellerUser.Name} {sellerUser.Surname}").Trim()
                 : null;
             var companyName = storeInfo?.StoreName;
 
-            byte[] pdfBytes = BuildReceiptPdf(order.Id, now, order.TotalAmount, order.OrderItems.Select(i => new ItemRow
-            {
-                Title = i.ProductVariant.Title,
-                UnitPrice = i.ProductVariant.Price,
-                Quantity = i.Quantity
-            }).ToList(), sellerName, companyName);
-
+            byte[] pdfBytes = BuildReceiptPdf(
+                order.Id,
+                now,
+                order.TotalAmount,
+                order.OrderItems.Select(i =>
+                {
+                    var variant = i.ProductVariant;
+                    var title = variant?.Title ?? "N/A";
+                    decimal unitPrice = 0m;
+                    if (variant != null)
+                    {
+                        unitPrice = (variant.DiscountPrice > 0 && variant.DiscountPrice < variant.Price)
+                            ? variant.DiscountPrice
+                            : variant.Price;
+                    }
+                    return new ItemRow
+                    {
+                        Title = title,
+                        UnitPrice = unitPrice,
+                        Quantity = i.Quantity
+                    };
+                }).ToList(),
+                sellerName,
+                companyName
+            );
+            
+            
+            
             // Ensure bucket exists
             bool exists = await _minio.BucketExistsAsync(new BucketExistsArgs().WithBucket(_bucket));
             if (!exists)
@@ -249,7 +271,7 @@ namespace ShahBuyerFeaturesApi.Application.Services.Classes
 
         private record ItemRow
         {
-            public string Title { get; init; }
+            public string Title { get; init; } = string.Empty;
             public decimal UnitPrice { get; init; }
             public int Quantity { get; init; }
             public decimal LineTotal => UnitPrice * Quantity;
@@ -279,6 +301,9 @@ namespace ShahBuyerFeaturesApi.Application.Services.Classes
                             col.Item().Text($"Company: {companyName}");
                         if (!string.IsNullOrWhiteSpace(sellerName))
                             col.Item().Text($"Seller: {sellerName}");
+                        // Always display Seller Name Surname, even if null
+                        if (string.IsNullOrWhiteSpace(sellerName))
+                            col.Item().Text("Seller: N/A");
 
                         col.Item().LineHorizontal(0.5f);
 

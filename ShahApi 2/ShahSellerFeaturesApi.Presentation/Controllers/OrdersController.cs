@@ -7,6 +7,7 @@ using ShahSellerFeaturesApi.Core.Enums;
 namespace ShahSellerFeaturesApi.Presentation.Controllers;
 
 [ApiController]
+[Authorize(Policy = "SellerPolicy")]
 [Route("api/[controller]")]
 public class OrdersController : ControllerBase
 {

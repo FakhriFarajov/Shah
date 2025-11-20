@@ -18,6 +18,26 @@ const OrderStatusText: Record<number, string> = {
 	4: "Cancelled",
 	5: "Returned"
 };
+
+export const PaymentMethodLabels: Record<number, string> = {
+  0: "Cash",
+  1: "Credit Card",
+  2: "Bank Transfer",
+  3: "PayPal",
+  4: "Google Pay",
+  5: "Apple Pay",
+  99: "Other"
+};
+
+export const PaymentStatusLabels :any = {
+  0: "Pending",
+  1: "Paid",
+  2: "Failed",
+  3: "Refunded",
+  4: "Cancelled"
+};
+
+
 const OrderStatusOptions = [
 	{ value: 0, label: "Pending" },
 	{ value: 1, label: "Processing" },
@@ -44,6 +64,7 @@ export default function OrdersPage() {
 	const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
 	const [selectedOrderItemIds, setSelectedOrderItemIds] = useState<string[]>([]);
 	const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
+
 
 	useEffect(() => {
 		let cancelled = false;
@@ -91,7 +112,6 @@ export default function OrdersPage() {
 		return () => { cancelled = true; };
 	}, [page]);
 
-
 	useEffect(() => {
 		const fetchWarehouseOrders = async () => {
 			setLoading(true);
@@ -110,13 +130,10 @@ export default function OrdersPage() {
 		fetchWarehouseOrders();
 	}, [page, pageSize]);
 
-
-
 	// Handler to change status
 	const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
 		setNewStatus(Number(e.target.value));
 	};
-
 
 	const handleStatusSelect = (orderId:string, orderItemId: string, newStatus: number) => {
 		setStatusUpdates(prev => ({ ...prev, [orderItemId]: newStatus }));
@@ -136,7 +153,10 @@ export default function OrdersPage() {
 		if (pendingOrderItemId && selectedWarehouse && selectedOrderItemIds.length > 0) {
 			try {
 				await apiCallWithManualRefresh(() =>
-					assignOrderItemsToWarehouse(selectedWarehouse, pendingOrderId, selectedOrderItemIds)
+					assignOrderItemsToWarehouse(selectedWarehouse, pendingOrderId!, selectedOrderItemIds)
+				);
+				await apiCallWithManualRefresh(() =>
+					updateOrderItemStatus(pendingOrderItemId, 3) // 3 = Delivered
 				);
 				setShowWarehouseModal(false);
 				setSelectedWarehouse("");
@@ -203,11 +223,6 @@ export default function OrdersPage() {
 													<div className="text-sm">
 														<div>ID: {order.receipt.id}</div>
 														<div>Issued: {order.receipt.issuedAt ? order.receipt.issuedAt.slice(0, 19).replace('T', ' ') : '-'}</div>
-														{order.receipt.fileUrl ? (
-															<a href={order.receipt.fileUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Download</a>
-														) : (
-															<span className="text-gray-400">No file</span>
-														)}
 													</div>
 												) : <span className="text-gray-400">-</span>}
 											</div>
@@ -216,8 +231,8 @@ export default function OrdersPage() {
 												{order.payment ? (
 													<div className="text-sm">
 														<div>ID: {order.payment.id}</div>
-														<div>Status: {order.payment.status}</div>
-														<div>Method: {order.payment.method}</div>
+														<div>Status: {PaymentStatusLabels[order.payment.status]}</div>
+														<div>Method: {PaymentMethodLabels[order.payment.method]}</div>
 														<div>Amount: ${order.payment.totalAmount}</div>
 														<div>Currency: {order.payment.currency}</div>
 													</div>
@@ -280,7 +295,6 @@ export default function OrdersPage() {
 																>
 																	Update
 																</button>
-
 															</div>
 														</div>
 

@@ -5,7 +5,8 @@ using ShahSellerFeaturesApi.Core.DTOs.Request;
 
 namespace ShahSellerFeaturesApi.Presentation.Controllers
 {
-    [ApiController]
+    [ApiController]    [Authorize(Policy = "SellerPolicy")]
+
     [Route("api/[controller]")]
     public class SellerController : ControllerBase
     {
@@ -17,18 +18,15 @@ namespace ShahSellerFeaturesApi.Presentation.Controllers
         }
         
         
-        [Authorize(Policy = "SellerPolicy")]
         [HttpGet("getIdByEmail/{email}")]
         public async Task<IActionResult> GetIdByEmailAsync([FromRoute] string email)
             => Ok(await _sellerService.GetIdByEmailAsync(email));
         
         
-        [Authorize(Policy = "SellerPolicy")]
         [HttpGet("getProfile/{sellerId}")]
         public async Task<IActionResult> GetSellerProfileByIdAsync([FromRoute] string sellerId)
             => Ok(await _sellerService.GetSellerByIdAsync(sellerId));
         
-        [Authorize(Policy = "SellerPolicy")]
         [HttpPut("editProfile/{sellerId}")]
         public async Task<IActionResult> EditSellerProfileAsync([FromRoute] string sellerId, [FromBody] EditSellerRequestDTO dto)
         => Ok(await _sellerService.EditSellerAsync(sellerId, dto));

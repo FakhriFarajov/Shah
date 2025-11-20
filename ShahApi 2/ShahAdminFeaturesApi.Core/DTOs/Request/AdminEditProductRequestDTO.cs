@@ -14,6 +14,7 @@ public class AdminEditVariantDTO
     public int? WeightInGrams { get; set; }
     public int? Stock { get; set; }
     public decimal? Price { get; set; }
+    public decimal? DiscountPrice { get; set; } // Added for discount support
     public List<AdminEditProductImageDTO>? Images { get; set; }
     public List<string>? AttributeValueIds { get; set; }
 }
@@ -25,4 +26,3 @@ public class AdminEditProductImageDTO
     public bool IsMain { get; set; }
     public bool Delete { get; set; }
 }
-

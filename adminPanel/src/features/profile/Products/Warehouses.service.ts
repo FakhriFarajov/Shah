@@ -36,3 +36,14 @@ export async function getAllPaginatedOrders(warehouseId: string, pageNumber: num
   });
   return response;
 }
+
+export async function getWarehouseOrderItems(warehouseId: string, orderId: string) {
+    var result = await authHttp.get(`/${warehouseId}/orders/${orderId}/items`);
+    return result;
+}
+
+export async function assignOrderItemsToWarehouse(warehouseId: string, orderId: string, orderItemIds: string[]): Promise<void> {
+  await authHttp.post(`/${warehouseId}/assign-order-items/${orderId}`, {
+    OrderItemIds: orderItemIds
+  });
+}

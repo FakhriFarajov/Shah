@@ -35,6 +35,8 @@ public class CreateProductVariantValidator : AbstractValidator<CreateProductVari
             .GreaterThanOrEqualTo(0);
         RuleFor(v => v.Price)
             .GreaterThanOrEqualTo(0);
+        RuleFor(v => v.DiscountPrice)
+            .GreaterThanOrEqualTo(0);
 
         RuleForEach(v => v.Images).SetValidator(new CreateProductImageValidator());
         RuleFor(v => v.Images)

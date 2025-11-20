@@ -19,6 +19,7 @@ namespace ShahBuyerFeaturesApi.Core.Models
         public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
         public string? ReceiptId { get; set; } = null; // optional FK to Receipt
         public Receipt? Receipt { get; set; } = null;  // optional navigation
+        public ICollection<WarehouseOrderItem> WarehouseOrderItems { get; set; } = new List<WarehouseOrderItem>();
     }
 
 }
