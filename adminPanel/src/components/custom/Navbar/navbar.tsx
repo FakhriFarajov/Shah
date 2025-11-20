@@ -1,10 +1,9 @@
 import './navbar.css';
 import { Button } from "@/components/ui/button";
-import { VscAccount } from "react-icons/vsc";
 import { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from "react-i18next";
-import { CiLock, CiLogout } from "react-icons/ci";
+import { CiLogout } from "react-icons/ci";
 
 export default function Navbar() {
     const { t, i18n } = useTranslation();

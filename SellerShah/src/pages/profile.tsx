@@ -11,7 +11,7 @@ import ImageCropper from "@/components/ui/image-crop";
 import { MdAccountCircle } from "react-icons/md";
 import { getCountries } from "@/features/profile/Country/country.service";
 import { getCategories } from "@/features/profile/Category/category.service";
-import Spinner from "@/components/custom/loader";
+import Spinner from "@/components/custom/spinner";
 import { getSellerProfile, editSellerProfile } from "@/features/profile/ProfileServices/profile.service";
 import { tokenStorage } from "@/shared";
 import { jwtDecode } from "jwt-decode";
@@ -19,7 +19,7 @@ import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
 import { forgotPassword } from "@/features/account/services/profile.service";
-import { uploadProfileImage, getProfileImage } from "@/shared/utils/imagePost";
+import { uploadImage, getImage } from "@/shared/utils/imagePost";
 import { AppSidebar } from "@/components/custom/sidebar";
 import { confirmEmail } from "@/features/account/services/profile.service";
 
@@ -150,8 +150,8 @@ export default function ProfileSeller() {
             let objectName = null;
             let storeLogoUrl = null;
             if (seller?.storeLogoFile) {
-                objectName = await uploadProfileImage(seller.storeLogoFile as File);
-                storeLogoUrl = await getProfileImage(objectName);
+                objectName = await uploadImage(seller.storeLogoFile as File);
+                storeLogoUrl = await getImage(objectName);
                 payload.storeLogo = objectName;
             }
 

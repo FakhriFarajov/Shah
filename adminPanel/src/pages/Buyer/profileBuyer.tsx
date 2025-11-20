@@ -12,7 +12,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { MdAccountCircle } from "react-icons/md";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import { uploadProfileImage, getProfileImage } from "@/shared/utils/imagePost";
+import { uploadImage, getProfileImage } from "@/shared/utils/imagePost";
 import { forgotPassword } from "@/features/account/services/register.service";
 import { getCountries } from "@/features/profile/Country/country.service";
 import Spinner from "@/components/custom/Spinner";
@@ -233,7 +233,7 @@ export default function AccountPage() {
       let objectName = null;
       let imageProfileUrl = null;
       if (buyer.ImageFile) {
-        objectName = await uploadProfileImage(buyer.ImageFile);
+        objectName = await uploadImage(buyer.ImageFile);
         imageProfileUrl = await getProfileImage(objectName);
         payload.imageProfile = objectName;
       }

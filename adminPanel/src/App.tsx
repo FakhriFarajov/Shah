@@ -14,8 +14,8 @@ import OrdersPage from './pages/orders';
 import AdminProfilesPage from './pages/admins';
 import AuthProvider from './features/auth/contexts/AuthProvider';
 import WarehousesOrdersPage from './pages/warehousesOrders';
-import ProductsEditOrAddPage from './pages/productEditPage';
 import ProductDetailsPage from './pages/productDetails';
+import ProductsEditOrAddPage from './pages/productEditPage';
 import { Toaster } from 'sonner';
 function App() {
 
@@ -33,8 +33,7 @@ function App() {
             <Route path='/buyer-profile' element={<ProfileBuyer />} />
             <Route path='/sellers' element={<SellersPage />} />
             <Route path='/seller-profile' element={<ProfileSeller />} />
-            <Route path='/orders-buyer' element={<OrdersPage />} />//by id
-            <Route path='/orders-seller' element={<OrdersPage />} />//By id
+
             <Route path='/orders' element={<OrdersPage />} />//All of them with filter
             <Route path='/products' element={<ProductsPage />} />//by id
             <Route path='/productsEditOrAdd' element={<ProductsEditOrAddPage />} />

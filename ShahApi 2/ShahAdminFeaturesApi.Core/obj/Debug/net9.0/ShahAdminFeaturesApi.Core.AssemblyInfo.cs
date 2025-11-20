@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ShahAdminFeaturesApi.Core")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+930a22d22d7538a7b5fe0f2d52d47596c49595f9")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+00b19ec66b8b4500f80ddfe2674b40e94db7cad6")]
 [assembly: System.Reflection.AssemblyProductAttribute("ShahAdminFeaturesApi.Core")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ShahAdminFeaturesApi.Core")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

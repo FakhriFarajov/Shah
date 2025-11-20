@@ -20,7 +20,6 @@ namespace ShahAdminFeaturesApi.Presentation.Controllers
         [HttpGet("getAll")]
         public async Task<IActionResult> GetAllBuyersAsync([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 5)
             => Ok(await _buyerService.GetAllBuyersAsync(pageNumber, pageSize));
-        
             
         [HttpGet("getProfile/{buyerId}")]
         public async Task<IActionResult> GetBuyerProfileByIdAsync(string buyerId)

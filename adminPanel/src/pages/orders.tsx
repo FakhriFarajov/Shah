@@ -4,10 +4,11 @@ import { useState, useEffect } from "react";
 import { getOrderId, updateOrderItemStatus, getByUserId } from "@/features/profile/Order/Order.service";
 import { getAllPaginatedWarehouses } from "@/features/profile/Warehouses/Warehouses.service";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
-import { assignOrderItemsToWarehouse } from "@/features/profile/Products/Warehouses.service";
+import { assignOrderItemsToWarehouse } from "@/features/profile/Warehouses/Warehouses.service";
 import { toast } from "sonner";
 
 import { getProfileImage } from "@/shared/utils/imagePost";
+import { Button } from "@/components/ui/button";
 
 const OrderStatusText: Record<number, string> = {
   0: "Pending",
@@ -64,7 +65,7 @@ export default function OrdersPage() {
     if (pendingOrderItemId && selectedWarehouse && selectedOrderItemIds.length > 0) {
       try {
         await apiCallWithManualRefresh(() =>
-          assignOrderItemsToWarehouse(selectedWarehouse, pendingOrderId, selectedOrderItemIds)
+          assignOrderItemsToWarehouse(selectedWarehouse, pendingOrderId!, selectedOrderItemIds)
         );
         await apiCallWithManualRefresh(() =>
           updateOrderItemStatus(pendingOrderItemId, 3) // 3 = Delivered
@@ -87,7 +88,7 @@ export default function OrdersPage() {
     setLoading(true);
     try {
       const res = await apiCallWithManualRefresh(() => getByUserId(userIdFilter || "", page, pageSize));
-      const data = res?.data || [];
+      const data = Array.isArray(res?.data) ? res.data : [];
       console.log("Fetched orders data:", data);
       setTotalPages(res?.totalPages || 1);
       // Resolve images for each order's items
@@ -131,7 +132,7 @@ export default function OrdersPage() {
         // Pass page and pageSize to getOrders
         const res = await apiCallWithManualRefresh(() => getOrderId(page));
         console.log("API response:", res);
-        const data = res?.data || [];
+        const data = Array.isArray(res?.data) ? res.data : [];
         console.log("Fetched orders data:", data);
         setTotalPages(res?.totalPages || 1);
         // Resolve images for each order's items
@@ -171,22 +172,22 @@ export default function OrdersPage() {
   }, [page]);
 
   // Handler to change status
-	// Handler to change status
-	const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-		setNewStatus(Number(e.target.value));
-	};
+  // Handler to change status
+  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setNewStatus(Number(e.target.value));
+  };
 
 
-	const handleStatusSelect = (orderId:string, orderItemId: string, newStatus: number) => {
-		setStatusUpdates(prev => ({ ...prev, [orderItemId]: newStatus }));
-		if (newStatus === 3) { // 3 = Delivered
-			setPendingOrderItemId(orderItemId);
-			setPendingOrderId(orderId);
-			// Automatically select this item for warehouse assignment
-			setSelectedOrderItemIds(prev => prev.includes(orderItemId) ? prev : [...prev, orderItemId]);
-			setShowWarehouseModal(true);
-		}
-	};
+  const handleStatusSelect = (orderId: string, orderItemId: string, newStatus: number) => {
+    setStatusUpdates(prev => ({ ...prev, [orderItemId]: newStatus }));
+    if (newStatus === 3) { // 3 = Delivered
+      setPendingOrderItemId(orderItemId);
+      setPendingOrderId(orderId);
+      // Automatically select this item for warehouse assignment
+      setSelectedOrderItemIds(prev => prev.includes(orderItemId) ? prev : [...prev, orderItemId]);
+      setShowWarehouseModal(true);
+    }
+  };
 
   const handleStatusUpdate = async (itemId: string) => {
     const newStatus = statusUpdates[itemId];
@@ -216,23 +217,23 @@ export default function OrdersPage() {
           <div className="max-w-6xl mx-auto mb-8">
             <h1 className="text-4xl font-extrabold text-gray-900 mb-2 tracking-tight">Orders</h1>
             <p className="text-lg text-gray-500 mb-4">View and manage all orders here.</p>
-          <div className="mb-4 flex items-center gap-2">
-            <label htmlFor="userIdFilter" className="font-medium text-gray-700">Filter by User ID:</label>
-            <input
-              id="userIdFilter"
-              type="text"
-              value={userIdFilter}
-              className="border rounded px-3 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              placeholder="Enter User ID..."
-              onChange={e => setUserIdFilter(e.target.value)}
-            />
-            <button
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              onClick={() => fetchByUserId()}
-            >
-              Apply Filter
-            </button>
-          </div>
+            <div className="mb-4 flex items-center gap-2">
+              <label htmlFor="userIdFilter" className="font-medium text-gray-700">Filter by User ID:</label>
+              <input
+                id="userIdFilter"
+                type="text"
+                value={userIdFilter}
+                className="border rounded px-3 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                placeholder="Enter User ID..."
+                onChange={e => setUserIdFilter(e.target.value)}
+              />
+              <Button
+                variant={"outline"}
+                onClick={() => fetchByUserId()}
+              >
+                Search
+              </Button>
+            </div>
           </div>
           <div className="max-w-6xl mx-auto mt-4">
             <div className="flex flex-col gap-6">
@@ -329,24 +330,24 @@ export default function OrdersPage() {
                                   <span className="text-gray-400">No images</span>
                                 )}
                               </div>
-															<div className="flex items-center gap-2 mt-2">
-																<select
-																	value={statusUpdates[item.id] ?? item.status}
-																	onChange={e => handleStatusSelect(order.id, item.id, Number(e.target.value))}
-																	className="border rounded px-2 py-1"
-																>
-																	{OrderStatusOptions.map(opt => (
-																		<option key={opt.value} value={opt.value}>{opt.label}</option>
-																	))}
-																</select>
-																<button
-																	className="ml-2 px-3 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700"
-																	onClick={() => handleStatusUpdate(item.id)}
-																	disabled={statusUpdates[item.id] === undefined || statusUpdates[item.id] === item.status}
-																>
-																	Update
-																</button>
-															</div>
+                              <div className="flex items-center gap-2 mt-2">
+                                <select
+                                  value={statusUpdates[item.id] ?? item.status}
+                                  onChange={e => handleStatusSelect(order.id, item.id, Number(e.target.value))}
+                                  className="border rounded px-2 py-1"
+                                >
+                                  {OrderStatusOptions.map(opt => (
+                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                  ))}
+                                </select>
+                                <button
+                                  className="ml-2 px-3 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700"
+                                  onClick={() => handleStatusUpdate(item.id)}
+                                  disabled={statusUpdates[item.id] === undefined || statusUpdates[item.id] === item.status}
+                                >
+                                  Update
+                                </button>
+                              </div>
                             </div>
                           ))
                         ) : <span className="text-gray-400">No items</span>}
@@ -398,32 +399,32 @@ export default function OrdersPage() {
           )}
           {/* Modal for warehouse selection */}
           {/* Modal for warehouse selection */}
-					{/* Modal for warehouse selection */}
-					{showWarehouseModal && (
-						<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-							<div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md relative animate-fadeIn">
-								<button className="absolute top-3 right-3 text-gray-400 hover:text-indigo-600 text-2xl" onClick={() => setShowWarehouseModal(false)}>&times;</button>
-								<h2 className="text-2xl font-bold mb-4 text-indigo-700">Select Warehouse</h2>
-								<select
-									className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400 mb-4"
-									value={selectedWarehouse}
-									onChange={e => setSelectedWarehouse(e.target.value)}
-								>
-									<option value="">Select...</option>
-									{warehouses.map(warehouse => (
-										<option key={warehouse.id} value={warehouse.id}>{warehouse.address.city}, {warehouse.address.state}, {warehouse.address.street}, {warehouse.address.postalCode}</option>
-									))}
-								</select>
-								<button
-									className="w-full py-3 text-lg font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow mt-4 disabled:opacity-60"
-									onClick={handleSendToWarehouse}
-									disabled={!selectedWarehouse}
-								>
-									Send to Warehouse
-								</button>
-							</div>
-						</div>
-					)}
+          {/* Modal for warehouse selection */}
+          {showWarehouseModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+              <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md relative animate-fadeIn">
+                <button className="absolute top-3 right-3 text-gray-400 hover:text-indigo-600 text-2xl" onClick={() => setShowWarehouseModal(false)}>&times;</button>
+                <h2 className="text-2xl font-bold mb-4 text-indigo-700">Select Warehouse</h2>
+                <select
+                  className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400 mb-4"
+                  value={selectedWarehouse}
+                  onChange={e => setSelectedWarehouse(e.target.value)}
+                >
+                  <option value="">Select...</option>
+                  {warehouses.map(warehouse => (
+                    <option key={warehouse.id} value={warehouse.id}>{warehouse.address.city}, {warehouse.address.state}, {warehouse.address.street}, {warehouse.address.postalCode}</option>
+                  ))}
+                </select>
+                <button
+                  className="w-full py-3 text-lg font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow mt-4 disabled:opacity-60"
+                  onClick={handleSendToWarehouse}
+                  disabled={!selectedWarehouse}
+                >
+                  Send to Warehouse
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </>

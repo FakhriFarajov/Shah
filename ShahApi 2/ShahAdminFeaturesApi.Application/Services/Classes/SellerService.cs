@@ -53,8 +53,6 @@ public class SellerService : ISellerService
             .Select(sp => new
             {
                 sp.Id,
-                sp.UserId,
-                // seller info
                 Name = sp.User.Name,
                 Surname = sp.User.Surname,
                 Email = sp.User.Email,

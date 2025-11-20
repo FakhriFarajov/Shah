@@ -15,24 +15,8 @@ namespace ShahAdminFeaturesApi.Presentation.Controllers
         {
             _productService = productService;
         }
-
-        // Create product
-        [HttpPost("create")]
-        public async Task<IActionResult> Create([FromBody] AdminCreateProductRequestDTO request)
-        {
-            var result = await _productService.CreateProductAsync(request);
-            return StatusCode(result.StatusCode, result);
-        }
-
-        // Edit product
-        [HttpPut("edit/{id}")]
-        public async Task<IActionResult> Edit([FromRoute] string id, [FromBody] AdminEditProductRequestDTO request)
-        {
-            var result = await _productService.EditProductAsync(id, request);
-            return StatusCode(result.StatusCode, result);
-        }
-
-        // Delete product
+        
+        // Delete product???
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete([FromRoute] string id)
         {
@@ -47,44 +31,29 @@ namespace ShahAdminFeaturesApi.Presentation.Controllers
             var result = await _productService.GetProductDetailsByIdAsync(id);
             return Ok(result);
         }
-
         
-        // List products with optional seller filter and details
+        // List products with optional storeInfo filter and details
         [HttpGet("allPaginated")]
         public async Task<IActionResult> GetProducts(
-            [FromQuery] string? storeId = null,
+            [FromQuery] string? storeInfoId = null,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 20,
-            [FromQuery] string? sellerId = null,
             [FromQuery] bool detailed = false)
         {
-            var result = await _productService.GetAllPaginatedProductAsync(storeId ,page, pageSize, sellerId, detailed);
-            return Ok(result);
-        }
-
-        // List products by seller
-        [HttpGet("by-seller/{sellerId}")]
-        public async Task<IActionResult> GetProductsBySeller(
-            [FromQuery] string? storeId = null,
-            [FromQuery] string sellerId = null!,
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 20,
-            [FromQuery]  bool detailed = false)
-        {
-            var result = await _productService.GetAllPaginatedProductAsync(storeId,page, pageSize, sellerId, detailed);
+            var result = await _productService.GetAllPaginatedProductAsync(storeInfoId, page, pageSize, null, detailed);
             return Ok(result);
         }
 
         // Get edit payload
-        [HttpGet("{id}/edit-payload")]
-        public async Task<IActionResult> GetEditPayload([FromRoute] string id)
+        [HttpGet("getDetails/{id}")]
+        public async Task<IActionResult> GetDetails([FromRoute] string id)
         {
-            var result = await _productService.GetProductEditPayloadAsync(id);
+            var result = await _productService.GetDetails(id);
             return StatusCode(result.StatusCode, result);
         }
 
         // Sync product (overwrite variants to match request)
-        [HttpPut("{id}/sync")]
+        [HttpPut("sync/{id}")]
         public async Task<IActionResult> Sync([FromRoute] string id, [FromBody] AdminSyncProductRequestDTO request)
         {
             var result = await _productService.SyncProductAsync(id, request);
@@ -92,7 +61,7 @@ namespace ShahAdminFeaturesApi.Presentation.Controllers
         }
 
         // Statistics
-        [HttpGet("{id}/statistics")]
+        [HttpGet("stats/{id}")]
         public async Task<IActionResult> GetStatistics([FromRoute] string id, [FromQuery] string? productVariantId = null)
         {
             var result = await _productService.GetProductStatisticsAsync(id, productVariantId);

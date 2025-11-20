@@ -17,19 +17,14 @@ namespace ShahAdminFeaturesApi.Presentation.Controllers
             _adminService = adminService;
         }
         
-        [HttpGet("getIdByEmail/{email}")]
-        public async Task<IActionResult> GetIdByEmailAsync(string email)
-            => Ok(await _adminService.GetIdByEmailAsync(email));
         
         [HttpGet("getAllAdminsPaginated")]
         public async Task<IActionResult> GetAllAdminsAsync([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 5)
             => Ok(await _adminService.GetAllAdminsAsync(pageNumber, pageSize));
-
         
         [HttpGet("getProfile/{adminId}")]
         public async Task<IActionResult> GetAdminProfileByIdAsync(string adminId)
             => Ok(await _adminService.GetAdminByIdAsync(adminId));
-        
         
         [HttpPost("add")]
         public async Task<IActionResult> AddAdminAsync([FromBody] AddAdminRequestDTO dto)

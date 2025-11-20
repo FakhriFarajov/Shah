@@ -1,10 +1,6 @@
 import { authHttp } from "./httpClient";
-import type {AdminProfileResponseDTO, AddAdminProfileRequestDTO, EditAdminRequestDTO, PaginatedResult } from "@/features/profile/DTOs/admin.interfaces";
+import type {AdminProfileResponseDTO, AddAdminProfileRequestDTO, EditAdminRequestDTO } from "@/features/profile/DTOs/admin.interfaces";
 
-
-
-
-//Later needed to be divided into small files 
 // Admin profile
 export async function getAdminProfile(id: string): Promise<AdminProfileResponseDTO> {
   console.log("Fetching profile for ID:", id);
@@ -13,8 +9,8 @@ export async function getAdminProfile(id: string): Promise<AdminProfileResponseD
   return data;
 }
 
-export async function getPaginatedAdminProfiles(pageNumber: number, pageSize: number = 5): Promise<PaginatedResult<AdminProfileResponseDTO>> {
-  const response = await authHttp.get<PaginatedResult<AdminProfileResponseDTO>>(`/getAllAdminsPaginated`, {
+export async function getPaginatedAdminProfiles(pageNumber: number, pageSize: number = 5): Promise<any> {
+  const response = await authHttp.get<any>(`/getAllAdminsPaginated`, {
     params: { pageNumber, pageSize }
   });
   return response;

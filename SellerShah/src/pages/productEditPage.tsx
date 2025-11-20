@@ -5,7 +5,7 @@ import { getAllCategoriesWithAttributesAndValuesAsync } from "@/features/profile
 import { getSellerProfile } from "@/features/profile/ProfileServices/profile.service";
 import { getUserIdFromToken } from "@/shared/getUserIdFromToken";
 import ImageCropper from "@/components/ui/image-crop";
-import { uploadProfileImage, getProfileImage } from "@/shared/utils/imagePost";
+import { uploadImage, getImage } from "@/shared/utils/imagePost";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import type { SyncCategoryItemDto } from "@/features/profile/DTOs/seller.interfaces";
@@ -14,7 +14,7 @@ import Navbar from "@/components/custom/Navbar/navbar";
 import { AppSidebar } from "@/components/custom/sidebar";
 import Footer from "../components/custom/footer";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
-import { getProductEditPayloadById } from "@/features/profile/Product/Product.service";
+import { getDetails} from "@/features/profile/Product/Product.service";
 import { addProduct } from "@/features/profile/Product/Product.service";
 import { syncProduct } from "@/features/profile/Product/Product.service";
 import type { ProductSyncRequest } from "@/types/productCreate.interfaces";
@@ -55,7 +55,7 @@ export default function ProductsEditOrAddPage() {
             // If editing, fetch product data and map fields
             if (isEdit && productId) {
                 try {
-                    const productResponse = await apiCallWithManualRefresh(() => getProductEditPayloadById(productId));
+                    const productResponse = await apiCallWithManualRefresh(() => getDetails(productId));
                     if (productResponse.data) {
                         const prodData = productResponse.data;
                         setProduct({
@@ -81,7 +81,7 @@ export default function ProductsEditOrAddPage() {
                                     const objectName = image.objectName || image.imageUrl;
                                     if (objectName) {
                                         try {
-                                            const url = await getProfileImage(objectName);
+                                            const url = await getImage(objectName);
                                             return { ...image, imageUrl: url };
                                         } catch (e) {
                                             return image;
@@ -283,31 +283,24 @@ export default function ProductsEditOrAddPage() {
                 // Check required fields
                 if (!variant.title || typeof variant.title !== "string" || variant.title.trim() === "") {
                     toast.error(`Please enter a title for variant ${variantIdx + 1}.`);
-                    return;
                 }
                 if (!variant.description || typeof variant.description !== "string" || variant.description.trim() === "") {
                     toast.error(`Please enter a description for variant ${variantIdx + 1}.`);
-                    return;
                 }
                 if (!variant.price || isNaN(Number(variant.price))) {
                     toast.error(`Please enter a valid price for variant ${variantIdx + 1}.`);
-                    return;
                 }
                 if (variant.discountPrice && (isNaN(Number(variant.discountPrice)) || Number(variant.discountPrice) > Number(variant.price))) {
                     toast.error(`Discount price for variant ${variantIdx + 1} must be a valid number and not higher than the price.`);
-                    return;
                 }
                 if (!variant.stock || isNaN(Number(variant.stock))) {
                     toast.error(`Please enter a valid stock for variant ${variantIdx + 1}.`);
-                    return;
                 }
                 if (!variant.weight || isNaN(Number(variant.weight))) {
                     toast.error(`Please enter a valid weight for variant ${variantIdx + 1}.`);
-                    return;
                 }
                 if (!variant.images || variant.images.length === 0) {
                     toast.error(`Please add at least one image for variant ${variantIdx + 1}.`);
-                    return;
                 }
                 for (const attr of allAttrs) {
                     const found = Array.isArray(variant.attributeValues)
@@ -331,7 +324,7 @@ export default function ProductsEditOrAddPage() {
                             let isMain = v.mainImageIdx === idx;
                             if (img instanceof File) {
                                 try {
-                                    const objectName = await uploadProfileImage(img);
+                                    const objectName = await uploadImage(img);
                                     return { objectName, isMain };
                                 } catch (err) {
                                     toast.error('Image upload failed');
@@ -443,9 +436,6 @@ export default function ProductsEditOrAddPage() {
             }
         } catch (error) {
             toast.error('Failed to submit product');
-        }
-        finally {
-            navigator('/products');
         }
     };
     return (

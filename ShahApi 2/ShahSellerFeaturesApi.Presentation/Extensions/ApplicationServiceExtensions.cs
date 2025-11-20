@@ -31,10 +31,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<CategoryService>();
         services.AddScoped<TaxService>();
         services.AddScoped<ImageService>();
-        // New: seller orders
         services.AddScoped<ISellerOrderService, SellerOrderService>();
-        // New: seller reviews
-        services.AddScoped<ISellerReviewService, SellerReviewService>();
         services.AddScoped<IWarehouseService, WarehouseService>();
         
         

@@ -6,15 +6,13 @@ export async function getOrders(page: number, pageSize: number) {
     return result;
 }
 
-// Get order by ID
 export async function getOrderById(id: string) {
-    var result = await authHttp.get(`/byId/${id}`);
+    var result = await authHttp.get(`/getById/${id}`);
     return result;
 }
 
-// Update order item status (expects { Status: ... } DTO)
 export async function updateOrderItemStatus(id: string, status: number) {
-    var result = await authHttp.put(`/items/${id}/status`, { Status: status });
+    var result = await authHttp.put(`/updateStatus/${id}`, { Status: status });
     console.log("Update order item status result:", result);
     return result;
 }

@@ -29,7 +29,7 @@ namespace ShahSellerFeaturesApi.Presentation.Controllers
             return Ok(result);
         }
         // New: Get orders for a warehouse (paginated)
-        [HttpGet("{warehouseId}/orders")]
+        [HttpGet("getOrders/{warehouseId}")]
         public async Task<IActionResult> GetWarehouseOrders(string warehouseId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 5)
         {
             var result = await _warehouseService.GetOrdersForWarehouseAsync(warehouseId, pageNumber, pageSize);
@@ -44,14 +44,7 @@ namespace ShahSellerFeaturesApi.Presentation.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
-        [HttpPost("{warehouseId}/assign-order/{orderId}")]
-        public async Task<IActionResult> AssignOrderToWarehouse(string warehouseId, string orderId)
-        {
-            var result = await _warehouseService.AssignOrderItemsToWarehouseAsync(warehouseId, orderId);
-            return StatusCode(result.StatusCode, result);
-        }
-
-        [HttpPost("{warehouseId}/assign-order-items/{orderId}")]
+        [HttpPost("{warehouseId}/assignOrderItems/{orderId}")]
         public async Task<IActionResult> AssignSpecificOrderItems(string warehouseId, string orderId, [FromBody] AssignOrderItemsRequest request)
         {
             var result = await _warehouseService.AssignSpecificOrderItemsToWarehouseAsync(warehouseId, orderId, request.OrderItemIds);

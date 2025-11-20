@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
 import { GetAllPaginatedProductAsync } from "@/features/profile/Product/Product.service";
 import { getProfileImage } from "@/shared/utils/imagePost";
-import { getProductEditPayloadById } from "@/features/profile/Product/Product.service";
+import { getDetails } from "@/features/profile/Product/Product.service";
+import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 interface Product {
   id: string;
@@ -21,8 +22,10 @@ interface Product {
 
 
 export default function ProductsPage() {
+  const [searchParams] = useSearchParams();
+  const storeId = searchParams.get("storeInfoId");
+  console.log("storeId from params:", storeId);
   const navigate = useNavigate();
-
   const [products, setProducts] = useState<Product[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(1);
@@ -30,12 +33,16 @@ export default function ProductsPage() {
   const pageSize = 5;
   const [productsToSearchId, setProductsToSearchId] = useState('');
   const [loading, setLoading] = useState(false);
-  // Modal state
 
   const fetchProducts = async (newPage: number = page) => {
     setLoading(true);
     try {
-      const result = await apiCallWithManualRefresh(() => GetAllPaginatedProductAsync(newPage, pageSize));
+      let result;
+      if (storeId && storeId !== "null" && storeId !== "") {
+        result = await apiCallWithManualRefresh(() => GetAllPaginatedProductAsync(storeId, newPage, pageSize));
+      } else {
+        result = await apiCallWithManualRefresh(() => GetAllPaginatedProductAsync(null, newPage, pageSize));
+      }
       console.log("Fetched products:", result);
 
       const apiItems = Array.isArray(result?.data) ? result.data : [];
@@ -44,7 +51,7 @@ export default function ProductsPage() {
       const needsMapping = apiItems.length > 0 && !(apiItems[0] as any).productTitle;
 
       if (needsMapping) {
-  const mapped: Product[] = apiItems.map((it: any): Product => {
+        const mapped: Product[] = apiItems.map((it: any): Product => {
           const price = typeof it.priceMax === 'number' ? it.priceMax : (it.priceMin ?? 0);
 
           // find main image from variants -> images
@@ -75,7 +82,7 @@ export default function ProductsPage() {
           };
         });
 
-  const productsWithImages = await Promise.all(mapped.map(async (p: Product) => {
+        const productsWithImages = await Promise.all(mapped.map(async (p: Product) => {
           if (p.mainImage) {
             try {
               const url = await getProfileImage(p.mainImage);
@@ -89,7 +96,7 @@ export default function ProductsPage() {
         setProducts(productsWithImages);
       } else {
         // Items already look like Product UI objects; still resolve images if needed
-  const productsWithImages = await Promise.all(apiItems.map(async (product: any): Promise<Product> => {
+        const productsWithImages = await Promise.all(apiItems.map(async (product: any): Promise<Product> => {
           if (product.mainImage) {
             try {
               const url = await getProfileImage(product.mainImage);
@@ -103,9 +110,9 @@ export default function ProductsPage() {
         setProducts(productsWithImages);
       }
 
-      setTotalItems(result.totalItems ?? result.totalCount ?? 0);
-      setTotalPages(result.totalPages ?? 1);
-      setPage(result.page ?? newPage);
+      setTotalItems(result ? (result.totalItems ?? result.totalCount ?? 0) : 0);
+      setTotalPages(result ? (result.totalPages ?? 1) : 1);
+      setPage(result ? (result.page ?? newPage) : newPage);
     } catch (error) {
       console.error('fetchProducts error', error);
     } finally {
@@ -123,7 +130,7 @@ export default function ProductsPage() {
     }
     setLoading(true);
     try {
-      const result = await apiCallWithManualRefresh(() => getProductEditPayloadById(productsToSearchId));
+      const result = await apiCallWithManualRefresh(() => getDetails(productsToSearchId));
       if (result.isSuccess) {
         navigate(`/productsEditOrAdd?productId=${productsToSearchId}`);
       }
@@ -143,21 +150,20 @@ export default function ProductsPage() {
           <div className="max-w-6xl mx-auto mb-8">
             <h1 className="text-4xl font-extrabold text-gray-900 mb-2 tracking-tight">Products</h1>
             <p className="text-lg text-gray-500 mb-4">View and manage all products here.</p>
-            <div className="mb-4 flex items-center gap-2">
-              <label htmlFor="filterId" className="font-medium text-gray-700">Filter by Product ID:</label>
-              <input
-                id="filterId"
-                type="text"
-                value={productsToSearchId}
-                className="border rounded px-3 py-2 w-32 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                placeholder="Enter ID"
-                onChange={e => setProductsToSearchId(e.target.value)}
-              />
-              <Button onClick={handleSearch} variant="outline">Search</Button>
+            <div className="mb-4 flex items-center gap-2 justify-between">
+              <div className="flex-1">
+                <label htmlFor="filterId" className="font-medium text-gray-700">Filter by Product ID:</label>
+                <input
+                  id="filterId"
+                  type="text"
+                  value={productsToSearchId}
+                  className="border rounded px-3 py-2 w-32 m-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  placeholder="Enter ID"
+                  onChange={e => setProductsToSearchId(e.target.value)}
+                />
+                <Button onClick={handleSearch} variant="outline">Search</Button>
+              </div>
             </div>
-            <Button>
-              <span onClick={() => navigate('/productsEditOrAdd')} className="cursor-pointer">Add New Product</span>
-            </Button>
           </div>
           <div className="max-w-6xl mx-auto mt-4">
             <div className="flex flex-col gap-6">
@@ -227,7 +233,7 @@ export default function ProductsPage() {
               >
                 Previous
               </button>
-              <span className="text-gray-700">Page {page} of {totalPages}</span>
+              <span className="text-gray-700">Page {page} of {totalPages} ({totalItems} items)</span>
               <button
                 className="px-4 py-2 rounded-xl bg-indigo-800 text-white hover:bg-indigo-300 disabled:opacity-50"
                 onClick={() => {

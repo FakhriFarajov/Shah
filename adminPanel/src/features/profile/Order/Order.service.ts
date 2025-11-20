@@ -1,7 +1,7 @@
 import { authHttp } from "@/features/profile/Order/httpClient";
 
 // Get order by ID
-export async function getOrderId(page, userId: string | null = null) {
+export async function getOrderId(page: number, userId: string | null = null) {
     const path = userId ? `/getAll/?page=${page}&pageSize=5&userId=${userId}` : `/getAll?page=${page}&pageSize=5`;
     var result = await authHttp.get(path);
     console.log("API response:", result);

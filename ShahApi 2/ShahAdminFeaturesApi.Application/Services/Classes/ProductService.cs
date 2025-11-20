@@ -43,6 +43,7 @@ public class ProductService : IProductService
                 v.Description,
                 v.Stock,
                 v.Price,
+                v.DiscountPrice,
                 Images = v.Images.Select(img => img.ImageUrl).ToList()
             }),
             Reviews = product.ProductVariants
@@ -111,6 +112,7 @@ public class ProductService : IProductService
                 RepresentativeVariantId = p.ProductVariants.Select(v => v.Id).FirstOrDefault(),
                 StoreName = p.StoreInfo.StoreName,
                 Price = p.ProductVariants.Select(v => (decimal?)v.Price).Min() ?? 0m,
+                DiscountPrice = p.ProductVariants.Select(v => (decimal?)v.DiscountPrice).Min() ?? 0m,
                 Category = p.Category,
                 ReviewsCount = p.ProductVariants.Sum(v => v.Reviews.Count)
             })
@@ -134,6 +136,7 @@ public class ProductService : IProductService
                 MainImage = (p.RepresentativeVariantId != null && mainLookup.TryGetValue(p.RepresentativeVariantId, out var url)) ? url : null,
                 p.StoreName,
                 p.Price,
+                p.DiscountPrice,
                 CategoryName = p.Category.CategoryName,
                 CategoryChain = CategoryUtils.GetCategoryChain(p.Category),
                 p.ReviewsCount
@@ -143,230 +146,7 @@ public class ProductService : IProductService
 
         return PaginatedResult<object>.Success(items, total, page, pageSize);
     }
-
-    // Admin: Create product
-    public async Task<TypedResult<object>> CreateProductAsync(AdminCreateProductRequestDTO request)
-    {
-        var categoryExists = await _context.Categories.AnyAsync(c => c.Id == request.CategoryId);
-        if (!categoryExists) return TypedResult<object>.Error("Category not found", 404);
-        var storeExists = await _context.StoreInfos.AnyAsync(s => s.Id == request.StoreInfoId);
-        if (!storeExists) return TypedResult<object>.Error("Store not found", 404);
-        if (request.Variants == null || request.Variants.Count == 0)
-            return TypedResult<object>.Error("At least one variant is required", 400);
-
-        await using var tx = await _context.Database.BeginTransactionAsync();
-        try
-        {
-            var product = new Product
-            {
-                CategoryId = request.CategoryId,
-                StoreInfoId = request.StoreInfoId
-            };
-
-            foreach (var v in request.Variants)
-            {
-                var variant = new ProductVariant
-                {
-                    ProductId = product.Id,
-                    Title = v.Title,
-                    Description = v.Description,
-                    WeightInGrams = v.WeightInGrams,
-                    Stock = v.Stock,
-                    Price = v.Price,
-                    DiscountPrice = v.DiscountPrice ?? 0m // Map DiscountPrice, default to 0 if null
-                };
-
-                if (v.Images != null && v.Images.Count > 0)
-                {
-                    foreach (var img in v.Images)
-                    {
-                        if (!string.IsNullOrWhiteSpace(img.ImageUrl))
-                        {
-                            variant.Images.Add(new ProductVariantImage
-                            {
-                                ImageUrl = img.ImageUrl,
-                                IsMain = img.IsMain
-                            });
-                        }
-                    }
-                    var mains = variant.Images.Where(i => i.IsMain).ToList();
-                    if (mains.Count > 1)
-                    {
-                        foreach (var extra in mains.Skip(1)) extra.IsMain = false;
-                    }
-                    else if (mains.Count == 0 && variant.Images.Count > 0)
-                    {
-                        variant.Images[0].IsMain = true;
-                    }
-                }
-
-                if (v.AttributeValueIds != null && v.AttributeValueIds.Count > 0)
-                {
-                    var existingAttrValueIds = await _context.ProductAttributeValues
-                        .AsNoTracking()
-                        .Where(pav => v.AttributeValueIds.Contains(pav.Id))
-                        .Select(pav => pav.Id)
-                        .ToListAsync();
-
-                    foreach (var attrId in existingAttrValueIds)
-                    {
-                        variant.ProductVariantAttributeValues.Add(new ProductVariantAttributeValue
-                        {
-                            ProductAttributeValueId = attrId
-                        });
-                    }
-                }
-
-                product.ProductVariants.Add(variant);
-            }
-
-            _context.Products.Add(product);
-            await _context.SaveChangesAsync();
-            await tx.CommitAsync();
-
-            var payload = new
-            {
-                product.Id,
-                product.CategoryId,
-                product.StoreInfoId,
-                Variants = product.ProductVariants.Select(v => new
-                {
-                    v.Id,
-                    v.Title,
-                    v.Description,
-                    v.WeightInGrams,
-                    v.Stock,
-                    v.Price,
-                    Images = v.Images.Select(img => new { img.Id, img.ImageUrl, img.IsMain }).ToList(),
-                    AttributeValueIds = v.ProductVariantAttributeValues.Select(x => x.ProductAttributeValueId).ToList()
-                }).ToList()
-            };
-
-            return TypedResult<object>.Success(payload, "Product created successfully");
-        }
-        catch (Exception ex)
-        {
-            await tx.RollbackAsync();
-            return TypedResult<object>.Error($"Failed to add product: {ex.Message}", 500);
-        }
-    }
-
-    // Admin: Edit product (no seller checks)
-    public async Task<TypedResult<object>> EditProductAsync(string productId, AdminEditProductRequestDTO request)
-    {
-        var product = await _context.Products
-            .Include(p => p.ProductVariants).ThenInclude(v => v.Images)
-            .Include(p => p.ProductVariants).ThenInclude(v => v.ProductVariantAttributeValues)
-            .Include(p => p.ProductVariants).ThenInclude(v => v.OrderItems)
-            .FirstOrDefaultAsync(p => p.Id == productId);
-        if (product == null) return TypedResult<object>.Error("Product not found", 404);
-
-        if (!string.IsNullOrWhiteSpace(request.CategoryId) && request.CategoryId != product.CategoryId)
-        {
-            var catExists = await _context.Categories.AnyAsync(c => c.Id == request.CategoryId);
-            if (!catExists) return TypedResult<object>.Error("Category not found", 404);
-            product.CategoryId = request.CategoryId!;
-        }
-
-        var existingVariants = product.ProductVariants.ToDictionary(v => v.Id, v => v);
-        var incomingIds = new HashSet<string>(request.Variants.Select(v => v.Id));
-
-        var toDelete = existingVariants.Keys.Where(id => !incomingIds.Contains(id)).ToList();
-        foreach (var delId in toDelete)
-        {
-            var v = existingVariants[delId];
-            if (v.OrderItems.Any())
-                return TypedResult<object>.Error($"Cannot delete variant {delId} with existing orders", 400);
-            if (v.ProductVariantAttributeValues.Any()) _context.ProductVariantAttributeValues.RemoveRange(v.ProductVariantAttributeValues);
-            if (v.Images.Any()) _context.ProductVariantImages.RemoveRange(v.Images);
-            _context.ProductVariants.Remove(v);
-        }
-
-        foreach (var vReq in request.Variants)
-        {
-            if (!existingVariants.TryGetValue(vReq.Id, out var variant))
-                return TypedResult<object>.Error($"Variant not found: {vReq.Id}", 404);
-
-            variant.Title = string.IsNullOrWhiteSpace(vReq.Title) ? variant.Title : vReq.Title;
-            variant.Description = string.IsNullOrWhiteSpace(vReq.Description) ? variant.Description : vReq.Description;
-            if (vReq.WeightInGrams.HasValue) variant.WeightInGrams = vReq.WeightInGrams.Value;
-            if (vReq.Stock.HasValue) variant.Stock = vReq.Stock.Value;
-            if (vReq.Price.HasValue) variant.Price = vReq.Price.Value;
-            if (vReq.DiscountPrice.HasValue) variant.DiscountPrice = vReq.DiscountPrice.Value; // Map DiscountPrice
-
-            if (vReq.Images != null)
-            {
-                var requestedKeep = vReq.Images.Where(i => !i.Delete).ToList();
-
-                var keepIds = new HashSet<string>(requestedKeep.Where(i => !string.IsNullOrWhiteSpace(i.Id)).Select(i => i.Id!));
-                var imgsToDelete = variant.Images.Where(i => !keepIds.Contains(i.Id)).ToList();
-                if (imgsToDelete.Count > 0) _context.ProductVariantImages.RemoveRange(imgsToDelete);
-
-                var existingImages = variant.Images.ToDictionary(i => i.Id, i => i);
-                var matchedImages = new List<ProductVariantImage>();
-                foreach (var imgReq in requestedKeep)
-                {
-                    if (!string.IsNullOrWhiteSpace(imgReq.Id) && existingImages.TryGetValue(imgReq.Id!, out var img))
-                    {
-                        if (!string.IsNullOrWhiteSpace(imgReq.ImageUrl)) img.ImageUrl = imgReq.ImageUrl!;
-                        matchedImages.Add(img);
-                    }
-                    else
-                    {
-                        if (string.IsNullOrWhiteSpace(imgReq.ImageUrl)) continue;
-                        var created = new ProductVariantImage { ImageUrl = imgReq.ImageUrl!, IsMain = false };
-                        variant.Images.Add(created);
-                        matchedImages.Add(created);
-                    }
-                }
-                if (matchedImages.Count > 0)
-                {
-                    var reqMainIndex = requestedKeep.FindIndex(x => x.IsMain);
-                    if (reqMainIndex < 0) reqMainIndex = 0;
-                    for (int i = 0; i < matchedImages.Count; i++) matchedImages[i].IsMain = (i == reqMainIndex);
-                }
-            }
-
-            if (vReq.AttributeValueIds != null)
-            {
-                var currentAttrIds = variant.ProductVariantAttributeValues.Select(x => x.ProductAttributeValueId).ToHashSet();
-                var requestedAttrIds = vReq.AttributeValueIds.ToHashSet();
-                var attrToRemove = currentAttrIds.Except(requestedAttrIds).ToList();
-                var attrToAdd = requestedAttrIds.Except(currentAttrIds).ToList();
-                if (attrToRemove.Count > 0)
-                {
-                    var links = variant.ProductVariantAttributeValues.Where(x => attrToRemove.Contains(x.ProductAttributeValueId)).ToList();
-                    _context.ProductVariantAttributeValues.RemoveRange(links);
-                }
-                foreach (var addId in attrToAdd)
-                {
-                    variant.ProductVariantAttributeValues.Add(new ProductVariantAttributeValue { ProductAttributeValueId = addId });
-                }
-            }
-        }
-
-        await _context.SaveChangesAsync();
-
-        var updated = new
-        {
-            product.Id,
-            product.CategoryId,
-            product.StoreInfoId,
-            Variants = product.ProductVariants.Select(v => new
-            {
-                v.Id,
-                v.Title,
-                v.Description,
-                v.WeightInGrams,
-                v.Stock,
-                v.Price,
-                Images = v.Images.Select(img => new { img.Id, img.ImageUrl, img.IsMain }).ToList(),
-                AttributeValueIds = v.ProductVariantAttributeValues.Select(x => x.ProductAttributeValueId).ToList()
-            }).ToList()
-        };
-        return TypedResult<object>.Success(updated, "Product updated successfully");
-    }
-
+    
     // Admin: Delete
     public async Task<Result> DeleteProductAsync(string productId)
     {
@@ -408,7 +188,7 @@ public class ProductService : IProductService
     }
 
     // Admin: Edit payload
-    public async Task<TypedResult<object>> GetProductEditPayloadAsync(string productId)
+    public async Task<TypedResult<object>> GetDetails(string productId)
     {
         var product = await _context.Products
             .Include(p => p.ProductVariants).ThenInclude(v => v.Images)
@@ -429,6 +209,7 @@ public class ProductService : IProductService
                 v.WeightInGrams,
                 v.Stock,
                 v.Price,
+                v.DiscountPrice,
                 Images = v.Images.Select(img => new { img.Id, img.ImageUrl, img.IsMain }).ToList(),
                 AttributeValueIds = v.ProductVariantAttributeValues.Select(x => x.ProductAttributeValueId).ToList()
             }).ToList()

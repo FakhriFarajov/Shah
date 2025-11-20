@@ -9,12 +9,9 @@ public interface IProductService
     
     Task<PaginatedResult<object>> GetAllPaginatedProductAsync(string? storeId= null,int page = 1, int pageSize = 5, string? categoryId = null, bool includeChildCategories = true);
     // Admin CRUD and sync
-    Task<TypedResult<object>> CreateProductAsync(AdminCreateProductRequestDTO request);
-    Task<TypedResult<object>> EditProductAsync(string productId, AdminEditProductRequestDTO request);
     Task<Result> DeleteProductAsync(string productId);
-    Task<TypedResult<object>> GetProductEditPayloadAsync(string productId);
+    Task<TypedResult<object>> GetDetails(string productId);
     Task<TypedResult<object>> SyncProductAsync(string productId, AdminSyncProductRequestDTO request);
-
     // Statistics
     Task<TypedResult<object>> GetProductStatisticsAsync(string productId, string? productVariantId = null);
 }

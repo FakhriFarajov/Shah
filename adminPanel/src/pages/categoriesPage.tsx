@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import Navbar from "../components/custom/Navbar/navbar";
 import { AppSidebar } from "../components/custom/sidebar";
 import { getAllCategoriesWithAttributesAndValuesAsync, getCategoriesTree, syncCategories, deleteCategoryAsync } from "@/features/profile/Category/category.service";
-import type { SyncCategoryItemDto, SyncAttributeItemDto, SyncAttributeValueItemDto } from "@/features/profile/DTOs/admin.interfaces";
+import type { SyncCategoryItemDto, SyncAttributeItemDto } from "@/features/profile/DTOs/admin.interfaces";
 import { toast } from "sonner";
 
 function buildTree(categories: SyncCategoryItemDto[]): any[] {
@@ -50,7 +50,6 @@ export default function CategoriesPage() {
             console.log("Categories fetched in page:", categories);
             setCategories(categories);
         }
-
 
         fetchCategories();
     }, []);
@@ -131,17 +130,7 @@ export default function CategoriesPage() {
         }
     }
     function removeAttrValue(idx: number) {
-        const attr = attributes[idx];
-        const val = attr.values[idx];
-        const newVals = attr.values.filter((_, i) => i !== idx);
-        const newAttrs = [...attributes];
-        newAttrs[idx] = { ...attr, values: newVals };
-        setAttributes(newAttrs);
-        if (!newValues.find(v => v.id === val.id)) {
-            setDeletedValueIds([...deletedValueIds, val.id]);
-        } else {
-            setNewValues(newValues.filter(v => v.id !== val.id));
-        }
+        setAttrValues(attrValues.filter((_, i) => i !== idx));
     }
     function removeValue(attrIdx: number, valIdx: number) {
         const attr = attributes[attrIdx];
@@ -157,7 +146,6 @@ export default function CategoriesPage() {
         }
     }
 
-    const tree = buildTree(categories);
 
     function renderTree(nodes: SyncCategoryItemDto[], depth = 0): JSX.Element[] {
         return nodes.map((node) => (
@@ -320,20 +308,20 @@ export default function CategoriesPage() {
                                                     {/* Add new value input for each attribute, tracked locally */}
                                                     <span className="flex items-center gap-2 mt-1">
                                                         <Input
-                                                            value={attr.newValue || ""}
+                                                            value={(attr as any).newValue || ""}
                                                             onChange={e => {
                                                                 const newAttrs = [...attributes];
-                                                                newAttrs[attrIdx] = { ...attr, newValue: e.target.value };
+                                                                newAttrs[attrIdx] = ({ ...(attr as any), newValue: e.target.value } as any);
                                                                 setAttributes(newAttrs);
                                                             }}
                                                             className="w-24 px-2 text-xs bg-indigo-100 rounded"
                                                             placeholder="New value"
                                                         />
                                                         <Button type="button" variant="outline" onClick={() => {
-                                                            if (!attr.newValue || !attr.newValue.trim()) return;
+                                                            if (!(attr as any).newValue || !(attr as any).newValue.trim()) return;
                                                             const newAttrs = [...attributes];
-                                                            const newVals = [...(attr.values || []), { id: generateGuid(), value: attr.newValue.trim() }];
-                                                            newAttrs[attrIdx] = { ...attr, values: newVals, newValue: "" };
+                                                            const newVals = [...(attr.values || []), { id: generateGuid(), value: (attr as any).newValue.trim() }];
+                                                            newAttrs[attrIdx] = ({ ...(attr as any), values: newVals, newValue: "" } as any);
                                                             setAttributes(newAttrs);
                                                         }}>+</Button>
                                                     </span>

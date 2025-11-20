@@ -8,6 +8,7 @@ using ShahBuyerFeaturesApi.Core.DTOs.Request;
 namespace ShahBuyerAuthApi.Presentation.Controllers;
 
 [ApiController]         //We need to send a Bearer token in the header to access this endpoint
+[Authorize(Policy = "BuyerPolicy")]
 
 [Route("api/[controller]")]
 public class BuyerController : ControllerBase

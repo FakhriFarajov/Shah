@@ -24,7 +24,7 @@ public class CategoryController : ControllerBase
         return BadRequest(result.Message);
     }
     
-    [HttpGet("all-with-attributes")]
+    [HttpGet("allWithAttributesAndValues")]
     public async Task<IActionResult> GetAllWithAttributesAndValues()
     {
         var result = await _categoryService.GetAllCategoriesWithAttributesAndValuesAsync();

@@ -15,14 +15,14 @@ export async function GetWarehouseByIdAsync(warehouseId: string): Promise<Wareho
 }
 
 export async function getAllPaginatedOrders(warehouseId: string, pageNumber: number, pageSize: number = 5): Promise<PaginatedResult<Order>> {
-  const response = await authHttp.get<PaginatedResult<Order>>(`/${warehouseId}/orders`, {
+  const response = await authHttp.get<PaginatedResult<Order>>(`/getOrders/${warehouseId}`, {
     params: { pageNumber, pageSize }
   });
   return response;
 }
 
 export async function assignOrderItemsToWarehouse(warehouseId: string, orderId: string, orderItemIds: string[]): Promise<void> {
-  await authHttp.post(`/${warehouseId}/assign-order-items/${orderId}`, {
+  await authHttp.post(`/${warehouseId}/assignOrderItems/${orderId}`, {
     OrderItemIds: orderItemIds
   });
 }

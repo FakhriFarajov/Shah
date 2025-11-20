@@ -12,12 +12,12 @@ import { MdAccountCircle } from "react-icons/md"
 import type { RegisterRequest } from "@/features/account/DTOs/account.interfaces"
 import { register } from "@/features/account/services/profile.service"
 import { useNavigate } from "react-router-dom"
-import { uploadProfileImage } from "@/shared/utils/imagePost"; // Use your actual image upload function
+import { uploadImage } from "@/shared/utils/imagePost"; // Use your actual image upload function
 import { getCountries } from "@/features/profile/Country/country.service";
 import { getTaxes } from "@/features/profile/Tax/tax.service";
 import { getCategories } from "@/features/profile/Category/category.service";
 import { AuthContext } from "@/features/auth/contexts/AuthProvider";
-import Spinner from "@/components/custom/loader";
+import Spinner from "@/components/custom/spinner";
 
 // Category and Tax ID Type lists (same as profile)
 export default function RegForm({
@@ -65,7 +65,7 @@ export default function RegForm({
     setLoading(true);
     async function fetchCountries() {
       try {
-        const result = await getCountries();
+        const result:any = await getCountries();
         setCountries(result.data || []); // Always set as array
       } catch (error) {
         setCountries([]); // fallback to empty array on error
@@ -73,17 +73,17 @@ export default function RegForm({
     }
     async function fetchTaxes() {
       try {
-        const result = await getTaxes();
+        const result:any = await getTaxes();
         setTaxes(result.data || []); // Always set as array
       } catch (error) {
-        setCountries([]); // fallback to empty array on error
+        setTaxes([]); // fallback to empty array on error
       }
     }
 
     async function fetchCategories() {
       try {
-        const result = await getCategories();
-        setCategories(result || []); // Always set as array
+        const result:any = await getCategories();
+        setCategories(result.data || []); // Always set as array
       } catch (error) {
         setCategories([]); // fallback to empty array on error
       }
@@ -121,11 +121,14 @@ export default function RegForm({
     };
     console.log("Registering user:", user);
     try {
-      const imageName = await uploadProfileImage(avatarFile);
-      console.log("Uploaded image:", imageName);
+      let imageName = "";
+      if (avatarFile) {
+        imageName = await uploadImage(avatarFile);
+        console.log("Uploaded image:", imageName);
+      }
       user.StoreLogo = imageName;
       console.log("Registering user with image URL:", user);
-      const result = await register(user);
+      const result: any = await register(user);
       if (!result || !result.isSuccess) {
         toast.error(result.message || result.message || t('Registration failed. Please check your details.'));
         console.error("Registration error:", result);
@@ -396,7 +399,7 @@ export default function RegForm({
                       <span
                         className="w-24 h-24 rounded-full border mb-2 flex items-center justify-center bg-gray-100 text-gray-400"
                         style={{ cursor: 'pointer', fontSize: '96px' }}
-                        onClick={setCropperOpen}
+                        onClick={() => setCropperOpen(true)}
                       >
                         {avatar ? (
                           <img src={avatar} alt={t("Avatar")} className="w-24 h-24 rounded-full object-cover" />
@@ -470,7 +473,7 @@ export default function RegForm({
                       <select
                         id="taxIdType"
                         value={taxIdType}
-                        onChange={e => setTaxIdType(Number(e.target.value))}
+                        onChange={e => setTaxIdType(e.target.value)}
                         required
                         className="border rounded px-2 py-1 w-full"
                       >
@@ -577,7 +580,7 @@ export default function RegForm({
                         className="border rounded px-2 py-1 w-full"
                       >
                         <option value="">{t("Select category")}</option>
-                        {categories.map((cat) => (
+                        {categories.map((cat:any) => (
                           <option key={cat.id} value={cat.id}>{cat.categoryName}</option>
                         ))}
                       </select>

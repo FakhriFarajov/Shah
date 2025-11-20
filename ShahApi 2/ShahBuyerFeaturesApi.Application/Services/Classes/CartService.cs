@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ShahBuyerFeaturesApi.Application.Services.Interfaces;
+using ShahBuyerFeaturesApi.Core.DTOs;
 using ShahBuyerFeaturesApi.Core.DTOs.Response;
 using ShahBuyerFeaturesApi.Core.Models;
 using ShahBuyerFeaturesApi.Infrastructure.Contexts;
@@ -149,48 +150,6 @@ public class CartService : ICartService
             .ToListAsync();
 
         return TypedResult<object>.Success(cartItems.Cast<object>().ToList());
-    }
-
-    // DTOs used for projection (EF Core can materialize these as long as they have settable properties)
-    private class CartListItemDto
-    {
-        public string Id { get; set; } = null!;
-        public ProductDto? Product { get; set; }
-        public ProductVariantDto ProductVariant { get; set; } = null!;
-        public int Quantity { get; set; }
-    }
-
-    private class ProductDto
-    {
-        public string? Id { get; set; }
-        public string? StoreName { get; set; }
-        public string? CategoryName { get; set; }
-    }
-
-    private class ProductVariantDto
-    {
-        public string Id { get; set; } = null!;
-        public string Title { get; set; } = null!;
-        public string Description { get; set; } = null!;
-        public decimal Price { get; set; }
-        public decimal DiscountPrice { get; set; }
-        public int Stock { get; set; }
-        public List<AttributeDto> Attributes { get; set; } = new();
-        public List<ImageDto> Images { get; set; } = new();
-        public int ReviewsCount { get; set; }
-        public double AverageRating { get; set; }
-    }
-
-    private class AttributeDto
-    {
-        public string Name { get; set; } = null!;
-        public string Value { get; set; } = null!;
-    }
-
-    private class ImageDto
-    {
-        public string ImageUrl { get; set; } = null!;
-        public bool IsMain { get; set; }
     }
 
 }

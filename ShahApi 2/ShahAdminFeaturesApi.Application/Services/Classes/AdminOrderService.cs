@@ -29,39 +29,7 @@ public class AdminOrderService : IAdminOrderService
             return (null, "Seller store not found", 404);
         return (storeId, null, 200);
     }
-
-    public async Task<PaginatedResult<object>> GetOrdersForSellerAsync(string sellerProfileId, int page, int pageSize)
-    {
-        if (page <= 0) page = 1;
-        if (pageSize <= 0) pageSize = 20;
-        if (pageSize > 100) pageSize = 100;
-        var (storeId, err, code) = await ResolveSellerStoreAsync(sellerProfileId);
-        if (!string.IsNullOrEmpty(err)) return PaginatedResult<object>.Error(err, code);
-
-        var baseQuery = _context.Orders
-            .AsNoTracking()
-            .Where(o => o.OrderItems.Any(oi => oi.ProductVariant.Product.StoreInfoId == storeId));
-
-        var total = await baseQuery.CountAsync();
-
-        var result = await baseQuery
-            .OrderByDescending(o => o.CreatedAt)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .Select(o => new
-            {
-                o.Id,
-                o.CreatedAt,
-                o.TotalAmount,
-                ItemCount = o.OrderItems.Count(oi => oi.ProductVariant.Product.StoreInfoId == storeId),
-                PaymentStatus = o.OrderPayment.Status,
-                o.ReceiptId
-            })
-            .ToListAsync();
-
-        return PaginatedResult<object>.Success(result.Cast<object>(), total, page, pageSize);
-    }
-
+    
     public async Task<PaginatedResult<object>> GetDetailedOrdersForSellerAsync(string sellerProfileId, int page,
         int pageSize)
     {

@@ -32,8 +32,5 @@ namespace ShahAdminFeaturesApi.Presentation.Controllers
         public async Task<IActionResult> EditAddressAsync(EditAddressRequestDTO request)
             => Ok(await _addressService.EditAddressAsync(request));
         
-        [HttpDelete("Remove/{id}")]
-        public async Task<IActionResult> DeleteAddressAsync(string id)
-            => Ok(await _addressService.DeleteAddressAsync(id));
     }
 }

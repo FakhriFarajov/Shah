@@ -21,7 +21,7 @@ export default function LoginForm({
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const { login, isLoading } = useContext(AuthContext);
+  const { login } = useContext(AuthContext);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -105,9 +105,8 @@ export default function LoginForm({
             <Button
               type="submit"
               className="w-full bg-gray-800 hover:bg-gray-700 text-white hover:text-gray-100"
-              disabled={isLoading}
             >
-              {isLoading ? "Loading..." : t('Login')}
+              {t('Login')}
             </Button>
           </div>
           <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">

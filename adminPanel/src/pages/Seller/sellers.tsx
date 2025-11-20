@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
 import type { PaginatedResult } from "@/features/profile/DTOs/admin.interfaces";
-import { deleteSellerProfile, getPaginatedSellerProfiles, getSellerProfile } from "@/features/profile/SellerService/profile.service";
+import { deleteSellerProfile, getPaginatedSellerProfiles, getSellerProfile } from "@/features/profile/SellerService/seller.service";
 import { getCountries } from "@/features/profile/Country/country.service";
 import { useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -173,6 +173,13 @@ export default function SellersPage() {
                                                 title="Profile"
                                             >
                                                 Profile
+                                            </button>
+                                            <button
+                                                className="px-4 py-2 rounded-lg bg-gradient-to-tr from-blue-400 to-blue-600 text-white font-semibold shadow hover:from-blue-500 hover:to-blue-700 transition"
+                                                onClick={() => navigate(`/products?storeInfoId=${seller.storeInfoId}`)}
+                                                title="Products"
+                                            >
+                                                Products
                                             </button>
                                             <button
                                                 className="px-4 py-2 rounded-lg bg-gradient-to-tr from-red-400 to-red-600 text-white font-semibold shadow hover:from-red-500 hover:to-red-700 transition"

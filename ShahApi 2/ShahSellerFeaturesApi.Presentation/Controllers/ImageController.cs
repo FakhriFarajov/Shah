@@ -15,14 +15,14 @@ public class ImageController : ControllerBase
         _imageService = imageService;
     }
     
-    [HttpPost("UploadImage")]
+    [HttpPost("uploadImage")]
     public async Task<IActionResult> UploadImage([FromForm] IFormFile file)
     {
         var result = await _imageService.UploadImageAsync(file);
         return Ok(result);
     }
 
-    [HttpGet("GetImage")]
+    [HttpGet("getImage")]
     public async Task<IActionResult> GetImageUrlAsync(string objectName)
     {
         var result = await _imageService.GetImageUrlAsync(objectName);

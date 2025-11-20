@@ -8,8 +8,7 @@ import type { PaginatedResult } from "@/features/profile/DTOs/admin.interfaces";
 import { getAllPaginatedOrders } from "@/features/profile/Warehouses/Warehouses.service";
 import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { getWarehouseOrderItems } from "@/features/profile/Products/Warehouses.service";
-
+import { getWarehouseOrderItems } from "@/features/profile/Warehouses/Warehouses.service";
 
 export default function WarehousesPage() {
     // Orders and items state

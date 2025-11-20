@@ -19,9 +19,6 @@ import { Button } from "@/components/ui/button";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-
-
-
 export default function ProductDetailsPage() {
   const navigator = useNavigate();
     const [searchParams] = useSearchParams();

@@ -31,21 +31,21 @@ namespace ShahAdminFeaturesApi.Presentation.Controllers
             return Ok(result);
         }
 
-        [HttpPost("Create")]
+        [HttpPost("create")]
         public async Task<IActionResult> Create([FromBody] CreateWarehouseRequestDTO dto)
         {
             var result = await _warehouseService.CreateWarehouseAsync(dto);
             return StatusCode(result.StatusCode, result);
         }
 
-        [HttpPut("Update/{warehouseId}")]
+        [HttpPut("update/{warehouseId}")]
         public async Task<IActionResult> Update(string warehouseId, [FromBody] UpdateWarehouseRequestDTO dto)
         {
             var result = await _warehouseService.UpdateWarehouseAsync(warehouseId, dto);
             return StatusCode(result.StatusCode, result);
         }
 
-        [HttpDelete("Delete/{warehouseId}")]
+        [HttpDelete("delete/{warehouseId}")]
         public async Task<IActionResult> Delete(string warehouseId)
         {
             var result = await _warehouseService.DeleteWarehouseAsync(warehouseId);
@@ -53,7 +53,7 @@ namespace ShahAdminFeaturesApi.Presentation.Controllers
         }
 
         // New: Get orders for a warehouse (paginated)
-        [HttpGet("{warehouseId}/orders")]
+        [HttpGet("orders/{warehouseId}")]
         public async Task<IActionResult> GetWarehouseOrders(string warehouseId, [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 5)
         {
@@ -68,20 +68,13 @@ namespace ShahAdminFeaturesApi.Presentation.Controllers
             var result = await _warehouseService.GetWarehouseOrderItemsAsync(warehouseId, orderId);
             return StatusCode(result.StatusCode, result);
         }
-
-        [HttpPost("{warehouseId}/assign-order/{orderId}")]
-        public async Task<IActionResult> AssignOrderToWarehouse(string warehouseId, string orderId)
-        {
-            var result = await _warehouseService.AssignOrderItemsToWarehouseAsync(warehouseId, orderId);
-            return StatusCode(result.StatusCode, result);
-        }
-
-        [HttpPost("{warehouseId}/assign-order-items/{orderId}")]
-        public async Task<IActionResult> AssignSpecificOrderItems(string warehouseId, string orderId,
+        
+        [HttpPost("{warehouseId}/assignOrderItems/{orderId}")]
+        public async Task<IActionResult> AssignOrderItems(string warehouseId, string orderId,
             [FromBody] AssignOrderItemsRequest request)
         {
             var result =
-                await _warehouseService.AssignSpecificOrderItemsToWarehouseAsync(warehouseId, orderId,
+                await _warehouseService.AssignOrderItemsToWarehouseAsync(warehouseId, orderId,
                     request.OrderItemIds);
             return StatusCode(result.StatusCode, result);
         }

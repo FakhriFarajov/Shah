@@ -12,3 +12,4 @@ export const faqs = [//Move to file
     answer: "You can contact support by emailing support@example.com."
   }
 ];
+

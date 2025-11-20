@@ -389,7 +389,7 @@ public class WarehouseService : IWarehouseService
         }, "Order assigned to warehouse successfully");
     }
     
-        public async Task<TypedResult<object>> AssignSpecificOrderItemsToWarehouseAsync(string warehouseId, string orderId, IList<string> orderItemIds)
+        public async Task<TypedResult<object>> AssignOrderItemsToWarehouseAsync(string warehouseId, string orderId, IList<string> orderItemIds)
     {
         if (string.IsNullOrWhiteSpace(warehouseId) || string.IsNullOrWhiteSpace(orderId))
             return TypedResult<object>.Error("warehouseId and orderId are required", 400);
@@ -426,7 +426,6 @@ public class WarehouseService : IWarehouseService
                 CreatedAt = DateTime.UtcNow
             };
             _context.WarehouseOrders.Add(link);
-            warehouse.Capacity -= 1; // consume capacity once per order
             _context.Warehouses.Update(warehouse);
             order.WarehouseOrderId = link.Id;
             order.WarehouseOrder = link;

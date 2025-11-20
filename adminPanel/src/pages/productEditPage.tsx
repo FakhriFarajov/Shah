@@ -3,21 +3,19 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { getAllCategoriesWithAttributesAndValuesAsync } from "@/features/profile/Category/category.service";
 import ImageCropper from "@/components/ui/image-crop";
-import { uploadProfileImage, getProfileImage } from "@/shared/utils/imagePost";
+import { uploadImage, getProfileImage } from "@/shared/utils/imagePost";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { getDetails } from "@/features/profile/Product/Product.service";
 import { toast } from "sonner";
 import type { SyncCategoryItemDto } from "@/features/profile/DTOs/seller.interfaces";
 import { useSearchParams } from "react-router-dom";
 import Navbar from "@/components/custom/Navbar/navbar";
 import { AppSidebar } from "@/components/custom/sidebar";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
-import { getProductEditPayloadById } from "@/features/profile/Product/Product.service";
-import { addProduct } from "@/features/profile/Product/Product.service";
+
 import { syncProduct } from "@/features/profile/Product/Product.service";
 import type { ProductSyncRequest } from "@/shared/types/productCreate.interfaces";
 import { useNavigate } from "react-router-dom";
-
-
 
 export default function ProductsEditOrAddPage() {
     const [searchParams] = useSearchParams();
@@ -25,7 +23,6 @@ export default function ProductsEditOrAddPage() {
     const isEdit = !!productId;
     const [categories, setCategories] = useState<SyncCategoryItemDto[]>([]);
     const navigator = useNavigate();
-
     function generateGuid() {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
             var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
@@ -40,7 +37,7 @@ export default function ProductsEditOrAddPage() {
             // Fetch seller profile to get storeInfoId
             if (isEdit && productId) {
                 try {
-                    const productResponse = await apiCallWithManualRefresh(() => getProductEditPayloadById(productId));
+                    const productResponse = await apiCallWithManualRefresh(() => getDetails(productId));
                     if (productResponse.data) {
                         const prodData = productResponse.data;
                         setProduct({
@@ -95,6 +92,7 @@ export default function ProductsEditOrAddPage() {
                                 weight: v.weightInGrams,
                                 stock: v.stock,
                                 price: v.price,
+                                discountPrice: v.discountPrice,
                                 images,
                                 mainImageIdx: images.findIndex((img: any) => img.isMain),
                                 attributeValues
@@ -190,7 +188,7 @@ export default function ProductsEditOrAddPage() {
         }));
     }
     function handleVariantChange(idx: number, field: keyof any, value: any) {
-        // For price, stock, weight: store as string for editing
+        // For price, stock, weight, discountPrice: store as string for editing
         const updated = (variants || []).map((v: any, i: number) => {
             if (i !== idx) return v;
             return { ...v, [field]: value };
@@ -220,6 +218,7 @@ export default function ProductsEditOrAddPage() {
             stock: null,
             price: null,
             weight: null,
+            discountPrice: null,
             attributeValues: allAttributes.map((attr: any) => ({ productVariantId: newId, attributeValueId: attr.id + "___" })),
             images: [],
         };
@@ -276,6 +275,10 @@ export default function ProductsEditOrAddPage() {
                     toast.error(`Please enter a valid price for variant ${variantIdx + 1}.`);
                     return;
                 }
+                if (variant.discountPrice && (isNaN(Number(variant.discountPrice)) || Number(variant.discountPrice) > Number(variant.price))) {
+                    toast.error(`Discount price for variant ${variantIdx + 1} must be a valid number and not higher than the price.`);
+                    return;
+                }
                 if (!variant.stock || isNaN(Number(variant.stock))) {
                     toast.error(`Please enter a valid stock for variant ${variantIdx + 1}.`);
                     return;
@@ -310,7 +313,7 @@ export default function ProductsEditOrAddPage() {
                             let isMain = v.mainImageIdx === idx;
                             if (img instanceof File) {
                                 try {
-                                    const objectName = await uploadProfileImage(img);
+                                    const objectName = await uploadImage(img);
                                     return { objectName, isMain };
                                 } catch (err) {
                                     toast.error('Image upload failed');
@@ -336,88 +339,52 @@ export default function ProductsEditOrAddPage() {
                     };
                 })
             );
-            // Debug: log variants after upload
-            if (isEdit && productId) {
-                // Sync (edit) mode
-                const syncPayload: ProductSyncRequest = {
-                    categoryId: product.categoryId || null,
-                    variants: (variantsWithMinioImages || []).map((v: any) => {
-                        // Find the main image index after filtering
-                        const images = (v.images || []).map((img: any) => {
-                            let objectName = img.objectName || img.imageUrl || "";
-                            if (typeof objectName === 'string' && objectName.includes('?')) {
-                                objectName = objectName.split('?')[0];
-                            }
-                            // Null/undefined checks for image fields
-                            return {
-                                id: img.id ? String(img.id) : generateGuid(),
-                                imageUrl: objectName ? String(objectName) : '',
-                            };
-                        }).filter(img => img.imageUrl); // Remove images with empty url
-                        let mainIdx = v.mainImageIdx;
-                        if (mainIdx == null || mainIdx < 0 || mainIdx >= images.length) mainIdx = 0;
-                        const imagesWithMain = images.map((img, idx) => ({
-                            ...img,
-                            isMain: idx === mainIdx
-                        }));
-                        // Null/undefined checks for variant fields
+            const syncPayload: ProductSyncRequest = {
+                categoryId: product.categoryId || null,
+                variants: (variantsWithMinioImages || []).map((v: any) => {
+                    // Find the main image index after filtering
+                    const images = (v.images || []).map((img: any) => {
+                        let objectName = img.objectName || img.imageUrl || "";
+                        if (typeof objectName === 'string' && objectName.includes('?')) {
+                            objectName = objectName.split('?')[0];
+                        }
+                        // Null/undefined checks for image fields
                         return {
-                            id: v.id ? String(v.id) : generateGuid(),
-                            title: v.title ? String(v.title) : '',
-                            description: v.description ? String(v.description) : '',
-                            weightInGrams: v.weight ? Number(v.weight) : 0,
-                            stock: v.stock ? Number(v.stock) : 0,
-                            price: v.price ? Number(v.price) : 0,
-                            images: imagesWithMain,
-                            attributeValueIds: (v.attributeValues || [])
-                                .map((av: any) => {
-                                    if (av && av.attributeValueId) {
-                                        const parts = av.attributeValueId.split("___");
-                                        return parts.length > 1 ? parts[1] : parts[0];
-                                    }
-                                    return "";
-                                })
-                                .filter(Boolean)
+                            id: img.id ? String(img.id) : generateGuid(),
+                            imageUrl: objectName ? String(objectName) : '',
                         };
-                    })
-                };
-                const response = await apiCallWithManualRefresh(() => syncProduct(productId, syncPayload));
-                console.log("Sync response:", response);
-                toast.success("Product synced successfully!");
-            } else {
-                // Create mode
-                const payload = {
-                    categoryId: product.categoryId,
-                    storeInfoId: product.storeInfoId,
-                    variants: variantsWithMinioImages.map((v: any) => ({
-                        title: v.title,
-                        description: v.description,
-                        weightInGrams: Number(v.weight),
-                        stock: Number(v.stock),
-                        price: parseFloat(v.price),
-                        images: v.images
-                            .map((img: any, idx: number) => {
-                                const imageUrl = img.objectName || img.imageUrl || "";
-                                return imageUrl
-                                    ? { imageUrl, isMain: idx === v.mainImageIdx }
-                                    : null;
-                            })
-                            .filter((img: { imageUrl: string } | null): img is { imageUrl: string; isMain: boolean } => !!img && !!img.imageUrl),
+                    }).filter(img => img.imageUrl); // Remove images with empty url
+                    let mainIdx = v.mainImageIdx;
+                    if (mainIdx == null || mainIdx < 0 || mainIdx >= images.length) mainIdx = 0;
+                    const imagesWithMain = images.map((img, idx) => ({
+                        ...img,
+                        isMain: idx === mainIdx
+                    }));
+                    // Null/undefined checks for variant fields
+                    return {
+                        id: v.id ? String(v.id) : generateGuid(),
+                        title: v.title ? String(v.title) : '',
+                        description: v.description ? String(v.description) : '',
+                        weightInGrams: v.weight ? Number(v.weight) : 0,
+                        stock: v.stock ? Number(v.stock) : 0,
+                        price: v.price ? Number(v.price) : 0,
+                        discountPrice: v.discountPrice != null ? Number(v.discountPrice) : 0,
+                        images: imagesWithMain,
                         attributeValueIds: (v.attributeValues || [])
                             .map((av: any) => {
                                 if (av && av.attributeValueId) {
-                                    const parts = av.attributeValueId.split('___');
-                                    return parts.length > 1 && parts[1] ? parts[1] : "";
+                                    const parts = av.attributeValueId.split("___");
+                                    return parts.length > 1 ? parts[1] : parts[0];
                                 }
                                 return "";
                             })
-                            .filter((valId: string) => !!valId)
-                    }))
-                };
-                const response = await apiCallWithManualRefresh(() => addProduct(payload));
-                if (!response.isSuccess) throw new Error('Failed to add product');
-                toast.success('Product added successfully!');
-            }
+                            .filter(Boolean)
+                    };
+                })
+            };
+            const response = await apiCallWithManualRefresh(() => syncProduct(productId, syncPayload));
+            console.log("Sync response:", response);
+            toast.success("Product synced successfully!");
         } catch (error) {
             toast.error('Failed to submit product');
         }
@@ -521,6 +488,26 @@ export default function ProductsEditOrAddPage() {
                                                             if (/^\d*\.?\d*$/.test(val) || val === "") {
                                                                 if (val !== "" && Number(val) > 9999) val = "9999";
                                                                 handleVariantChange(idx, "price", val);
+                                                            }
+                                                        }}
+                                                    />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <Label className="mb-2">Discount Price</Label>
+                                                    <input
+                                                        className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                                                        placeholder="Discount Price"
+                                                        type="text"
+                                                        inputMode="decimal"
+                                                        pattern="^[0-9]*\.?[0-9]*$"
+                                                        maxLength={5}
+                                                        value={typeof variant.discountPrice === "string" ? variant.discountPrice : (typeof variant.discountPrice === "number" && !isNaN(variant.discountPrice) ? String(variant.discountPrice) : "")}
+                                                        onChange={e => {
+                                                            let val = e.target.value;
+                                                            // Allow digits and dot, but max 9999
+                                                            if (/^\d*\.?\d*$/.test(val) || val === "") {
+                                                                if (val !== "" && Number(val) > 9999) val = "9999";
+                                                                handleVariantChange(idx, "discountPrice", val);
                                                             }
                                                         }}
                                                     />

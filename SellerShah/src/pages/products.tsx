@@ -7,10 +7,11 @@ import Footer from "../components/custom/footer";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
 import { getUserIdFromToken } from "@/shared/getUserIdFromToken";
 import { GetAllPaginatedProductAsync } from "@/features/profile/Product/Product.service";
-import { getProfileImage } from "@/shared/utils/imagePost";
+import { getImage } from "@/shared/utils/imagePost";
 import { getSellerProfile } from "@/features/profile/ProfileServices/profile.service";
-import { getProductEditPayloadById } from "@/features/profile/Product/Product.service";
+import { getDetails } from "@/features/profile/Product/Product.service";
 import { toast } from "sonner";
+
 interface Product {
   id: string;
   productTitle: string;
@@ -22,9 +23,6 @@ interface Product {
   categoryChain: string[];
   reviewsCount: number;
 }
-
-
-
 
 export default function ProductsPage() {
   const navigate = useNavigate();
@@ -40,15 +38,15 @@ export default function ProductsPage() {
 
   const fetchProducts = async (newPage: number = page) => {
     setLoading(true);
-    const sellerId = getUserIdFromToken();
+    const sellerId: any = getUserIdFromToken();
     try {
       const seller = await apiCallWithManualRefresh(() => getSellerProfile(sellerId));
-      const result = await apiCallWithManualRefresh(() => GetAllPaginatedProductAsync(seller.storeInfoId, newPage, pageSize,));
-      if ((result.data)) {
+      const result = await apiCallWithManualRefresh(() => GetAllPaginatedProductAsync(seller.storeInfoId, newPage, pageSize));
+      if (result.data) {
         const productsWithImages = await Promise.all(result.data.map(async (product: Product) => {
           if (product.mainImage) {
             try {
-              const url = await getProfileImage(product.mainImage);
+              const url = await getImage(product.mainImage);
               return { ...product, mainImage: url };
             } catch (err) {
               return product;
@@ -78,7 +76,7 @@ export default function ProductsPage() {
     }
     setLoading(true);
     try {
-      const result = await apiCallWithManualRefresh(() => getProductEditPayloadById(productsToSearchId));
+      const result = await apiCallWithManualRefresh(() => getDetails(productsToSearchId));
       if (result.isSuccess) {
         navigate(`/productsEditOrAdd?productId=${productsToSearchId}`);
       }

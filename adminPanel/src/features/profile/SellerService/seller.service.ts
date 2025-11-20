@@ -1,15 +1,15 @@
 import { authHttp } from "./httpClient";
-import type { SellerProfileResponseDTO, EditSellerRequestDTO, PaginatedSellersResponse } from "@/features/profile/DTOs/seller.interfaces";
+import type { EditSellerRequestDTO, PaginatedSellersResponse } from "@/features/profile/DTOs/seller.interfaces";
 
 // Seller profile
-export async function getPaginatedSellerProfiles(pageNumber: number, pageSize: number = 5): Promise<PaginatedSellersResponse> {
+export async function getPaginatedSellerProfiles(pageNumber: number, pageSize: number = 5): Promise<any> {
   const response  = await authHttp.get<PaginatedSellersResponse>(`/getAll`, {
     params: { pageNumber, pageSize }
   });
   return response;
 }
 
-export async function getSellerProfile(id: string): Promise<SellerProfileResponseDTO> {
+export async function getSellerProfile(id: string): Promise<any> {
   const { data } = await authHttp.get(`/getProfile/${id}`);
   return data;
 }

@@ -11,12 +11,12 @@ import { MdAccountCircle } from "react-icons/md";
 import { getCountries } from "@/features/profile/Country/country.service";
 import { getCategories } from "@/features/profile/Category/category.service";
 import Spinner from "@/components/custom/Spinner";
-import { getSellerProfile, editSellerProfile } from "@/features/profile/SellerService/profile.service";
+import { getSellerProfile, editSellerProfile } from "@/features/profile/SellerService/seller.service";
 import { tokenStorage } from "@/shared";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
-import { uploadProfileImage, getProfileImage } from "@/shared/utils/imagePost";
+import { uploadImage, getProfileImage } from "@/shared/utils/imagePost";
 import { AppSidebar } from "@/components/custom/sidebar";
 import { useSearchParams } from "react-router-dom";
 import { Switch } from "@/components/ui/switch";
@@ -124,7 +124,7 @@ export default function ProfileSeller() {
             let objectName = null;
             let storeLogoUrl = null;
             if (seller?.storeImageFile) {
-                objectName = await uploadProfileImage(seller.storeImageFile as File);
+                objectName = await uploadImage(seller.storeImageFile as File);
                 storeLogoUrl = await getProfileImage(objectName);
                 payload.storeLogo = objectName;
             }

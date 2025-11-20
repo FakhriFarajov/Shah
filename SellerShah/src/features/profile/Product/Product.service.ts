@@ -13,12 +13,11 @@ export async function GetAllPaginatedProductAsync(storeId:string,page: number, p
   return response;
 }
 
-export async function getProductEditPayloadById(id: string): Promise<any> {
-  const response = await authHttp.get(`/edit-payload/${id}`);
+export async function getDetails(id: string): Promise<any> {
+  const response = await authHttp.get(`/editPayload/${id}`);
   console.log("Received edit payload response:", response);
   return response;
 }
-
 
 export async function syncProduct(id: string, payload: ProductSyncRequest): Promise<any> {
   const response = await authHttp.put(`/sync/${id}`, payload);
@@ -26,10 +25,9 @@ export async function syncProduct(id: string, payload: ProductSyncRequest): Prom
   return response;
 }
 
-// Get product statistics for a seller
 export async function getProductStatistics(productId: string, productVariantId?: string): Promise<any> {
   const params: Record<string, string> = {};
   if (productVariantId) params.productVariantId = productVariantId;
-  const response = await authHttp.get(`/${productId}/stats`, { params });
+  const response = await authHttp.get(`/stats/${productId}`, { params });
   return response;
 }

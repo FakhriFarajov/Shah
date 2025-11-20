@@ -15,12 +15,9 @@ import { useEffect, useState } from "react";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
 import { getProductStatistics } from "@/features/profile/Product/Product.service";
 import { useSearchParams } from "react-router-dom";
-import { getProfileImage } from "@/shared/utils/imagePost";
+import { getImage } from "@/shared/utils/imagePost";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
-
-
-
 
 export default function ProductDetailsPage() {
   const [searchParams] = useSearchParams();
@@ -40,7 +37,7 @@ export default function ProductDetailsPage() {
                 ? await Promise.all(
                   review.images.map(async (img: string) => {
                     try {
-                      const url = await getProfileImage(img);
+                      const url = await getImage(img);
                       return url || img;
                     } catch {
                       return img;

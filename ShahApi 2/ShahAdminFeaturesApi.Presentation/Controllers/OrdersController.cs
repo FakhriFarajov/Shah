@@ -16,7 +16,6 @@ public class OrdersController : ControllerBase
         _sellerOrderService = sellerOrderService;
     }
 
-    // GET api/orders?detailed=true&page=1&pageSize=20&sellerProfileId=optional
     [HttpGet("getAll")]
     public async Task<IActionResult> GetOrders(
         [FromQuery] int page = 1,
@@ -27,16 +26,8 @@ public class OrdersController : ControllerBase
         var result = await _sellerOrderService.GetOrdersAsync(page, pageSize, detailed, userId);
         return StatusCode(result.StatusCode, result);
     }
-    
-    [HttpGet("byOrderId/{id}")]
-    public async Task<IActionResult> GetOrderById(string id)
-    {
-        var result = await _sellerOrderService.GetOrderByIdAsync(id);
-        return StatusCode(result.StatusCode, result);
-    }
 
-    // POST api/orders/{id}/send-to-warehouse
-    [HttpPost("{id}/send-to-warehouse")]
+    [HttpPost("{id}/sendToWarehouse")]
     public async Task<IActionResult> SendToWarehouse(string id, [FromBody] WarehouseSendRequestDto request)
     {
         var sellerProfileId = User?.Claims?.FirstOrDefault(c => c.Type == "seller_profile_id")?.Value;

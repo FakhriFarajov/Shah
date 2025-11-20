@@ -7,8 +7,6 @@ using Microsoft.AspNetCore.Authorization;
 namespace ShahBuyerFeaturesApi.Presentation.Controllers
 {
     [ApiController]
-    [Authorize(Policy = "BuyerPolicy")] //We need to send a Bearer token in the header to access this endpoint
-    
     [Route("api/[controller]")]       
     public class ProductController : ControllerBase
     {

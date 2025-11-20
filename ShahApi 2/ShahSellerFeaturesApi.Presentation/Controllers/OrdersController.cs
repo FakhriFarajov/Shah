@@ -32,7 +32,7 @@ public class OrdersController : ControllerBase
         return StatusCode(result.StatusCode, result);
     }
 
-    [HttpGet("byId/{id}")]
+    [HttpGet("getById/{id}")]
     public async Task<IActionResult> GetOrderById(string id)
     {
         var sellerProfileId = User?.Claims?.FirstOrDefault(c => c.Type == "seller_profile_id")?.Value;
@@ -42,22 +42,7 @@ public class OrdersController : ControllerBase
         return StatusCode(result.StatusCode, result);
     }
 
-    // POST api/orders/{id}/send-to-warehouse
-    [HttpPost("{id}/send-to-warehouse")]
-    public async Task<IActionResult> SendToWarehouse(string id, [FromBody] WarehouseSendRequestDto request)
-    {
-        var sellerProfileId = User?.Claims?.FirstOrDefault(c => c.Type == "seller_profile_id")?.Value;
-        if (string.IsNullOrWhiteSpace(sellerProfileId))
-            return BadRequest("Seller profile not found in token.");
-        if (request == null || string.IsNullOrWhiteSpace(request.WarehouseId))
-            return BadRequest("warehouseId is required");
-
-        var result = await _sellerOrderService.SendOrderToWarehouseAsync(id, sellerProfileId, request.WarehouseId);
-        return StatusCode(result.StatusCode, result);
-    }
-
-    // PUT api/orders/items/{orderItemId}/status
-    [HttpPut("items/{orderItemId}/status")]
+    [HttpPut("updateStatus/{orderItemId}")]
     public async Task<IActionResult> UpdateItemStatus(string orderItemId, [FromBody] OrderStatusDto status)
     {
         var sellerProfileId = User?.Claims?.FirstOrDefault(c => c.Type == "seller_profile_id")?.Value;

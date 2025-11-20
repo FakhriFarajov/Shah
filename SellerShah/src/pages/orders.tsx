@@ -5,7 +5,7 @@ import Footer from "../components/custom/footer";
 import { getOrders, updateOrderItemStatus } from "@/features/profile/Order/Order.service";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
 import { toast } from "sonner";
-import { getProfileImage } from "@/shared/utils/imagePost";
+import { getImage } from "@/shared/utils/imagePost";
 import { getAllPaginatedWarehouses } from "@/features/profile/Warehouses/Warehouses.service";
 import { assignOrderItemsToWarehouse } from "@/features/profile/Warehouses/Warehouses.service";
 import type { PaginatedResult, Warehouse } from "@/features/profile/DTOs/seller.interfaces";
@@ -86,7 +86,7 @@ export default function OrdersPage() {
 										? await Promise.all(
 											item.images.map(async (img: any) => {
 												try {
-													const url = await getProfileImage(img.imageUrl);
+													const url = await getImage(img.imageUrl);
 													return { ...img, imageUrl: url || img.imageUrl };
 												} catch {
 													return img;
