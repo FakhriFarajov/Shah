@@ -11,18 +11,10 @@ import { getImage } from "@/shared/utils/imagePost";
 import { getSellerProfile } from "@/features/profile/ProfileServices/profile.service";
 import { getDetails } from "@/features/profile/Product/Product.service";
 import { toast } from "sonner";
+import Spinner from "@/components/custom/spinner";
+import type { Product } from "@/features/profile/DTOs/seller.interfaces";
 
-interface Product {
-  id: string;
-  productTitle: string;
-  mainImage: string | null;
-  storeName: string;
-  price: number;
-  discountPrice: number | null;
-  categoryName: string;
-  categoryChain: string[];
-  reviewsCount: number;
-}
+
 
 export default function ProductsPage() {
   const navigate = useNavigate();
@@ -60,7 +52,11 @@ export default function ProductsPage() {
       }
       setTotalItems(result.totalCount || 0);
       setTotalPages(result.totalPages || 1);
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.response?.status === 401) {
+        toast.info("You have to login in order to see your products.");
+        navigate("/login");
+      }
     } finally {
       setLoading(false);
     }
@@ -80,8 +76,13 @@ export default function ProductsPage() {
       if (result.isSuccess) {
         navigate(`/productsEditOrAdd?productId=${productsToSearchId}`);
       }
-    } catch (error) {
-      toast.error('Failed to fetch products. Please check the ID and try again.');
+    } catch (error: any) {
+      if (error?.response?.status === 401) {
+        toast.info("You have to login in order to search for products.");
+        navigate("/login");
+      } else {
+        toast.error('Failed to fetch products. Please check the ID and try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -89,6 +90,13 @@ export default function ProductsPage() {
 
   return (
     <>
+      {
+        loading && (
+          <div className="fixed inset-0 bg-white bg-opacity-100 flex items-center justify-center z-50">
+            <Spinner />
+          </div>
+        )
+      }
       <Navbar />
       <div className="min-h-screen flex">
         <AppSidebar />

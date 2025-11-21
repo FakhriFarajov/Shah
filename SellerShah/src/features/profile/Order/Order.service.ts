@@ -13,7 +13,6 @@ export async function getOrderById(id: string) {
 
 export async function updateOrderItemStatus(id: string, status: number) {
     var result = await authHttp.put(`/updateStatus/${id}`, { Status: status });
-    console.log("Update order item status result:", result);
     return result;
 }
 

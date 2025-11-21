@@ -820,15 +820,15 @@ export default function ProductPage() {
               <div>
                 {showDiscount && displayDiscountPrice != 0 ? (
                   <>
-                    <Label className='text-3xl font-bold text-red-600'>{displayDiscountPrice}₼</Label>
-                    <span className="text-lg line-through text-gray-400 ml-2">{displayPrice}₼</span>
+                    <Label className='text-3xl font-bold text-red-600'>{displayDiscountPrice}$</Label>
+                    <span className="text-lg line-through text-gray-400 ml-2">{displayPrice}$</span>
                     <Badge className="bg-red-500 text-white text-xs px-2 py-1 rounded shadow ml-2">-{discountPercent}%</Badge>
                   </>
                 ) : (
-                  <Label className='text-3xl font-bold'>{displayPrice}₼</Label>
+                  <Label className='text-3xl font-bold'>{displayPrice}$</Label>
                 )}
                 {typeof displayOldPrice !== 'undefined' && displayOldPrice !== null && displayOldPrice > displayPrice && (
-                  <Badge className="bg-red-600 line-through ml-2">{t('Old Price')}: {displayOldPrice}₼</Badge>
+                  <Badge className="bg-red-600 line-through ml-2">{t('Old Price')}: {displayOldPrice}$</Badge>
                 )}
               </div>
               <div>

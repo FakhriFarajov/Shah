@@ -16,17 +16,24 @@ import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
 import { getProductStatistics } from "@/features/profile/Product/Product.service";
 import { useSearchParams } from "react-router-dom";
 import { getImage } from "@/shared/utils/imagePost";
+import Spinner from "@/components/custom/spinner";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 export default function ProductDetailsPage() {
+  const [loading, setLoading] = useState(false);
   const [searchParams] = useSearchParams();
   const productId = searchParams.get("productId") || "";
   const productVariantId = searchParams.get("productVariantId") || "";
   const [details, setDetails] = useState<any | null>(null);
+  const navigator = useNavigate();
 
   useEffect(() => {
     async function fetchDetails() {
+      setLoading(true);
       try {
         var result = await apiCallWithManualRefresh(() => getProductStatistics(productId, productVariantId));
         // Resolve review image URLs asynchronously
@@ -49,15 +56,25 @@ export default function ProductDetailsPage() {
             })
           );
         }
+        setLoading(false);
         setDetails(result.data);
       } catch (error) {
-        console.error("Failed to fetch product details:", error);
+        if(error?.response?.status === 401) {
+          toast.info("You have to login in order to see product details.");
+          navigator("/login");
+        }
       }
     }
     fetchDetails();
   }, []);
 
-  if (!details) return <div>Loading...</div>;
+  if (loading || !details) {
+    return (
+      <div className="fixed inset-0 bg-white bg-opacity-100 flex items-center justify-center z-50">
+        <Spinner />
+      </div>
+    );
+  }
 
   // Prepare chart data for orders and revenue
   const chartLabels = ["Last 1 Day", "Last 30 Days", "Last 1 Year"];
@@ -100,11 +117,21 @@ export default function ProductDetailsPage() {
 
   return (
     <>
+      {
+        loading && (
+          <div className="fixed inset-0 bg-white bg-opacity-100 flex items-center justify-center z-50">
+            <Spinner />
+          </div>
+        )
+      }
       <Navbar />
       <div className="min-h-screen flex flex-col md:flex-row">
         <AppSidebar />
         <div className="flex-1 py-8 px-2 md:px-8">
           <div className="max-w-4xl mx-auto mb-8">
+            <div className="mb-4">
+              <Button onClick={() => navigator(-1)} className="bg-indigo-500 text-white">&larr; Back</Button>
+            </div>
             <h1 className="text-3xl font-extrabold text-gray-900 mb-2 tracking-tight">Product Details</h1>
             <p className="text-lg text-gray-500 mb-4">Product ID: {details.productId}</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -177,7 +204,7 @@ export default function ProductDetailsPage() {
           {details?.reviews?.latest && details.reviews.latest.length > 0 && (
             <div className="mt-10 overflow-x-auto max-w-4xl mx-auto mb-8 px-2">
               <h2 className="text-2xl font-bold mb-4 text-indigo-700">Latest Reviews</h2>
-              <div className="flex gap-6 overflow-x-auto pb-2" style={{scrollbarWidth: 'thin'}}>
+              <div className="flex gap-6 overflow-x-auto pb-2" style={{ scrollbarWidth: 'thin' }}>
                 {details.reviews.latest.map((review: any) => (
                   <div key={review.id} className="bg-white rounded-xl shadow p-6 flex flex-col gap-2 min-w-[300px]">
                     <div className="flex items-center gap-2 mb-2">
@@ -206,7 +233,6 @@ export default function ProductDetailsPage() {
             </div>
           )}
         </div>
-
       </div>
       <Footer />
     </>

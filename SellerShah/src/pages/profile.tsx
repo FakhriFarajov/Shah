@@ -69,8 +69,10 @@ export default function ProfileSeller() {
                 ? countriesRaw.map((c: any) => ({ id: Number(c.id), name: c.name, code: c.code ?? "UN" }))
                 : [];
             setCountries(normalizedCountries);
-        } catch (err) {
-            console.error("Failed to fetch countries", err);
+        } catch (err: any) {
+            if (err?.response?.status === 401) {
+                navigator("/login");
+            }
         }
     }
 
@@ -81,8 +83,10 @@ export default function ProfileSeller() {
                 ? categoriesRaw.map((cat: any) => ({ id: String(cat.id), name: cat.categoryName || cat.name, parentCategoryId: cat.parentCategoryId ?? null }))
                 : [];
             setCategories(normalizedCategories);
-        } catch (err) {
-            console.error("Failed to fetch categories", err);
+        } catch (err: any) {
+            if (err?.response?.status === 401) {
+                navigator("/login");
+            }
         }
     }
 
@@ -110,18 +114,48 @@ export default function ProfileSeller() {
                 toast.error("Failed to fetch profile: No data returned.");
                 return;
             }
-            console.log("Fetched seller profile:", profile);
             setSeller(profile);
+            setEditedTaxId(profile.taxId || "");
+            setEditedTaxNumber(profile.taxNumber || "");
             if (profile.emailConfirmed === false) {
                 toast.info("Your email is not confirmed. Please check your inbox.");
             }
-        } catch (err) {
-            console.error("Failed to fetch seller profile", err);
-            toast.error("Failed to fetch seller profile.");
+        } catch (err: any) {
+            if (err?.response?.status === 401) {
+                toast.info("You have to login in order to edit or add products.");
+                navigator("/login");
+            } else {
+                toast.error("Failed to fetch seller profile.");
+            }
         }
     }
 
     const handleSaveProfile = async () => {
+        // Prevent submit if any required field is empty
+        const requiredFields = [
+            seller?.editedName || seller?.name,
+            seller?.editedSurname || seller?.surname,
+            seller?.editedEmail || seller?.email,
+            seller?.editedPhone || seller?.phone,
+            seller?.editedPassportNumber || seller?.passportNumber,
+            countryCode || seller?.countryCitizenshipId,
+            seller?.editedStoreName || seller?.storeName,
+            seller?.editedStoreDescription || seller?.storeDescription,
+            seller?.editedStoreContactPhone || seller?.storeContactPhone,
+            seller?.editedStoreContactEmail || seller?.storeContactEmail,
+            editedTaxId,
+            editedTaxNumber,
+            storeCountryCodeId || seller?.storeCountryCodeId,
+            seller?.editedStreet || seller?.street,
+            seller?.editedCity || seller?.city,
+            seller?.editedState || seller?.state,
+            seller?.editedPostalCode || seller?.postalCode,
+            editedCategoryId || seller?.categoryId
+        ];
+        if (requiredFields.some(field => field === null || field === undefined || field === "")) {
+            toast.error("All fields are required. Please fill in all fields before saving.");
+            return;
+        }
         setLoading(true);
         try {
             if (!seller) return;
@@ -146,7 +180,6 @@ export default function ProfileSeller() {
                 categoryId: editedCategoryId || seller?.categoryId,
             };
 
-            console.log("Preparing to upload store logo if changed", seller);
             let objectName = null;
             let storeLogoUrl = null;
             if (seller?.storeLogoFile) {
@@ -156,7 +189,6 @@ export default function ProfileSeller() {
             }
 
 
-            console.log("Payload", payload);
             const result = await apiCallWithManualRefresh(() => editSellerProfile(seller.id, payload));
             if (!result || !result.isSuccess) {
                 toast.error(result?.message || "Profile update failed. Please check your details.");
@@ -166,10 +198,15 @@ export default function ProfileSeller() {
             toast.success("Profile updated successfully!");
             if (storeLogoUrl) setSeller({ ...seller, ...payload, storeLogo: storeLogoUrl });
             else setSeller({ ...seller, ...payload });
+            // Reset edited tax fields to reflect new seller data
+            setEditedTaxId(payload.taxId || "");
+            setEditedTaxNumber(payload.taxNumber || "");
             setEditMode(false);
         } catch (error: any) {
-            console.error("Save profile failed", error);
-            if (error?.response?.data) {
+            if (error?.response?.status === 401) {
+                toast.info("You have to login in order to edit your profile.");
+                navigator("/login");
+            } else if (error?.response?.data) {
                 const data = error.response.data;
                 if (data.errors && typeof data.errors === "object") {
                     Object.values(data.errors).forEach((msgs: any) => {
@@ -201,13 +238,11 @@ export default function ProfileSeller() {
                                 : [];
                             setTaxes(normalizedTaxes);
                         } catch (err) {
-                            console.error("Failed to fetch taxes", err);
                         }
                     })(),
                     fetchSellerProfile()
                 ]);
             } catch (err) {
-                console.error("Init load failed", err);
                 toast.error("Failed to load profile data.");
             } finally {
                 setLoading(false);
@@ -244,7 +279,6 @@ export default function ProfileSeller() {
                 toast.error(result?.message || "Failed to change password");
             }
         } catch (err) {
-            console.error("Change password failed", err);
             toast.error("Failed to change password");
         } finally {
             setLoading(false);
@@ -267,11 +301,13 @@ export default function ProfileSeller() {
 
     return (
         <>
-            {loading && (
-                <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "rgba(255,255,255,0.5)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <Spinner />
-                </div>
-            )}
+            {
+                loading && (
+                    <div className="fixed inset-0 bg-white bg-opacity-100 flex items-center justify-center z-50">
+                        <Spinner />
+                    </div>
+                )
+            }
             <Navbar />
             <div className="min-h-screen bg-gray-50 flex">
                 <AppSidebar />
@@ -476,7 +512,7 @@ export default function ProfileSeller() {
                                             <h3 className="text-lg font-semibold mb-3 border-b pb-1">Tax ID Type</h3>
                                             <label className="block text-sm font-medium mb-1">Tax ID Type</label>
                                             {editMode ? (
-                                                <select value={editedTaxId !== "" ? editedTaxId : seller?.taxId ?? ""} onChange={(e) => setEditedTaxId(Number(e.target.value))} className="border rounded px-2 py-1 w-full">
+                                                <select value={editedTaxId || seller?.taxId} onChange={(e) => setEditedTaxId(e.target.value ? Number(e.target.value) : "")} className="border rounded px-2 py-1 w-full" >
                                                     <option value="">Select tax type</option>
                                                     {taxes.map((tax) => (
                                                         <option key={tax.id} value={tax.id}>{tax.name}</option>
@@ -493,7 +529,7 @@ export default function ProfileSeller() {
 
                                         <div className="mb-3">
                                             <label className="block text-sm font-medium mb-1">Tax Number</label>
-                                            <Input value={editMode ? editedTaxNumber || seller?.taxNumber : seller?.taxNumber ?? ""} onChange={(e) => setEditedTaxNumber(e.target.value)} disabled={!editMode} placeholder="e.g. TAX-2025-00123" />
+                                            <Input value={editMode ? editedTaxNumber : seller?.taxNumber ?? ""} onChange={(e) => setEditedTaxNumber(e.target.value)} disabled={!editMode} placeholder="e.g. TAX-2025-00123" />
                                         </div>
 
                                         <div className="mb-3">

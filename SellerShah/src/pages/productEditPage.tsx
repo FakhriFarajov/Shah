@@ -14,19 +14,22 @@ import Navbar from "@/components/custom/Navbar/navbar";
 import { AppSidebar } from "@/components/custom/sidebar";
 import Footer from "../components/custom/footer";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
-import { getDetails} from "@/features/profile/Product/Product.service";
+import { getDetails } from "@/features/profile/Product/Product.service";
 import { addProduct } from "@/features/profile/Product/Product.service";
 import { syncProduct } from "@/features/profile/Product/Product.service";
 import type { ProductSyncRequest } from "@/types/productCreate.interfaces";
 import { useNavigate } from "react-router-dom";
+import Spinner from "@/components/custom/spinner";
 
 
 
 export default function ProductsEditOrAddPage() {
+    const [loading, setLoading] = useState<boolean>(false);
     const [searchParams] = useSearchParams();
     const productId = searchParams.get("productId");
     const isEdit = !!productId;
     const [categories, setCategories] = useState<SyncCategoryItemDto[]>([]);
+    const [isVerified, setIsVerified] = useState<boolean>(true); // default true for safety
     const navigator = useNavigate();
 
     function generateGuid() {
@@ -37,6 +40,7 @@ export default function ProductsEditOrAddPage() {
     }
 
     useEffect(() => {
+        setLoading(true);
         async function fetchInitialData() {
             const cats = await getAllCategoriesWithAttributesAndValuesAsync();
             setCategories(cats);
@@ -46,7 +50,14 @@ export default function ProductsEditOrAddPage() {
                 try {
                     const seller = await apiCallWithManualRefresh(() => getSellerProfile(sellerId));
                     setProduct((prev: any) => ({ ...prev, storeInfoId: seller.storeInfoId }));
-                } catch (err) {
+                    // Example: status === 'Verified' (change if your API uses a different property/value)
+                    setIsVerified(seller.isConfirmed === true);
+                } catch (err: any) {
+                    if (err?.response?.status === 401) {
+                        toast.info("You have to login in order to edit or add products.");
+                        navigator('/login');
+                        return;
+                    }
                     toast.error('Failed to fetch seller info');
                 }
             } else {
@@ -83,7 +94,12 @@ export default function ProductsEditOrAddPage() {
                                         try {
                                             const url = await getImage(objectName);
                                             return { ...image, imageUrl: url };
-                                        } catch (e) {
+                                        } catch (e: any) {
+                                            if (e?.response?.status === 401) {
+                                                toast.info("You have to login in order to edit or add products.");
+                                                navigator('/login');
+                                                return image;
+                                            }
                                             return image;
                                         }
                                     }
@@ -120,12 +136,18 @@ export default function ProductsEditOrAddPage() {
                     } else {
                         toast.error('Failed to fetch product data');
                     }
-                } catch (err) {
+                } catch (err: any) {
+                    if (err?.response?.status === 401) {
+                        toast.info("You have to login in order to edit or add products.");
+                        navigator('/login');
+                        return;
+                    }
                     toast.error('Error fetching product data');
                 }
             }
         }
         fetchInitialData();
+        setLoading(false);
     }, []);
     // Update attribute value for a variant
     function handleAttributeValueChange(variantIdx: number, attributeId: string, valueId: string) {
@@ -159,7 +181,7 @@ export default function ProductsEditOrAddPage() {
         setPendingVariantIdx(idx);
         setCropDialogOpen(true);
     }
-    const [previewImages, setPreviewImages] = useState<string[]>([]);
+    // Removed unused previewImages state
     const [isImageProcessing, setIsImageProcessing] = useState(false);
     const handleCropDone = async (croppedUrl: string) => {
         if (pendingVariantIdx == null) return;
@@ -177,10 +199,15 @@ export default function ProductsEditOrAddPage() {
                     mainImageIdx: newImages.length - 1, // set the new image as main
                 };
             }));
-            setPreviewImages((prev) => [...prev, croppedUrl]);
+            // Removed unused previewImages state
             setCropDialogOpen(false);
             toast.success("Avatar cropped and ready!");
-        } catch (err) {
+        } catch (err: any) {
+            if (err?.response?.status === 401) {
+                toast.info("You have to login in order to edit or add products.");
+                navigator('/login');
+                return;
+            }
             toast.error("Failed to process cropped image.");
         } finally {
             setTimeout(() => setIsImageProcessing(false), 200); // allow state to update
@@ -253,9 +280,10 @@ export default function ProductsEditOrAddPage() {
     const disableAdd = false;
 
     function handleCategoryChange(categoryId: string) {
-        setProduct((p: any) => ({ ...p, categoryId }));
+        // Removed unused previewImages state
     }
     const handleSubmit = async () => {
+        setLoading(true);
         try {
             // Check that all required product-level fields are filled
             if (!product.categoryId) {
@@ -270,12 +298,17 @@ export default function ProductsEditOrAddPage() {
             const allAttrs = (() => {
                 let attrs: any[] = [];
                 let current = categories.find(c => c.id === product.categoryId);
-                while (current) {
+                while (current && 'parentCategoryId' in current && current.parentCategoryId) {
                     if (current.attributes) {
                         attrs = [...current.attributes, ...attrs];
                     }
-                    if (!current.parentCategoryId) break;
-                    current = categories.find(c => c.id === current.parentCategoryId);
+                    const next = categories.find(c => c.id === current.parentCategoryId);
+                    if (!next) break;
+                    current = next;
+                }
+                // If current is still defined after loop, add its attributes
+                if (current && current.attributes) {
+                    attrs = [...current.attributes, ...attrs];
                 }
                 return attrs;
             })();
@@ -283,24 +316,36 @@ export default function ProductsEditOrAddPage() {
                 // Check required fields
                 if (!variant.title || typeof variant.title !== "string" || variant.title.trim() === "") {
                     toast.error(`Please enter a title for variant ${variantIdx + 1}.`);
+                    return;
                 }
                 if (!variant.description || typeof variant.description !== "string" || variant.description.trim() === "") {
                     toast.error(`Please enter a description for variant ${variantIdx + 1}.`);
+                    return;
+
                 }
                 if (!variant.price || isNaN(Number(variant.price))) {
                     toast.error(`Please enter a valid price for variant ${variantIdx + 1}.`);
+                    return;
+
                 }
                 if (variant.discountPrice && (isNaN(Number(variant.discountPrice)) || Number(variant.discountPrice) > Number(variant.price))) {
                     toast.error(`Discount price for variant ${variantIdx + 1} must be a valid number and not higher than the price.`);
+                    return;
+
                 }
                 if (!variant.stock || isNaN(Number(variant.stock))) {
                     toast.error(`Please enter a valid stock for variant ${variantIdx + 1}.`);
+                    return;
+
                 }
                 if (!variant.weight || isNaN(Number(variant.weight))) {
                     toast.error(`Please enter a valid weight for variant ${variantIdx + 1}.`);
+                    return;
+
                 }
                 if (!variant.images || variant.images.length === 0) {
                     toast.error(`Please add at least one image for variant ${variantIdx + 1}.`);
+                    return;
                 }
                 for (const attr of allAttrs) {
                     const found = Array.isArray(variant.attributeValues)
@@ -326,7 +371,12 @@ export default function ProductsEditOrAddPage() {
                                 try {
                                     const objectName = await uploadImage(img);
                                     return { objectName, isMain };
-                                } catch (err) {
+                                } catch (err: any) {
+                                    if (err?.response?.status === 401) {
+                                        toast.info("You have to login in order to edit or add products.");
+                                        navigator('/login');
+                                        return null;
+                                    }
                                     toast.error('Image upload failed');
                                     return null;
                                 }
@@ -367,10 +417,10 @@ export default function ProductsEditOrAddPage() {
                                 id: img.id ? String(img.id) : generateGuid(),
                                 imageUrl: objectName ? String(objectName) : '',
                             };
-                        }).filter(img => img.imageUrl); // Remove images with empty url
+                        }).filter((img: { imageUrl?: string }) => img && img.imageUrl); // Remove images with empty url
                         let mainIdx = v.mainImageIdx;
                         if (mainIdx == null || mainIdx < 0 || mainIdx >= images.length) mainIdx = 0;
-                        const imagesWithMain = images.map((img, idx) => ({
+                        const imagesWithMain = images.map((img: any, idx: number) => ({
                             ...img,
                             isMain: idx === mainIdx
                         }));
@@ -399,6 +449,7 @@ export default function ProductsEditOrAddPage() {
                 const response = await apiCallWithManualRefresh(() => syncProduct(productId, syncPayload));
                 if (!response.isSuccess) throw new Error("Failed to sync product");
                 toast.success("Product synced successfully!");
+                navigator('/products'); // Redirect after successful sync
             } else {
                 // Create mode
                 const payload = {
@@ -433,13 +484,28 @@ export default function ProductsEditOrAddPage() {
                 const response = await apiCallWithManualRefresh(() => addProduct(payload));
                 if (!response.isSuccess) throw new Error('Failed to add product');
                 toast.success('Product added successfully!');
+                navigator('/products'); // Redirect after successful add
             }
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.response?.status === 401) {
+                toast.info("You have to login in order to edit or add products.");
+                navigator('/login');
+                return;
+            }
             toast.error('Failed to submit product');
+        }
+        finally {
+
+            setLoading(false);
         }
     };
     return (
         <>
+            {loading && (
+                <div className="fixed inset-0 bg-white bg-opacity-100 flex items-center justify-center z-50">
+                    <Spinner />
+                </div>
+            )}
             <Navbar></Navbar>
             <div className="min-h-screen flex">
                 <AppSidebar />
@@ -450,8 +516,12 @@ export default function ProductsEditOrAddPage() {
                     <h2 className="text-2xl font-bold mb-4 text-indigo-700 ">
                         {isEdit ? "Edit Product" : "Add New Product"}
                     </h2>
-                    {/* No global image preview. Previews are per-variant below. */}
-                    <div className="flex flex-col gap-8">
+                    {!isVerified && (
+                        <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6 rounded">
+                            Your account is not verified. You must be verified to add or edit products.
+                        </div>
+                    )}
+                    <div className="flex flex-col gap-8" aria-disabled={!isVerified} style={!isVerified ? { pointerEvents: 'none', opacity: 0.5 } : {}}>
                         {/* Category & Subcategory row */}
                         <div className="w-full flex flex-col space-y-4">
                             <Label>Category</Label>
@@ -459,6 +529,7 @@ export default function ProductsEditOrAddPage() {
                                 className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
                                 value={product.categoryId}
                                 onChange={e => handleCategoryChange(e.target.value)}
+                                disabled={!isVerified}
                             >
                                 <option value="">Select Category</option>
                                 {categories.map(cat => (
@@ -474,7 +545,7 @@ export default function ProductsEditOrAddPage() {
                                 <div className="max-h-150 overflow-y-auto pr-2">
                                     {(variants || []).map((variant: any, idx: number) => (
                                         <div key={variant.id} className="border rounded-lg p-4 mb-2 bg-gray-50">
-                                            {/* No Edit button, always editable */}
+                                            {/* ...existing code for variant fields... */}
                                             {/* Title and Description for each variant as a single row */}
                                             <div className="mb-2 grid grid-cols-1 gap-2">
                                                 <div>
@@ -484,6 +555,7 @@ export default function ProductsEditOrAddPage() {
                                                         placeholder="Variant Title"
                                                         value={variant.title || ""}
                                                         onChange={e => handleVariantChange(idx, "title", e.target.value)}
+                                                        disabled={!isVerified}
                                                     />
                                                 </div>
                                                 <div>
@@ -494,10 +566,13 @@ export default function ProductsEditOrAddPage() {
                                                         value={variant.description || ""}
                                                         onChange={e => handleVariantChange(idx, "description", e.target.value)}
                                                         rows={2}
+                                                        disabled={!isVerified}
                                                     />
                                                 </div>
                                             </div>
+                                            {/* ...existing code for variant fields... */}
                                             <div className="flex gap-4 mb-2">
+                                                {/* ...existing code for stock, price, etc. ... */}
                                                 <div className="flex-1">
                                                     <Label className="mb-2">Stock</Label>
                                                     <input
@@ -510,12 +585,12 @@ export default function ProductsEditOrAddPage() {
                                                         value={typeof variant.stock === "string" ? variant.stock : (typeof variant.stock === "number" && !isNaN(variant.stock) ? String(variant.stock) : "")}
                                                         onChange={e => {
                                                             let val = e.target.value;
-                                                            // Only allow digits, no dot, and max 9999
                                                             if (/^\d*$/.test(val) || val === "") {
                                                                 if (val !== "" && Number(val) > 9999) val = "9999";
                                                                 handleVariantChange(idx, "stock", val);
                                                             }
                                                         }}
+                                                        disabled={!isVerified}
                                                     />
                                                 </div>
                                                 <div className="flex-1">
@@ -530,12 +605,12 @@ export default function ProductsEditOrAddPage() {
                                                         value={typeof variant.price === "string" ? variant.price : (typeof variant.price === "number" && !isNaN(variant.price) ? String(variant.price) : "")}
                                                         onChange={e => {
                                                             let val = e.target.value;
-                                                            // Allow digits and dot, but max 9999
                                                             if (/^\d*\.?\d*$/.test(val) || val === "") {
                                                                 if (val !== "" && Number(val) > 9999) val = "9999";
                                                                 handleVariantChange(idx, "price", val);
                                                             }
                                                         }}
+                                                        disabled={!isVerified}
                                                     />
                                                 </div>
                                                 <div className="flex-1">
@@ -550,12 +625,12 @@ export default function ProductsEditOrAddPage() {
                                                         value={typeof variant.discountPrice === "string" ? variant.discountPrice : (typeof variant.discountPrice === "number" && !isNaN(variant.discountPrice) ? String(variant.discountPrice) : "")}
                                                         onChange={e => {
                                                             let val = e.target.value;
-                                                            // Allow digits and dot, but max 9999
                                                             if (/^\d*\.?\d*$/.test(val) || val === "") {
                                                                 if (val !== "" && Number(val) > 9999) val = "9999";
                                                                 handleVariantChange(idx, "discountPrice", val);
                                                             }
                                                         }}
+                                                        disabled={!isVerified}
                                                     />
                                                 </div>
                                                 <div className="flex-1">
@@ -570,16 +645,17 @@ export default function ProductsEditOrAddPage() {
                                                         value={typeof variant.weight === "string" ? variant.weight : (typeof variant.weight === "number" && !isNaN(variant.weight) ? String(variant.weight) : "")}
                                                         onChange={e => {
                                                             let val = e.target.value;
-                                                            // Allow digits and dot, but max 9999
                                                             if (/^\d*\.?\d*$/.test(val) || val === "") {
                                                                 if (val !== "" && Number(val) > 9999) val = "9999";
                                                                 handleVariantChange(idx, "weight", val);
                                                             }
                                                         }}
+                                                        disabled={!isVerified}
                                                     />
                                                 </div>
-                                                <Button type="button" variant="destructive" className="h-8 mt-6" onClick={() => handleRemoveVariant(idx)}>-</Button>
+                                                <Button type="button" variant="destructive" className="h-8 mt-6" onClick={() => handleRemoveVariant(idx)} disabled={!isVerified}>-</Button>
                                             </div>
+                                            {/* ...existing code for images and attributes... */}
                                             {/* Variant Images */}
                                             <div className="mb-2">
                                                 <Label className="">Variant Images </Label>
@@ -601,7 +677,7 @@ export default function ProductsEditOrAddPage() {
                                                                     src={src}
                                                                     alt="variant preview"
                                                                     className={`w-12 h-12 object-cover rounded border ${variant.mainImageIdx === imgIdx ? 'border-4 border-indigo-500' : 'border-indigo-200'} shadow cursor-pointer`}
-                                                                    onClick={() => handleSetMainImage(idx, imgIdx)}
+                                                                    onClick={() => isVerified && handleSetMainImage(idx, imgIdx)}
                                                                     title={variant.mainImageIdx === imgIdx ? 'Main Image' : 'Set as Main'}
                                                                 />
                                                                 {variant.mainImageIdx === imgIdx && (
@@ -609,15 +685,16 @@ export default function ProductsEditOrAddPage() {
                                                                 )}
                                                                 <button
                                                                     className="absolute -top-2 -right-2 bg-white border border-gray-300 rounded-full text-red-500 px-1 py-0.5 text-xs shadow group-hover:opacity-100 opacity-70"
-                                                                    onClick={() => handleRemoveVariantImage(idx, imgIdx)}
+                                                                    onClick={() => isVerified && handleRemoveVariantImage(idx, imgIdx)}
                                                                     type="button"
                                                                     aria-label="Remove variant image"
+                                                                    disabled={!isVerified}
                                                                 >×</button>
                                                             </div>
                                                         );
                                                     })}
                                                     {(variant.images?.length ?? 0) < 5 && (
-                                                        <label className="w-12 h-12 flex items-center justify-center border-2 border-dashed border-indigo-300 rounded-lg text-indigo-400 hover:bg-indigo-50 focus:outline-none cursor-pointer" onClick={() => handlePlusClick(idx)}>
+                                                        <label className="w-12 h-12 flex items-center justify-center border-2 border-dashed border-indigo-300 rounded-lg text-indigo-400 hover:bg-indigo-50 focus:outline-none cursor-pointer" onClick={() => isVerified && handlePlusClick(idx)} style={!isVerified ? { pointerEvents: 'none', opacity: 0.5 } : {}}>
                                                             <span >+</span>
                                                         </label>
                                                     )}
@@ -636,6 +713,7 @@ export default function ProductsEditOrAddPage() {
                                                     <div className="text-xs text-gray-500">Up to 5 images per variant.</div>
                                                 )}
                                             </div>
+                                            {/* ...existing code for attributes... */}
                                             <div className="grid grid-cols-2 gap-3 max-h-48 overflow-y-auto pr-2">
                                                 {/* Always show selects if category is selected (add or edit mode) */}
                                                 {product.categoryId
@@ -669,7 +747,7 @@ export default function ProductsEditOrAddPage() {
                                                                         className="border rounded px-2 py-1"
                                                                         value={selectedValue}
                                                                         onChange={e => handleAttributeValueChange(idx, attr?.id || "", e.target.value)}
-                                                                        disabled={!Array.isArray(attr?.values) || attr?.values.length === 0}
+                                                                        disabled={!Array.isArray(attr?.values) || attr?.values.length === 0 || !isVerified}
                                                                     >
                                                                         <option value="">Select {attr?.name || "Attribute"}</option>
                                                                         {Array.isArray(attr?.values) && attr.values.length > 0 && attr.values.map((val: any) => (
@@ -711,6 +789,7 @@ export default function ProductsEditOrAddPage() {
                                     type="button"
                                     variant="secondary"
                                     onClick={handleAddVariant}
+                                    disabled={!isVerified}
                                 >
                                     Add Variant
                                 </Button>
@@ -721,7 +800,7 @@ export default function ProductsEditOrAddPage() {
                     <Button
                         className="w-full py-3 text-lg font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow mt-4"
                         onClick={handleSubmit}
-                        disabled={isImageProcessing}
+                        disabled={isImageProcessing || !isVerified}
                     >
                         {isImageProcessing ? 'Processing image...' : (isEdit ? 'Save Changes' : 'Add Product')}
                     </Button>

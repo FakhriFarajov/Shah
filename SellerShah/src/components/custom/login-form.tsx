@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState } from "react"
-import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { useNavigate } from "react-router-dom"
 import { useContext } from "react";
@@ -15,7 +14,6 @@ export default function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const { t } = useTranslation()
   const navigator = useNavigate()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -28,10 +26,10 @@ export default function LoginForm({
     setError(null)
     const result = await login({ email, password })
     if (result.success) {
-      navigator("/main") //take the userInfo from the localStorage or claims in the token
-      toast.success(t('Successfully logged in'))
+      navigator("/home")
+      toast.success(('Successfully logged in'))
     } else {
-      toast.error(t('Password or email is incorrect or the account does not exist'))
+      toast.error(('Password or email is incorrect or the account does not exist'))
     }
   }
 
@@ -48,35 +46,35 @@ export default function LoginForm({
                 <img
                   src="\src\assets\images\ShahLogo2.png"
                   className="w-50 h-50"
-                  alt={t("Company Logo")}
+                  alt={('Company Logo')}
                 />
               </div>
             </a>
-            <h1 className="text-xl font-bold">{t('Welcome to Shah.')}</h1>
+            <h1 className="text-xl font-bold">{('Welcome to Shah.')}</h1>
             <div className="text-center text-sm">
-              {t("Don't have an account?")}{" "}
+              {('Don\'t have an account?')}{" "}
               <a href="/register" className="underline underline-offset-4">
-                {t('Sign up')}
+                {('Sign up')}
               </a>
             </div>
           </div>
           <div className="flex flex-col gap-6">
             <div className="grid gap-3">
-              <Label htmlFor="email">{t('Email')}</Label>
+              <Label htmlFor="email">{('Email')}</Label>
               <div className="relative">
                 <Input
                   id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder={t('m@example.com')}
+                  placeholder={('m@example.com')}
                   required
                 />
                 <UserRound className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500" />
               </div>
             </div>
             <div className="grid gap-3">
-              <Label htmlFor="password">{t('Password')}</Label>
+              <Label htmlFor="password">{('Password')}</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -91,7 +89,7 @@ export default function LoginForm({
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
                   onClick={() => setShowPassword((v) => !v)}
                   tabIndex={-1}
-                  aria-label={showPassword ? t("Hide password") : t("Show password")}
+                  aria-label={showPassword ? ("Hide password") : ("Show password")}
                 >
                   {showPassword ? (
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z" /><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" /></svg>
@@ -106,20 +104,16 @@ export default function LoginForm({
               type="submit"
               className="w-full bg-gray-800 hover:bg-gray-700 text-white hover:text-gray-100"
             >
-              {t('Login')}
+              {('Login')}
             </Button>
           </div>
-          <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
-            <span className="bg-background text-muted-foreground relative z-10 px-2">
-              {t('Or')}
-            </span>
-          </div>
+
         </div>
       </form>
       <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
-        {t('By clicking continue, you agree to our')} {" "}
-        <a href="#">{t('Terms of Service')}</a> {t('and')} {" "}
-        <a href="#">{t('Privacy Policy')}</a>.
+        {('By clicking continue, you agree to our')} {" "}
+        <a href="#">{('Terms of Service')}</a> {('and')} {" "}
+        <a href="#">{('Privacy Policy')}</a>.
       </div>
     </div>
   )

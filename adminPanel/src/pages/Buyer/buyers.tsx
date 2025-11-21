@@ -55,7 +55,6 @@ export default function BuyersPage() {
                 });
             } else {
                 toast.error(error?.message || "Failed to delete admin profile");
-                console.error("Failed to delete admin profile:", error);
             }
         } finally {
             setLoading(false);
@@ -84,7 +83,6 @@ export default function BuyersPage() {
             setPage(1);
             setTotalPages(1);
         } catch (error) {
-            console.error("Failed to fetch buyer profile:", error);
             toast.error('Failed to fetch buyer profile. Please check the UserID and try again.');
         } finally {
             setLoading(false);
@@ -95,12 +93,10 @@ export default function BuyersPage() {
         setLoading(true);
         try {
             const result: PaginatedResult<BuyerProfileResponseDTO> = await apiCallWithManualRefresh(() => getAllBuyerProfilesPaginated(newPage, pageSize));
-            console.log("Fetched paginated buyers:", result);
             setBuyers(result.data || []);
             setPage(result.page || newPage);
             setTotalPages(result.totalPages || 1);
         } catch (error) {
-            console.error("Failed to fetch paginated buyers:", error);
         } finally {
             setLoading(false);
         }
@@ -111,7 +107,6 @@ export default function BuyersPage() {
             const countriesResult = await apiCallWithManualRefresh(() => getCountries());
             setCountries(countriesResult);
         } catch (error) {
-            console.error("Failed to fetch countries:", error);
         } finally {
             setLoading(false);
         }

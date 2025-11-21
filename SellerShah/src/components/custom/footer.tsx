@@ -1,45 +1,43 @@
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@radix-ui/react-label";
 import { Facebook, Instagram, Twitter, Youtube } from "lucide-react";
-import { useTranslation } from "react-i18next";
 import { GooglePlayButton , AppStoreButton } from "react-mobile-app-button";
 
 export default function Footer() {
-    const { t } = useTranslation();
 
     return (
         <footer className="w-full bg-muted p-6 md:p-12 text-sm text-muted-foreground">
             <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
                 <div>
-                    <Label className="font-bold mb-2">{t("Shah")}</Label>
+                    <Label className="font-bold mb-2">{("Shah")}</Label>
                     <ul className="space-y-1">
-                        <li>{t("About Us")}</li>
-                        <li>{t("Careers")}</li>
-                        <li>{t("Contact")}</li>
+                        <li>{("About Us")}</li>
+                        <li>{("Careers")}</li>
+                        <li>{("Contact")}</li>
                     </ul>
                 </div>
                 <div>
-                    <Label className="font-bold mb-2">{t("Campaigns")}</Label>
+                    <Label className="font-bold mb-2">{("Campaigns")}</Label>
                     <ul className="space-y-1">
-                        <li>{t("Corporate")}</li>
-                        <li>{t("Campaigns")}</li>
-                        <li>{t("Influencer")}</li>
+                        <li>{("Corporate")}</li>
+                        <li>{("Campaigns")}</li>
+                        <li>{("Influencer")}</li>
                     </ul>
                 </div>
                 <div>
-                    <Label className="font-bold mb-2">{t("Merchant")}</Label>
+                    <Label className="font-bold mb-2">{("Merchant")}</Label>
                     <ul className="space-y-1">
-                        <li>{t("Become a Merchant")}</li>
-                        <li>{t("Merchant Dashboard")}</li>
-                        <li>{t("Merchant Support")}</li>
+                        <li>{("Become a Merchant")}</li>
+                        <li>{("Merchant Dashboard")}</li>
+                        <li>{("Merchant Support")}</li>
                     </ul>
                 </div>
                 <div>
-                    <Label className="font-bold mb-2">{t("Help")}</Label>
+                    <Label className="font-bold mb-2">{("Help")}</Label>
                     <ul className="space-y-1">
-                        <li>{t("FAQ")}</li>
-                        <li>{t("Support Center")}</li>
-                        <li>{t("Contact Us")}</li>
+                        <li>{("FAQ")}</li>
+                        <li>{("Support Center")}</li>
+                        <li>{("Contact Us")}</li>
                     </ul>
                 </div>
                 {/* Repeat for other sections like Campaigns, Seller Zone, Help */}
@@ -77,7 +75,7 @@ export default function Footer() {
             <Separator className="my-6" />
 
             <div className="text-center text-xs">
-                ©2025 DSM Group Communication and Sales Inc. {t("All Rights Reserved")}
+                ©2025 DSM Group Communication and Sales Inc. {("All Rights Reserved")}
             </div>
         </footer>
     );

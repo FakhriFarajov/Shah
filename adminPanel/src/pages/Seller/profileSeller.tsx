@@ -86,6 +86,8 @@ export default function ProfileSeller() {
             }
             console.log("Fetched seller profile:", profile);
             setSeller(profile);
+            setEditedTaxId(profile.taxId || "");
+            setEditedTaxNumber(profile.taxNumber || "");
             if (profile.emailConfirmed === false) {
                 toast.info("Your email is not confirmed. Please check your inbox.");
             }
@@ -99,6 +101,32 @@ export default function ProfileSeller() {
         setLoading(true);
         try {
             if (!seller) return;
+            // Check all required fields for emptiness
+            const requiredFields = [
+                seller?.editedName || seller?.name,
+                seller?.editedSurname || seller?.surname,
+                seller?.editedEmail || seller?.email,
+                seller?.editedPhone || seller?.phone,
+                seller?.editedPassportNumber || seller?.passportNumber,
+                countryCode || seller?.countryCitizenshipId,
+                seller?.editedStoreName || seller?.storeName,
+                seller?.editedStoreDescription || seller?.storeDescription,
+                seller?.editedStoreContactPhone || seller?.storeContactPhone,
+                seller?.editedStoreContactEmail || seller?.storeContactEmail,
+                editedTaxId,
+                editedTaxNumber,
+                storeCountryCodeId || seller?.storeCountryCodeId,
+                seller?.editedStreet || seller?.street,
+                seller?.editedCity || seller?.city,
+                seller?.editedState || seller?.state,
+                seller?.editedPostalCode || seller?.postalCode,
+                editedCategoryId || seller?.categoryId
+            ];
+            if (requiredFields.some(field => field === null || field === undefined || field === "")) {
+                toast.error("All fields are required. Please fill in all fields before saving.");
+                setLoading(false);
+                return;
+            }
             const payload: any = {
                 name: seller?.editedName || seller?.name,
                 surname: seller?.editedSurname || seller?.surname,
@@ -111,8 +139,8 @@ export default function ProfileSeller() {
                 storeDescription: seller?.editedStoreDescription || seller?.storeDescription,
                 storeContactPhone: seller?.editedStoreContactPhone || seller?.storeContactPhone,
                 storeContactEmail: seller?.editedStoreContactEmail || seller?.storeContactEmail,
-                taxId: editedTaxId || seller?.taxId,
-                taxNumber: editedTaxNumber || seller?.taxNumber,
+                taxId: editedTaxId,
+                taxNumber: editedTaxNumber,
                 storeCountryCodeId: storeCountryCodeId || seller?.storeCountryCodeId,
                 street: seller?.editedStreet || seller?.street,
                 city: seller?.editedCity || seller?.city,
@@ -295,7 +323,7 @@ export default function ProfileSeller() {
                                             {!editMode ? <Input value={seller?.phone ?? ""} disabled /> : <Input value={seller?.editedPhone ?? seller?.phone ?? ""} onChange={(e) => setSeller({ ...seller, editedPhone: e.target.value })} />}
                                         </div>
 
-                                        <div className="col-span-2">
+                                        <div className="col-span-2 mb-2">
                                             <Label className="mb-2">Country</Label>
                                             {!editMode ? (
                                                 <Label className="text-lg">
@@ -431,7 +459,7 @@ export default function ProfileSeller() {
                                             <h3 className="text-lg font-semibold mb-3 border-b pb-1">Tax ID Type</h3>
                                             <label className="block text-sm font-medium mb-1">Tax ID Type</label>
                                             {editMode ? (
-                                                <select value={editedTaxId !== "" ? editedTaxId : seller?.taxId ?? ""} onChange={(e) => setEditedTaxId(Number(e.target.value))} className="border rounded px-2 py-1 w-full">
+                                                <select value={editedTaxId} onChange={(e) => setEditedTaxId(e.target.value ? Number(e.target.value) : "")} className="border rounded px-2 py-1 w-full" >
                                                     <option value="">Select tax type</option>
                                                     {taxes.map((tax) => (
                                                         <option key={tax.id} value={tax.id}>{tax.name}</option>
@@ -448,7 +476,7 @@ export default function ProfileSeller() {
 
                                         <div className="mb-3">
                                             <label className="block text-sm font-medium mb-1">Tax Number</label>
-                                            <Input value={editMode ? editedTaxNumber || seller?.taxNumber : seller?.taxNumber ?? ""} onChange={(e) => setEditedTaxNumber(e.target.value)} disabled={!editMode} placeholder="e.g. TAX-2025-00123" />
+                                            <Input value={editMode ? editedTaxNumber : seller?.taxNumber ?? ""} onChange={(e) => setEditedTaxNumber(e.target.value)} disabled={!editMode} placeholder="e.g. TAX-2025-00123" />
                                         </div>
 
                                         <div className="mb-3">

@@ -9,6 +9,11 @@ import { getImage } from "@/shared/utils/imagePost";
 import { getAllPaginatedWarehouses } from "@/features/profile/Warehouses/Warehouses.service";
 import { assignOrderItemsToWarehouse } from "@/features/profile/Warehouses/Warehouses.service";
 import type { PaginatedResult, Warehouse } from "@/features/profile/DTOs/seller.interfaces";
+import Spinner from "@/components/custom/spinner";
+import { getSellerProfile } from "@/features/profile/ProfileServices/profile.service";
+import { getUserIdFromToken } from "@/shared/getUserIdFromToken";
+import { useNavigate } from "react-router-dom";
+
 
 const OrderStatusText: Record<number, string> = {
 	0: "Pending",
@@ -48,6 +53,7 @@ const OrderStatusOptions = [
 ];
 
 export default function OrdersPage() {
+	const navigator = useNavigate();
 	const [orders, setOrders] = useState<any[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [selectedOrder] = useState<any | null>(null);
@@ -57,6 +63,7 @@ export default function OrdersPage() {
 	const [showWarehouseModal, setShowWarehouseModal] = useState(false);
 	const [selectedWarehouse, setSelectedWarehouse] = useState("");
 	const [pendingOrderItemId, setPendingOrderItemId] = useState<string | null>(null);
+	const [isVerified, setIsVerified] = useState<boolean>(true); // default true for safety
 	const pageSize = 5;
 	const [page, setPage] = useState(1);
 	const [totalPages, setTotalPages] = useState(1);
@@ -74,7 +81,6 @@ export default function OrdersPage() {
 				// Pass page and pageSize to getOrders
 				const res = await apiCallWithManualRefresh(() => getOrders(page, pageSize));
 				const data = res?.data || [];
-				console.log("Fetched orders data:", data);
 				setTotalPages(res?.totalPages || 1);
 				// Resolve images for each order's items
 				const ordersWithImages = await Promise.all(
@@ -103,7 +109,12 @@ export default function OrdersPage() {
 				);
 				if (!cancelled) setOrders(ordersWithImages);
 			} catch (e) {
-				if (!cancelled) setOrders([]);
+				if(e?.response?.status === 401) {
+					toast.info("You have to login in order to see your orders.");
+					navigator("/login");
+				}
+				toast.error("Failed to fetch orders.");
+				
 			} finally {
 				setLoading(false);
 			}
@@ -121,7 +132,6 @@ export default function OrdersPage() {
 				setTotalItems(response.totalItems);
 				setWarehouses(response.data);
 			} catch (error) {
-				console.log("Error fetching warehouse orders:", error);
 				toast.error("Failed to fetch warehouse orders.");
 			} finally {
 				setLoading(false);
@@ -147,9 +157,7 @@ export default function OrdersPage() {
 	};
 
 	const handleSendToWarehouse = async () => {
-		console.log("Selected Warehouse:", selectedWarehouse);
-		console.log("Pending Order Item ID:", pendingOrderId);
-		console.log("Selected Order Item IDs:", selectedOrderItemIds);
+		setLoading(true);
 		if (pendingOrderItemId && selectedWarehouse && selectedOrderItemIds.length > 0) {
 			try {
 				await apiCallWithManualRefresh(() =>
@@ -164,15 +172,16 @@ export default function OrdersPage() {
 				setSelectedOrderItemIds([]);
 				toast.success("Order items assigned to warehouse");
 			} catch (err) {
-				console.log("Error assigning order items to warehouse:", err);
 				toast.error("Failed to assign order items to warehouse");
 			}
 		} else {
 			toast.error("Please select at least one item to send.");
 		}
+		setLoading(false);
 	}
 
 	const handleStatusUpdate = async (orderId: string) => {
+		setLoading(true);
 		const newStatus = statusUpdates[orderId];
 		if (typeof newStatus === "number") {
 			try {
@@ -183,16 +192,39 @@ export default function OrdersPage() {
 						item.id === orderId ? { ...item, status: newStatus } : item
 					)
 				})));
-				console.log("Order item status updated:", orderId, newStatus);
 				toast.success("Order item status updated");
 			} catch (err) {
 				toast.error("Failed to update item status");
 			}
 		}
+		setLoading(false);
 	};
+
+	useEffect(() => {
+		async function checkVerification() {
+			const sellerId = getUserIdFromToken();
+			if (sellerId) {
+				try {
+					const seller = await apiCallWithManualRefresh(() => getSellerProfile(sellerId));
+					// Adjust property as needed
+					setIsVerified(seller.isConfirmed === true);
+				} catch {
+					setIsVerified(false);
+				}
+			} else {
+				setIsVerified(false);
+			}
+		}
+		checkVerification();
+	}, []);
 
 	return (
 		<>
+			{loading && (
+				<div className="fixed inset-0 bg-white bg-opacity-100 flex items-center justify-center z-50">
+					<Spinner />
+				</div>
+			)}
 			<Navbar />
 			<div className="min-h-screen flex">
 				<AppSidebar />
@@ -201,7 +233,12 @@ export default function OrdersPage() {
 						<h1 className="text-4xl font-extrabold text-gray-900 mb-2 tracking-tight">Orders</h1>
 						<p className="text-lg text-gray-500 mb-4">View and manage all orders here.</p>
 					</div>
-					<div className="max-w-6xl mx-auto mt-4">
+					{!isVerified && (
+						<div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6 rounded">
+							Your account is not verified. You must be verified to view or manage orders.
+						</div>
+					)}
+					<div className="max-w-6xl mx-auto mt-4" aria-disabled={!isVerified} style={!isVerified ? { pointerEvents: 'none', opacity: 0.5 } : {}}>
 						<div className="flex flex-col gap-6">
 							{loading ? (
 								<div className="text-center py-8 text-gray-500">Loading...</div>

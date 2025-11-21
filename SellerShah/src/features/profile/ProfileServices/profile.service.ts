@@ -10,7 +10,5 @@ export async function getSellerProfile(id: string): Promise<SellerProfileRespons
 
 export async function editSellerProfile(id: string, payload: EditSellerRequestDTO): Promise<any> {
   const { data } = await authHttp.put(`/editProfile/${id}`, payload);
-  console.log("Edit response:", data);
-  console.log("Edit payload:", payload);
   return data;
 }

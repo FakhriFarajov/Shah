@@ -57,10 +57,7 @@ export function AppSidebar() {
     ];
     return (
         <aside className="w-64 bg-white border-r flex flex-col items-center py-8 px-4">
-            <div className="font-semibold text-lg mb-2">{t("Admin Panel")}</div>
-            <div className="text-indigo-700 font-bold mb-6">
-                {adminName ? `Welcome, ${adminName}` : "Welcome, Admin"}
-            </div>
+            <div className="font-semibold text-lg mb-2">{t("Admin Dashboard")}</div>
             <nav className="w-full flex flex-col gap-2">
                 {sidebarItems.map((item, idx) => (
                     <button

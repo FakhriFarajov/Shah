@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useContext, useEffect, useState } from "react"
 import ImageCropper from "@/components/ui/image-crop"
-import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { Eye, EyeOff, FileText, Mail, PhoneCall, UserRound } from "lucide-react"
 import { Dialog, DialogContent } from "../ui/dialog"
@@ -26,7 +25,6 @@ export default function RegForm({
 }: React.ComponentProps<"div">) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const { t } = useTranslation()
   const navigator = useNavigate();
   // Step 1 fields
   const [name, setName] = useState("");
@@ -83,7 +81,7 @@ export default function RegForm({
     async function fetchCategories() {
       try {
         const result:any = await getCategories();
-        setCategories(result.data || []); // Always set as array
+        setCategories(result || []); // Always set as array
       } catch (error) {
         setCategories([]); // fallback to empty array on error
       }
@@ -96,6 +94,11 @@ export default function RegForm({
   }, []);
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Prevent registration if logo is not uploaded
+    if (!avatarFile) {
+      toast.error('Please upload your store logo before registering.');
+      return;
+    }
     setLoading(true);
     const user: RegisterRequest = {
       Name: name,
@@ -130,13 +133,14 @@ export default function RegForm({
       console.log("Registering user with image URL:", user);
       const result: any = await register(user);
       if (!result || !result.isSuccess) {
-        toast.error(result.message || result.message || t('Registration failed. Please check your details.'));
+        toast.error(result.message || result.message || ('Registration failed. Please check your details.'));
         console.error("Registration error:", result);
+        setLoading(false);
         return;
       }
-      toast.success(t('Registration successful!'));
+      toast.success(('Registration successful!'));
       await login({ email, password });
-      toast.success(t('Logged in successfully!'));
+      toast.success(('Logged in successfully!'));
       navigator('/home');
     } catch (error: any) {
       if (error.response && error.response.data) {
@@ -155,7 +159,7 @@ export default function RegForm({
         }
         console.error("Registration error:", data);
       } else {
-        toast.error(t('Registration failed. Please try again.'));
+        toast.error(('Registration failed. Please try again.'));
         console.error("Registration error:", error);
       }
     }
@@ -165,11 +169,11 @@ export default function RegForm({
   const handleNext = (e: React.FormEvent) => {
     e.preventDefault();
     if (!surname || !name || !passport || !email || !password || !confirmPassword) {
-      toast.error(t('Please fill in all fields.'));
+      toast.error(('Please fill in all fields.'));
       return;
     }
     if (password !== confirmPassword) {
-      toast.error(t('Passwords do not match.'));
+      toast.error(('Passwords do not match.'));
       return;
     }
     setStep(2);
@@ -243,15 +247,15 @@ export default function RegForm({
                   <img
                     src={storeLogoPreview || "/src/assets/images/ShahLogo2.png"}
                     className="w-50 h-50"
-                    alt={t("Company Logo")}
+                    alt={("Company Logo")}
                   />
                 </div>
               </a>
-              <h1 className="text-xl font-bold">{t("Welcome to Shah.")}</h1>
+              <h1 className="text-xl font-bold">{("Welcome to Shah.")}</h1>
               <div className="text-center text-sm">
-                {t("Already have an account?")} {" "}
+                {("Already have an account?")} {" "}
                 <a href="/login" className="underline underline-offset-4">
-                  {t("Sign in")}
+                  {("Sign in")}
                 </a>
               </div>
             </div>
@@ -259,7 +263,7 @@ export default function RegForm({
               <div className="flex flex-col gap-6 max-w-2xl mx-auto w-full">
                 <h1 className="border-b pb-2">Enter Personal Details</h1>
                 <div className="grid gap-3">
-                  <Label htmlFor="name">{t("Name")}</Label>
+                  <Label htmlFor="name">{("Name")}</Label>
                   <div className="relative">
                     <Input
                       id="name"
@@ -267,14 +271,14 @@ export default function RegForm({
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       required
-                      placeholder={t("John")}
+                      placeholder={("John")}
                     />
                     <UserRound className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500" />
 
                   </div>
                 </div>
                 <div className="grid gap-3">
-                  <Label htmlFor="surname">{t("Surname")}</Label>
+                  <Label htmlFor="surname">{("Surname")}</Label>
                   <div className="relative">
                     <Input
                       id="surname"
@@ -282,21 +286,21 @@ export default function RegForm({
                       value={surname}
                       onChange={(e) => setSurname(e.target.value)}
                       required
-                      placeholder={t("Doe")}
+                      placeholder={("Doe")}
                     />
                     <UserRound className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500" />
                   </div>
                 </div>
 
                 <div className="grid gap-3">
-                  <Label htmlFor="email">{t("Email")}</Label>
+                  <Label htmlFor="email">{("Email")}</Label>
                   <div className="relative">
                     <Input
                       id="email"
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder={t("m@example.com")}
+                      placeholder={("m@example.com")}
                       required
                     />
                     <Mail className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500" />
@@ -304,28 +308,28 @@ export default function RegForm({
                 </div>
 
                 <div className="grid gap-3">
-                  <Label htmlFor="phone">{t("Phone")}</Label>
+                  <Label htmlFor="phone">{("Phone")}</Label>
                   <div className="relative">
                     <Input
                       id="phone"
                       type="tel"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      placeholder={t("055 555 55 55")}
+                      placeholder={("055 555 55 55")}
                       required
                     />
                     <PhoneCall className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500" />
                   </div>
                 </div>
                 <div className="grid gap-3">
-                  <Label htmlFor="countryCode">{t("Country")}</Label>
+                  <Label htmlFor="countryCode">{("Country")}</Label>
                   <select
                     value={countryCitizenship || ""}
                     onChange={e => setCountryCitizenship(e.target.value)}
                     required
                     className="border rounded px-2 py-1"
                   >
-                    <option value="">{t("Select country")}</option>
+                    <option value="">{("Select country")}</option>
                     {countries.map((country) => (
                       <option key={country.id} value={country.id.toString()}>
                         {country.name}
@@ -344,7 +348,7 @@ export default function RegForm({
                   )}
                 </div>
                 <div className="grid gap-3">
-                  <Label htmlFor="idPassport">{t("ID/Passport")}</Label>
+                  <Label htmlFor="idPassport">{("ID/Passport")}</Label>
                   <div className="relative">
                     <Input
                       id="idPassport"
@@ -352,13 +356,13 @@ export default function RegForm({
                       value={passport}
                       onChange={(e) => setPassport(e.target.value)}
                       required
-                      placeholder={t("AB1234567")}
+                      placeholder={("AB1234567")}
                     />
                     <FileText className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500" />
                   </div>
                 </div>
                 <div className="grid gap-3">
-                  <Label htmlFor="password">{t("Password")}</Label>
+                  <Label htmlFor="password">{("Password")}</Label>
                   <div className="relative">
                     <Input
                       id="password"
@@ -366,7 +370,7 @@ export default function RegForm({
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      placeholder={t("*********")}
+                      placeholder={("*********")}
                     />
                     <button
                       type="button"
@@ -379,7 +383,7 @@ export default function RegForm({
                   </div>
                 </div>
                 <div className="grid gap-3">
-                  <Label htmlFor="confirmPassword">{t("Confirm Password")}</Label>
+                  <Label htmlFor="confirmPassword">{("Confirm Password")}</Label>
                   <div className="relative">
                     <Input
                       id="confirmPassword"
@@ -387,7 +391,7 @@ export default function RegForm({
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       required
-                      placeholder={t("*********")}
+                      placeholder={("*********")}
                     />
                     <button
                       type="button"
@@ -403,14 +407,14 @@ export default function RegForm({
                   type="submit"
                   className="w-full bg-gray-800 hover:bg-gray-700 text-white hover:text-gray-100"
                 >
-                  {t("Next")}
+                  {("Next")}
                 </Button>
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center gap-6 max-w-2xl mx-auto w-full">
                 <div className="grid grid-cols-1 gap-8 w-full">
                   <div className="flex flex-col gap-6 justify-center">
-                    <h1 className="border-b pb-2">{t("Store Information")}</h1>
+                    <h1 className="border-b pb-2">{("Store Information")}</h1>
                     <div className="flex flex-col items-center mb-6">
                       <span
                         className="w-24 h-24 rounded-full border mb-2 flex items-center justify-center bg-gray-100 text-gray-400"
@@ -418,13 +422,13 @@ export default function RegForm({
                         onClick={() => setCropperOpen(true)}
                       >
                         {avatar ? (
-                          <img src={avatar} alt={t("Avatar")} className="w-24 h-24 rounded-full object-cover" />
+                          <img src={avatar} alt={("Avatar")} className="w-24 h-24 rounded-full object-cover" />
                         ) : (
                           <MdAccountCircle />
                         )}
                       </span>
                       <div className="text-sm text-gray-500 mb-2">
-                        <Label>{t("Click icon to change")}</Label>
+                        <Label>{("Click icon to change")}</Label>
                       </div>
                       {cropperOpen && avatarFile && (
                         <Dialog open={cropperOpen} onOpenChange={setCropperOpen}>
@@ -435,7 +439,7 @@ export default function RegForm({
                       )}
                     </div>
                     <div className="grid gap-3">
-                      <Label htmlFor="storeName">{t("Store Name")}</Label>
+                      <Label htmlFor="storeName">{("Store Name")}</Label>
                       <div className="relative">
                         <Input
                           id="storeName"
@@ -443,14 +447,14 @@ export default function RegForm({
                           value={storeName}
                           onChange={(e) => setStoreName(e.target.value)}
                           required
-                          placeholder={t("e.g. Shah Electronics")}
+                          placeholder={("e.g. Shah Electronics")}
                           className="pr-8"
                         />
                         <UserRound className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500" />
                       </div>
                     </div>
                     <div className="grid gap-3">
-                      <Label htmlFor="storeDescription">{t("Store Description")}</Label>
+                      <Label htmlFor="storeDescription">{("Store Description")}</Label>
                       <div className="relative">
                         <textarea
                           className="border rounded px-2 py-1 w-full resize-none pr-8"
@@ -458,13 +462,13 @@ export default function RegForm({
                           value={storeDescription}
                           onChange={(e) => setStoreDescription(e.target.value)}
                           required
-                          placeholder={t("Describe your store")}
+                          placeholder={("Describe your store")}
                         />
                         <FileText className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500" />
                       </div>
                     </div>
                     <div className="grid gap-3">
-                      <Label htmlFor="contactPhone">{t("Store Contact Phone")}</Label>
+                      <Label htmlFor="contactPhone">{("Store Contact Phone")}</Label>
                       <div className="relative">
                         <Input
                           id="storePhone"
@@ -472,14 +476,14 @@ export default function RegForm({
                           value={storeContactPhone}
                           onChange={(e) => setStoreContactPhone(e.target.value)}
                           required
-                          placeholder={t("e.g. +994501234567")}
+                          placeholder={("e.g. +994501234567")}
                           className="pr-8"
                         />
                         <PhoneCall className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500" />
                       </div>
                     </div>
                     <div className="grid gap-3">
-                      <Label htmlFor="storeEmail">{t("Store Email")}</Label>
+                      <Label htmlFor="storeEmail">{("Store Email")}</Label>
                       <div className="relative">
                         <Input
                           id="storeEmail"
@@ -487,7 +491,7 @@ export default function RegForm({
                           value={storeContactEmail}
                           onChange={(e) => setStoreContactEmail(e.target.value)}
                           required
-                          placeholder={t("e.g. info@shah.com")}
+                          placeholder={("e.g. info@shah.com")}
                           className="pr-8"
                         />
                         <Mail className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500" />
@@ -497,10 +501,10 @@ export default function RegForm({
                   </div>
                   <div className="flex flex-col gap-6">
                     <h1 className="border-b pb-2">
-                      {t("Tax & Address Information")}
+                      {("Tax & Address Information")}
                     </h1>
                     <div className="grid gap-3">
-                      <Label htmlFor="taxIdType">{t("Tax ID Type")}</Label>
+                      <Label htmlFor="taxIdType">{("Tax ID Type")}</Label>
                       <select
                         id="taxIdType"
                         value={taxIdType}
@@ -508,14 +512,14 @@ export default function RegForm({
                         required
                         className="border rounded px-2 py-1 w-full"
                       >
-                        <option value="" disabled>{t("Select tax ID type")}</option>
+                        <option value="" disabled>{("Select tax ID type")}</option>
                         {taxes.map((type) => (
                           <option key={type.id} value={type.id}>{type.name}</option>
                         ))}
                       </select>
                     </div>
                     <div className="grid gap-3">
-                      <Label htmlFor="sellerTaxInfoId">{t("Seller Tax Info ID")}</Label>
+                      <Label htmlFor="sellerTaxInfoId">{("Seller Tax Info ID")}</Label>
                       <div className="relative">
                         <Input
                           id="sellerTaxInfoId"
@@ -523,7 +527,7 @@ export default function RegForm({
                           value={taxIdNumber}
                           onChange={handleTaxIdNumberChange}
                           required
-                          placeholder={t("123456789")}
+                          placeholder={("123456789")}
                           className="pr-8"
                         />
                         <FileText className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500" />
@@ -533,10 +537,10 @@ export default function RegForm({
                       )}
                     </div>
                     <h1 className="border-b pb-2">
-                      {t("Address Information")}
+                      {("Address Information")}
                     </h1>
                     <div className="grid gap-3">
-                      <Label htmlFor="addressStreet">{t("Street")}</Label>
+                      <Label htmlFor="addressStreet">{("Street")}</Label>
                       <div className="relative">
                         <Input
                           id="addressStreet"
@@ -544,13 +548,13 @@ export default function RegForm({
                           value={street}
                           onChange={(e) => setStreet(e.target.value)}
                           required
-                          placeholder={t("e.g. 123 Main St")}
+                          placeholder={("e.g. 123 Main St")}
                           className="pr-8"
                         />
                       </div>
                     </div>
                     <div className="grid gap-3">
-                      <Label htmlFor="addressCity">{t("City")}</Label>
+                      <Label htmlFor="addressCity">{("City")}</Label>
                       <div className="relative">
                         <Input
                           id="addressCity"
@@ -558,13 +562,13 @@ export default function RegForm({
                           value={city}
                           onChange={(e) => setCity(e.target.value)}
                           required
-                          placeholder={t("e.g. Baku")}
+                          placeholder={("e.g. Baku")}
                           className="pr-8"
                         />
                       </div>
                     </div>
                     <div className="grid gap-3">
-                      <Label htmlFor="addressState">{t("State")}</Label>
+                      <Label htmlFor="addressState">{("State")}</Label>
                       <div className="relative">
                         <Input
                           id="addressState"
@@ -572,13 +576,13 @@ export default function RegForm({
                           value={state}
                           onChange={(e) => setState(e.target.value)}
                           required
-                          placeholder={t("e.g. Absheron")}
+                          placeholder={("e.g. Absheron")}
                           className="pr-8"
                         />
                       </div>
                     </div>
                     <div className="grid gap-3">
-                      <Label htmlFor="addressPostalCode">{t("Postal Code")}</Label>
+                      <Label htmlFor="addressPostalCode">{("Postal Code")}</Label>
                       <div className="relative">
                         <Input
                           id="addressPostalCode"
@@ -586,20 +590,20 @@ export default function RegForm({
                           value={postalCode}
                           onChange={(e) => setPostalCode(e.target.value)}
                           required
-                          placeholder={t("e.g. AZ1000")}
+                          placeholder={("e.g. AZ1000")}
                           className="pr-8"
                         />
                       </div>
                     </div>
                     <div className="grid gap-3">
-                      <Label htmlFor="countryCode">{t("Address Country")}</Label>
+                      <Label htmlFor="countryCode">{("Address Country")}</Label>
                       <select
                         value={storeCountryCode || ""}
                         onChange={e => setStoreCountryCode(e.target.value)}
                         required
                         className="border rounded px-2 py-1"
                       >
-                        <option value="">{t("Select country")}</option>
+                        <option value="">{("Select country")}</option>
                         {countries.map((country) => (
                           <option key={country.id} value={country.id.toString()}>
                             {country.name}
@@ -618,7 +622,7 @@ export default function RegForm({
                       )}
                     </div>
                     <div className="grid gap-3">
-                      <Label htmlFor="categoryId">{t("Category")}</Label>
+                      <Label htmlFor="categoryId">{("Select the primary category of products")}</Label>
                       <select
                         id="categoryId"
                         value={categoryId ?? ""}
@@ -626,9 +630,9 @@ export default function RegForm({
                         required
                         className="border rounded px-2 py-1 w-full"
                       >
-                        <option value="">{t("Select category")}</option>
+                        <option value="">{("Select category")}</option>
                         {categories.map((cat:any) => (
-                          <option key={cat.id} value={cat.id}>{cat.categoryName}</option>
+                          <option key={cat.id || cat.categoryName} value={cat.id || cat.categoryName}>{cat.categoryName}</option>
                         ))}
                       </select>
                     </div>
@@ -642,13 +646,13 @@ export default function RegForm({
                     className="md:w-1/2 w-full"
                     onClick={() => setStep(1)}
                   >
-                    {t("Back")}
+                    {("Back")}
                   </Button>
                   <Button
                     type="submit"
                     className="md:w-1/2 w-full bg-gray-800 hover:bg-gray-700 text-white hover:text-gray-100"
                   >
-                    {t("Register")}
+                    {("Register")}
                   </Button>
                 </div>
               </div>
@@ -656,9 +660,9 @@ export default function RegForm({
           </div>
         </form>
         <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
-          {t("By clicking continue, you agree to our")} {" "}
-          <a href="#">{t("Terms of Service")}</a> {t("and")} {" "}
-          <a href="#">{t("Privacy Policy")}</a>.
+          {("By clicking continue, you agree to our")} {" "}
+          <a href="#">{("Terms of Service")}</a> {("and")} {" "}
+          <a href="#">{("Privacy Policy")}</a>.
         </div>
       </div>
     </>

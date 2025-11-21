@@ -9,7 +9,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useState } from 'react';
 import CategorySideBar from "@/components/custom/categorySidebar";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
-import { useTranslation } from "react-i18next";
 import { toast } from 'sonner';
 import { CiLogout } from "react-icons/ci";
 import { tokenStorage } from '@/shared';
@@ -28,7 +27,6 @@ import { apiCallWithManualRefresh } from '@/shared/apiWithManualRefresh';
 
 
 export default function Navbar() {
-    const { t, i18n } = useTranslation();
     const [flag, setFlag] = useState<string>(() => localStorage.getItem('flag') || 'https://flagsapi.com/GB/flat/64.png');// Default to UK flag
     const [searchTerm, setSearchTerm] = useState("");
     const [searchResults, setSearchResults] = useState<any[]>([]); // Explicitly type as any[] or Product[] if available
@@ -162,7 +160,7 @@ export default function Navbar() {
     const navigateToFavourites = () => {
         navigate('/favourites');
     }
-    const handleLanguageChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const handleLanguageChange = async (event: React.ChangeEvent<HTMLSelectElement>) => { //CORRECT
         const selectedLanguage = event.target.value;
         // Defensive: ensure countries is always an array
         const anyCountries: any = countries;
@@ -176,7 +174,6 @@ export default function Navbar() {
         // Only switch to supported app locales; normalize to lowercase
         const supported = ['en', 'az', 'ru'];
         const nextLng = supported.includes(selectedLanguage.toLowerCase()) ? selectedLanguage.toLowerCase() : 'en';
-        i18n.changeLanguage(nextLng);
     };
 
     const handleSearch = (e: any) => {
@@ -237,7 +234,7 @@ export default function Navbar() {
     const isLoggedIn = !!tokenStorage.get();
     const handleLogout = async () => {
         await logout();
-        toast.success(t('Logged out successfully'));
+        toast.success('Logged out successfully');
         navigate('/');
     };
     return (
@@ -253,7 +250,7 @@ export default function Navbar() {
                     <Input
                         value={searchTerm}
                         onChange={handleSearchChange}
-                        placeholder={t('Search on Shah')}
+                        placeholder={('Search on Shah')}
                         className='bg-white pl-10 pr-4 py-2 w-full text-gray-800 rounded-100 rounded-4xl'
                     />
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition duration-200" onClick={handleSearch}>
@@ -279,7 +276,7 @@ export default function Navbar() {
                                     {product.mainImage && product.mainImage !== "none" && (
                                         <img
                                             src={product.mainImage}
-                                            alt={t(product.productTitle)}
+                                            alt={(product.productTitle)}
                                             className="w-10 h-10 object-cover rounded mr-3"
                                             onError={e => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/40x40'; }}
                                         />
@@ -292,8 +289,8 @@ export default function Navbar() {
                                     <span className="ml-auto text-sm font-bold text-blue-600">
                                         {product.discountPrice && product.discountPrice > 0 && product.discountPrice < product.price ? (
                                             <>
-                                                <span className="text-red-600 font-bold mr-2">{product.discountPrice}₼</span>
-                                                <span className="line-through text-gray-400">{product.price}₼</span>
+                                                <span className="text-red-600 font-bold mr-2">{product.discountPrice}$</span>
+                                                <span className="line-through text-gray-400">{product.price}$</span>
                                             </>
                                         ) : (
                                             <span>{product.price}$</span>
@@ -346,15 +343,15 @@ export default function Navbar() {
                             <div className="flex flex-col space-y-2">
                                 {!isLoggedIn ? (
                                     <>
-                                        <Button variant="outline" className="mt-2" onClick={() => navigate('/login')}>{t('Login')}</Button>
-                                        <Button variant="outline" className="mt-2" onClick={() => navigate('/reg')}>{t('Sign Up')}</Button>
+                                        <Button variant="outline" className="mt-2" onClick={() => navigate('/login')}>{('Login')}</Button>
+                                        <Button variant="outline" className="mt-2" onClick={() => navigate('/reg')}>{('Sign Up')}</Button>
                                     </>
                                 ) : (
                                     <>
-                                        <Button variant="outline" className="mt-2" onClick={() => navigate('/profile')}>{t('Profile')}</Button>
+                                        <Button variant="outline" className="mt-2" onClick={() => navigate('/profile')}>{('Profile')}</Button>
                                         <Button variant="outline" className="mt-2" onClick={handleLogout}>
                                             <CiLogout className="mr-2" />
-                                            {t('Logout')}</Button>
+                                            {('Logout')}</Button>
                                     </>
                                 )}
                             </div>
@@ -383,7 +380,7 @@ export default function Navbar() {
                         <img src={flag} alt={'flag'} className='w-8 h-8' />
                         <select className="languageDropdown bg-white text-gray-800 p-2 rounded"
                             onChange={handleLanguageChange}
-                            value={i18n.language} >
+                            value={null} > //CORRECT
                             {countries.map((country) => (
                                 <option key={country.code} value={country.code}>
                                     {country.code}

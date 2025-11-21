@@ -9,6 +9,7 @@ import {
 } from "recharts";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useState } from "react";
+import Spinner from "@/components/custom/spinner";
 
 
 
@@ -131,6 +132,7 @@ function OrderDetailsModal({ order }: { order: Order }) {
 
 export default function Main() {
   const [orderData] = useState<Order[]>(initialOrderData);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const orderColumns: AdaptiveTableColumn<Order>[] = [
     {
@@ -202,6 +204,13 @@ export default function Main() {
 
   return (
     <>
+      {
+        loading && (
+          <div className="fixed inset-0 bg-white bg-opacity-100 flex items-center justify-center z-50">
+            <Spinner />
+          </div>
+        )
+      }
       <Navbar />
       <div className="min-h-screen bg-gray-50 flex">
         <AppSidebar />

@@ -14,14 +14,12 @@ export async function GetAllPaginatedProductAsync(storeId:string,page: number, p
 }
 
 export async function getDetails(id: string): Promise<any> {
-  const response = await authHttp.get(`/editPayload/${id}`);
-  console.log("Received edit payload response:", response);
+  const response = await authHttp.get(`/getDetails/${id}`);
   return response;
 }
 
 export async function syncProduct(id: string, payload: ProductSyncRequest): Promise<any> {
   const response = await authHttp.put(`/sync/${id}`, payload);
-  console.log("sync response", response);
   return response;
 }
 

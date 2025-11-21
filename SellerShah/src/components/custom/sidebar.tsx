@@ -1,19 +1,17 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, ShoppingBag, ListOrdered, Flag, Home } from "lucide-react";
-import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 
 export function AppSidebar() {
-    const { t } = useTranslation();
     const navigator = useNavigate();
     const sidebarItems = [
-        { icon: <Home className="w-5 h-5 mr-2" />, label: t("Home") },
-        { icon: <User className="w-5 h-5 mr-2" />, label: t("Profile") },
-        { icon: <ShoppingBag className="w-5 h-5 mr-2" />, label: t("Products") },
-        { icon: <ListOrdered className="w-5 h-5 mr-2" />, label: t("Orders") },
-        { icon: <Flag className="w-5 h-5 mr-2" />, label: t("Report") },
+    { icon: <Home className="w-5 h-5 mr-2" />, label: "Home" },
+    { icon: <User className="w-5 h-5 mr-2" />, label: "Profile" },
+    { icon: <ShoppingBag className="w-5 h-5 mr-2" />, label: "Products" },
+    { icon: <ListOrdered className="w-5 h-5 mr-2" />, label: "Orders" },
+    { icon: <Flag className="w-5 h-5 mr-2" />, label: "Report" },
     ];
     return (
         <aside className="w-64 bg-white border-r flex flex-col items-center py-8 px-4">
@@ -21,7 +19,7 @@ export function AppSidebar() {
                 <AvatarImage src={"/src/assets/images/ShahLogo2.png"} alt="Navigate to Interface" onClick={() => navigator('/home')} className="cursor-pointer" />
                 <AvatarFallback>SS</AvatarFallback>
             </Avatar>
-            <div className="font-semibold text-lg mb-8">{t("Seller Dashboard")}</div>
+            <div className="font-semibold text-lg mb-8">Seller Dashboard</div>
             <nav className="w-full flex flex-col gap-2">
                 {sidebarItems.map((item, idx) => (
                     <button

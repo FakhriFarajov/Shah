@@ -169,3 +169,15 @@ export interface Address {
     postalCode: string;
     countryId: number;
 }
+
+export interface Product {
+  id: string;
+  productTitle: string;
+  mainImage: string | null;
+  storeName: string;
+  price: number;
+  discountPrice: number | null;
+  categoryName: string;
+  categoryChain: string[];
+  reviewsCount: number;
+}

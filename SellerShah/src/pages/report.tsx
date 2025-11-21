@@ -1,7 +1,6 @@
 import Navbar from "../components/custom/Navbar/navbar";
 import Footer from "../components/custom/footer";
 import { AppSidebar } from "@/components/custom/sidebar";
-import { useState } from "react";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 
 const faqs = [
@@ -24,17 +23,6 @@ const faqs = [
 
 
 export default function ReportPage() {
-  const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
-  const [sent, setSent] = useState(false);
-
-  const handleSend = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSent(true);
-    setEmail("");
-    setMessage("");
-    // Here you would send the email to support
-  };
 
   return (
     <>
@@ -49,7 +37,7 @@ export default function ReportPage() {
               <h2 className="text-xl font-semibold mb-4 text-indigo-700">FAQs</h2>
               <div className="space-y-4">
                 <Accordion type="single" collapsible className="w-full">
-                  {faqs.map((faq, idx) => (
+                  {faqs.map((faq) => (
                     <AccordionItem key={faq.id} value={faq.id}>
                       <AccordionTrigger className="transition-opacity duration-200 hover:no-underline hover:opacity-60 focus:outline-none focus:ring-2 focus:ring-indigo-400 rounded-lg">
                         <div className="font-semibold text-indigo-800 mb-1">

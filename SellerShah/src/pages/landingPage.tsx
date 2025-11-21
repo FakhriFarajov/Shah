@@ -9,7 +9,6 @@ function useCountUp(target: number, duration = 1000, decimals = 0) {
     const [count, setCount] = useState(0);
     const startTimestamp = useRef<number | null>(null);
 
-
     //Effect to handle the counting animation
     useEffect(() => {
         function step(timestamp: number) {
@@ -83,7 +82,7 @@ export default function LandingPage() {
                 <div className=" flex flex-col items-center z-10">
                     <div className="rounded-3xl overflow-hidden shadow-2xl w-full max-w-lg mb-6 border-4 border-[#1976d2] bg-white/80 mt-10">
                         <img
-                            src="src\assets\images\man.png"
+                            src="src/assets/images/man.png"
                             alt="Global business"
                             className="w-full h-[40rem] object-cover"
                         />
@@ -92,9 +91,9 @@ export default function LandingPage() {
                         </div>
                     </div>
                     <div className="flex -space-x-5 mt-3">
-                        {["https://randomuser.me/api/portraits/men/1.jpg", "https://randomuser.me/api/portraits/men/2.jpg", "https://randomuser.me/api/portraits/men/3.jpg", "https://randomuser.me/api/portraits/men/2.jpg", "https://randomuser.me/api/portraits/men/3.jpg"].map((i) => (
+                        {["https://randomuser.me/api/portraits/men/1.jpg", "https://randomuser.me/api/portraits/men/2.jpg", "https://randomuser.me/api/portraits/men/3.jpg", "https://randomuser.me/api/portraits/men/2.jpg", "https://randomuser.me/api/portraits/men/3.jpg"].map((i, idx) => (
                             <img
-                                key={i}
+                                key={idx}
                                 src={i}
                                 alt={`User avatar ${i}`}
                                 className="w-12 h-12 rounded-full border-2 border-white shadow-lg bg-gray-100 object-cover"
@@ -189,9 +188,8 @@ export default function LandingPage() {
                     ))}
                 </div>
             </section>
-            <div className="w-full bg-[#f5faff] py-8 flex flex-col items-center">
-                <h1 className="text-2xl font-bold text-[#19222a] mb-6 text-center bg-[#f5faff] py-4">Ready to take your business global?</h1>
-
+            <div className="w-full bg-[#f5faff] py-8 flex flex-col items-center bg-white">
+                <h1 className="text-2xl font-bold text-[#19222a] mb-6 text-center py-4">Ready to take your business global?</h1>
                 {/* Step Descriptions */}
                 <div className="flex flex-col md:flex-row gap-8 w-full max-w-4xl justify-center">
                     <FeatureSteps

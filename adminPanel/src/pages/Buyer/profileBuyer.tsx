@@ -393,16 +393,7 @@ export default function AccountPage() {
                         )}
                       </div>
                       <div>
-                        <Label>
-                          Email
-                          <span className="mt-0 mb-0">
-                            {!buyer.isEmailConfirmed && !editProfileMode && (
-                              <Button variant="link" className="ml-2 p-0">
-                                (Confirm Email)
-                              </Button>
-                            )}
-                          </span>
-                        </Label>
+                        <Label>Email</Label>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                           {!editProfileMode ? (
                             <Input type="email" value={buyer.email} disabled />

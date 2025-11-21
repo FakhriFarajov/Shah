@@ -83,7 +83,6 @@ export default function NotFound() {
                 </svg>
               </div>
             </CardContent>
-
             <div className="px-6 pb-6 sm:px-8 sm:pb-8 flex justify-between items-center">
               <div className="text-xs text-slate-400">Made with ❤ — Shah Marketplace</div>
               <div className="flex gap-2 sm:hidden">
