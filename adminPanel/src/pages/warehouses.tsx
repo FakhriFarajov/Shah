@@ -59,7 +59,6 @@ export default function WarehousesPage() {
             setTotalPages(result.totalPages || 1);
             setTotalItems(result.totalItems || 0);
         } catch (error) {
-            console.error("Failed to fetch paginated warehouses:", error);
         } finally {
             setLoading(false);
         }
@@ -98,7 +97,6 @@ export default function WarehousesPage() {
                 });
             } else {
                 toast.error(error?.message || "Failed to add warehouse");
-                console.error("Failed to add warehouse:", error);
             }
         } finally {
             setLoading(false);
@@ -108,9 +106,7 @@ export default function WarehousesPage() {
     async function handleUpdateWarehouse(id: string, payload: UpdateWarehouseRequestDTO) {
         setLoading(true);
         try {
-            console.log("UpdateWarehouseAsync called with id:", id, "payload:", payload);
             const response = await apiCallWithManualRefresh(() => UpdateWarehouseAsync(String(id), payload));
-            console.log("UpdateWarehouseAsync response:", response);
             if (response && response.isSuccess) {
                 fetchPaginatedWarehouses();
                 toast.success("Warehouse updated successfully");
@@ -140,7 +136,6 @@ export default function WarehousesPage() {
                 });
             } else {
                 toast.error(error?.message || "Failed to update warehouse");
-                console.error("Failed to update warehouse:", error);
             }
         } finally {
             setLoading(false);
@@ -153,9 +148,7 @@ export default function WarehousesPage() {
         try {
             const countriesResult = await apiCallWithManualRefresh(() => getCountries());
             setCountries(countriesResult);
-            console.log("Fetched countries:", countriesResult);
         } catch (error) {
-            console.error("Failed to fetch countries:", error);
         } finally {
             setLoading(false);
         }
@@ -199,7 +192,6 @@ export default function WarehousesPage() {
             toast.success("Warehouse deleted successfully");
         } catch (error: any) {
             toast.error(error?.message || "Failed to delete warehouse");
-            console.error("Failed to delete warehouse:", error);
         } finally {
             setLoading(false);
         }

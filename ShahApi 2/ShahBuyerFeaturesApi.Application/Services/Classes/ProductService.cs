@@ -225,131 +225,165 @@ public class ProductService : IProductService
 
     public async Task<PaginatedResult<object>> GetAllPaginatedProductsFilteredAsync(ProductFilterRequestDTO request)
     {
-        var page = request.Page <= 0 ? 1 : request.Page;
-        var pageSize = request.PageSize <= 0 ? 15 : request.PageSize;
+        int page = request.Page <= 0 ? 1 : request.Page;
+        int pageSize = request.PageSize <= 0 ? 15 : request.PageSize;
 
-        IQueryable<Product> baseQuery = _context.Products;
+        IQueryable<Product> baseQuery = _context.Products.AsNoTracking();
+        
         if (!string.IsNullOrWhiteSpace(request.CategoryId))
         {
             var categoryIds = new HashSet<string> { request.CategoryId };
+
             if (request.IncludeChildCategories)
             {
-                var all = await _context.Categories.AsNoTracking().Select(c => new { c.Id, c.ParentCategoryId }).ToListAsync();
-                foreach (var id in GetDescendantIds(request.CategoryId, all)) categoryIds.Add(id);
+                var allCats = await _context.Categories
+                    .Select(c => new { c.Id, c.ParentCategoryId })
+                    .ToListAsync();
+
+                foreach (var id in GetDescendantIds(request.CategoryId, allCats))
+                    categoryIds.Add(id);
             }
+
             baseQuery = baseQuery.Where(p => categoryIds.Contains(p.CategoryId));
         }
-
         if (request.MinPrice.HasValue || request.MaxPrice.HasValue)
         {
-            var min = request.MinPrice; var max = request.MaxPrice;
-            baseQuery = baseQuery.Where(p => p.ProductVariants.Any(v => (!min.HasValue || v.Price >= min.Value) && (!max.HasValue || v.Price <= max.Value)));
+            var min = request.MinPrice;
+            var max = request.MaxPrice;
+
+            baseQuery = baseQuery.Where(p =>
+                p.ProductVariants
+                    .Any(v =>
+                        (!min.HasValue || v.Price >= min.Value) &&
+                        (!max.HasValue || v.Price <= max.Value)
+                    )
+            );
         }
 
         if (request.ValueIds is { Count: > 0 })
         {
-            var cleaned = request.ValueIds.Where(id => !string.IsNullOrWhiteSpace(id)).Select(id => id.Trim()).Distinct().ToList();
+            var cleaned = request.ValueIds
+                .Where(id => !string.IsNullOrWhiteSpace(id))
+                .Select(id => id.Trim())
+                .Distinct()
+                .ToList();
+
             if (cleaned.Count > 0)
             {
-                var set = cleaned.ToHashSet();
-                baseQuery = baseQuery.Where(p => p.ProductVariants.Any(v => v.ProductVariantAttributeValues.Any(av => set.Contains(av.ProductAttributeValueId))));
+                // Fetch values → so we know which attribute each value belongs to
+                var values = await _context.ProductAttributeValues
+                    .Where(v => cleaned.Contains(v.Id))
+                    .Select(v => new { v.Id, v.ProductAttributeId })
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                // Group selected values by AttributeId
+                var groups = values.GroupBy(v => v.ProductAttributeId);
+
+                // For each attribute group → OR logic
+                foreach (var group in groups)
+                {
+                    var valueIdsOfThisAttribute =
+                        group.Select(v => v.Id).ToList();
+
+                    // Product must have ANY of these values for this attribute
+                    baseQuery = baseQuery.Where(p =>
+                        p.ProductVariants.Any(v =>
+                            v.ProductVariantAttributeValues
+                                .Any(av => valueIdsOfThisAttribute.Contains(av.ProductAttributeValueId))
+                        )
+                    );
+                }
             }
         }
 
-        var total = await baseQuery.CountAsync();
 
-        var query = baseQuery
-            .Include(p => p.ProductVariants).ThenInclude(v => v.Reviews)
-            .Include(p => p.ProductVariants).ThenInclude(v => v.Favorites)
-            .Include(p => p.ProductVariants).ThenInclude(v => v.CartItems)
+        int total = await baseQuery.CountAsync();
+
+        var products = await baseQuery
+            .Include(p => p.ProductVariants)
+            .ThenInclude(v => v.Reviews)
+            .Include(p => p.ProductVariants)
+            .ThenInclude(v => v.Favorites)
+            .Include(p => p.ProductVariants)
+            .ThenInclude(v => v.CartItems)
+            .Include(p => p.Category)
             .Include(p => p.StoreInfo)
-            .Include(p => p.Category).ThenInclude(c => c.ParentCategory);
-        var pageRows = await query
             .OrderBy(p => p.Id)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(p => new
-            {
-                p.Id,
-                ProductTitle = p.ProductVariants.Select(v => v.Title).FirstOrDefault(),
-                RepresentativeVariantId = p.ProductVariants.Select(v => v.Id).FirstOrDefault(),
-                Description = p.ProductVariants.Select(v => v.Description).FirstOrDefault(),
-                StoreName = p.StoreInfo.StoreName,
-                Price = p.ProductVariants.Select(v => (decimal?)v.Price).Min() ?? 0m,
-                DiscountPrice = p.ProductVariants.Select(v => (decimal?)v.DiscountPrice).Min() ?? 0m,
-                Category = p.Category,
-                ReviewsCount = p.ProductVariants.Sum(v => v.Reviews.Count),
-                AverageRating = p.ProductVariants.Sum(v => v.Reviews.Count) > 0 ? (double)p.ProductVariants.Sum(v => v.Reviews.Sum(r => r.Rating)) / p.ProductVariants.Sum(v => v.Reviews.Count) : 0.0
-            })
             .ToListAsync();
 
-        var variantIds3 = pageRows.Select(r => r.RepresentativeVariantId).Where(id => !string.IsNullOrWhiteSpace(id)).ToList();
+        var variantIds = products
+            .Select(p => p.ProductVariants.OrderBy(v => v.Price).FirstOrDefault()?.Id)
+            .Where(id => id != null)
+            .ToList();
 
-        var mains3 = new List<(string ProductVariantId, string ImageUrl)>();
-        if (variantIds3.Count > 0)
-        {
-            var rawMains3 = await _context.ProductVariantImages
-                .Where(img => img.IsMain && variantIds3.Contains(img.ProductVariantId))
-                .Select(img => new { img.ProductVariantId, img.ImageUrl })
-                .AsNoTracking()
-                .ToListAsync();
-            mains3 = rawMains3.Select(x => (x.ProductVariantId, x.ImageUrl)).ToList();
-        }
-        var mainLookup3 = mains3.GroupBy(x => x.ProductVariantId).ToDictionary(g => g.Key, g => g.Select(x => x.ImageUrl).FirstOrDefault());
+        // MAIN IMAGES
+        var mainImages = await _context.ProductVariantImages
+            .AsNoTracking()
+            .Where(i => i.IsMain && variantIds.Contains(i.ProductVariantId))
+            .ToListAsync();
 
-        // fetch all images for representative variants for the filtered paginated response
-        var imagesByVariant3 = new Dictionary<string, List<string>>();
-        if (variantIds3.Count > 0)
-        {
-            var allImgs3 = await _context.ProductVariantImages
-                .Where(img => variantIds3.Contains(img.ProductVariantId))
-                .Select(img => new { img.ProductVariantId, img.ImageUrl })
-                .AsNoTracking()
-                .ToListAsync();
-            imagesByVariant3 = allImgs3.GroupBy(x => x.ProductVariantId)
-                .ToDictionary(g => g.Key, g => g.Select(i => i.ImageUrl).ToList());
-        }
+        var allImages = await _context.ProductVariantImages
+            .AsNoTracking()
+            .Where(i => variantIds.Contains(i.ProductVariantId))
+            .ToListAsync();
 
-        var favorites3 = new HashSet<string>();
-        var cartSet3 = new HashSet<string>();
-        if (!string.IsNullOrWhiteSpace(request.UserId) && variantIds3.Count > 0)
+        var favSet = new HashSet<string>();
+        var cartSet = new HashSet<string>();
+
+        if (!string.IsNullOrWhiteSpace(request.UserId))
         {
-            var favs3 = await _context.Favorites
-                .AsNoTracking()
-                .Where(f => f.BuyerProfileId == request.UserId && variantIds3.Contains(f.ProductVariantId))
+            favSet = (await _context.Favorites
+                .Where(f => f.BuyerProfileId == request.UserId && variantIds.Contains(f.ProductVariantId))
                 .Select(f => f.ProductVariantId)
-                .ToListAsync();
-            favorites3 = favs3.ToHashSet();
+                .ToListAsync()).ToHashSet();
 
-            var carts3 = await _context.CartItems
-                .AsNoTracking()
-                .Where(ci => ci.BuyerProfileId == request.UserId && variantIds3.Contains(ci.ProductVariantId))
-                .Select(ci => ci.ProductVariantId)
-                .ToListAsync();
-            cartSet3 = carts3.ToHashSet();
-         }
+            cartSet = (await _context.CartItems
+                .Where(c => c.BuyerProfileId == request.UserId && variantIds.Contains(c.ProductVariantId))
+                .Select(c => c.ProductVariantId)
+                .ToListAsync()).ToHashSet();
+        }
 
-         var items = pageRows.Select(p => new
-         {
-             p.Id,
-             p.ProductTitle,
-             p.RepresentativeVariantId,
-             MainImage = (p.RepresentativeVariantId != null && mainLookup3.TryGetValue(p.RepresentativeVariantId, out var url3)) ? url3 : null,
-             Images = (p.RepresentativeVariantId != null && imagesByVariant3.TryGetValue(p.RepresentativeVariantId, out var imgs3)) ? imgs3 : new List<string>(),
-             p.Description,
-             p.StoreName,
-             p.Price,
-                p.DiscountPrice,
-             CategoryName = p.Category?.CategoryName,
-             CategoryChain = CategoryUtils.GetCategoryChain(p.Category),
-             p.ReviewsCount,
-             p.AverageRating,
-             IsFavorite = (p.RepresentativeVariantId != null && favorites3.Contains(p.RepresentativeVariantId)),
-             IsInCart = (p.RepresentativeVariantId != null && cartSet3.Contains(p.RepresentativeVariantId))
-         }).Cast<object>().ToList();
+        var items = products.Select(p =>
+        {
+            var repVariant = p.ProductVariants.OrderBy(v => v.Price).FirstOrDefault();
+            var repId = repVariant?.Id;
 
-         return PaginatedResult<object>.Success(items, total, page, pageSize);
-     }
+            return new
+            {
+                p.Id,
+                ProductTitle = repVariant?.Title,
+                RepresentativeVariantId = repId,
+                Description = repVariant?.Description,
+                StoreName = p.StoreInfo.StoreName,
+
+                Price = p.ProductVariants.Min(v => v.Price),
+                DiscountPrice = p.ProductVariants.Min(v => v.DiscountPrice),
+
+                CategoryName = p.Category?.CategoryName,
+                CategoryChain = CategoryUtils.GetCategoryChain(p.Category),
+
+                ReviewsCount = p.ProductVariants.Sum(v => v.Reviews.Count),
+                AverageRating =
+                    p.ProductVariants.SelectMany(v => v.Reviews).Any()
+                        ? p.ProductVariants.SelectMany(v => v.Reviews).Average(r => r.Rating)
+                        : 0,
+
+                MainImage = mainImages.FirstOrDefault(m => m.ProductVariantId == repId)?.ImageUrl,
+                Images = allImages
+                    .Where(img => img.ProductVariantId == repId)
+                    .Select(img => img.ImageUrl)
+                    .ToList(),
+
+                IsFavorite = repId != null && favSet.Contains(repId),
+                IsInCart = repId != null && cartSet.Contains(repId)
+            };
+        }).Cast<object>().ToList();
+
+        return PaginatedResult<object>.Success(items, total, page, pageSize);
+    }
 
     private static IEnumerable<string> GetDescendantIds(string rootId, IEnumerable<dynamic> flat)
     {

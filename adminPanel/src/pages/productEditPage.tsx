@@ -383,7 +383,6 @@ export default function ProductsEditOrAddPage() {
                 })
             };
             const response = await apiCallWithManualRefresh(() => syncProduct(productId, syncPayload));
-            console.log("Sync response:", response);
             toast.success("Product synced successfully!");
         } catch (error) {
             toast.error('Failed to submit product');

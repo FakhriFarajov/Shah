@@ -20,7 +20,7 @@ export default function LoginForm({
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const { login, isLoading, isAuthenticated } = useContext(AuthContext);
+  const { login, isLoading } = useContext(AuthContext);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -28,9 +28,7 @@ export default function LoginForm({
     const result = await login({ email, password })
     if (result.success) {
       toast.success(t('Successfully logged in'))
-      console.log(isAuthenticated);
       navigator("/home")
-      console.log(isAuthenticated);
     } else {
       toast.error(t('Password or email is incorrect or the account does not exist'))
     }

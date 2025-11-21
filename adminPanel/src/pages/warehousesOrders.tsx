@@ -52,7 +52,6 @@ export default function WarehousesPage() {
             setLoading(true);
             try {
                 const items = await apiCallWithManualRefresh(() => getWarehouseOrderItems(warehouseIdFromUrl, selectedOrderId));
-                console.log("Fetched order items:", items);
                 setOrderItems(items.data);
             } catch (error) {
                 toast.error("Failed to fetch order items.");

@@ -37,9 +37,7 @@ export default function AdminProfilesPage() {
         try {
             const countriesResult = await apiCallWithManualRefresh(() => getCountries());
             setCountries(countriesResult);
-            console.log("Fetched countries:", countriesResult);
         } catch (error) {
-            console.error("Failed to fetch countries:", error);
         } finally {
             setLoading(false);
         }
@@ -49,13 +47,11 @@ export default function AdminProfilesPage() {
         setLoading(true);
         try {
             const result: PaginatedResult<AdminProfileResponseDTO> = await apiCallWithManualRefresh(() => getPaginatedAdminProfiles(newPage, pageSize));
-            console.log("Fetched paginated admins:", result);
             setAdmins(result.data || []);
             setPage(result.page || newPage);
             setPageSize(result.contentPerPage || pageSize);
             setTotalPages(result.totalPages || 1);
         } catch (error) {
-            console.error("Failed to fetch paginated admins:", error);
         } finally {
             setLoading(false);
         }
@@ -95,7 +91,6 @@ export default function AdminProfilesPage() {
                 });
             } else {
                 toast.error(error?.message || "Failed to add admin profile");
-                console.error("Failed to add admin profile:", error);
             }
         } finally {
             setLoading(false);
@@ -106,7 +101,6 @@ export default function AdminProfilesPage() {
         setLoading(true);
         try {
             const response = await apiCallWithManualRefresh(() => editAdminProfile(String(id), payload));
-            console.log("Edit response:", response);
             if (response && response.isSuccess) {
                 fetchPaginatedAdmins();
                 toast.success("Admin profile updated successfully");
@@ -207,7 +201,6 @@ export default function AdminProfilesPage() {
                 token = urlToken;
             }
         }
-        console.log("Token:", token); // Debug log to check the token value
         if (!token) return;
 
         let adminProfileId = "";
@@ -222,7 +215,6 @@ export default function AdminProfilesPage() {
             toast.error("Admin profile ID not found in token");
             return;
         }
-        console.log("Decoded adminProfileId:", adminProfileId); // Debug log to check the decoded adminProfileId
         if (adminToDelete.id === adminProfileId) {
             toast.error("You cannot delete your own admin profile.");
             setDeleteConfirmOpen(false);
@@ -250,7 +242,6 @@ export default function AdminProfilesPage() {
                 });
             } else {
                 toast.error(error?.message || "Failed to delete admin profile");
-                console.error("Failed to delete admin profile:", error);
             }
         } finally {
             setLoading(false);

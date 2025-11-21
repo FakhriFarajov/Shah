@@ -47,7 +47,6 @@ export default function CategoriesPage() {
     useEffect(() => {
         async function fetchCategories() {
             const categories = await getCategoriesTree();
-            console.log("Categories fetched in page:", categories);
             setCategories(categories);
         }
 
@@ -79,7 +78,6 @@ export default function CategoriesPage() {
     async function getAttributesWithValues() {
         const categoriesWithAttributes = await getAllCategoriesWithAttributesAndValuesAsync();
         setCategories(categoriesWithAttributes);
-        console.log("Categories with attributes and values:", categoriesWithAttributes);
     }
 
     useEffect(() => {
@@ -184,7 +182,6 @@ export default function CategoriesPage() {
                     })
                 }
             ];
-            console.log("Sync payload:", payload);
             await syncCategories(payload);
             setIsOpen(false);
             toast.success("Category saved successfully");
@@ -192,7 +189,6 @@ export default function CategoriesPage() {
 
         } catch (error) {
             toast.error("Failed to save category");
-            console.error("Sync failed:", error);
 
         }
     }
@@ -207,7 +203,6 @@ export default function CategoriesPage() {
             getAttributesWithValues();
         } catch (error) {
             toast.error("Failed to delete category");
-            console.error("Delete failed:", error);
         }
     }
 

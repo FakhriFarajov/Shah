@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ShahBuyerFeaturesApi.Application")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+80e1da8ad45377b41e816ce01ec4ddad1db77dcb")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e2ac2490120639a0e926e1eadbb238b9f5bdb5e9")]
 [assembly: System.Reflection.AssemblyProductAttribute("ShahBuyerFeaturesApi.Application")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ShahBuyerFeaturesApi.Application")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -32,6 +32,15 @@ export default function ProductsEditOrAddPage() {
     const [isVerified, setIsVerified] = useState<boolean>(true); // default true for safety
     const navigator = useNavigate();
 
+    // Debug: Log categories, product, and variants to diagnose attribute/value rendering
+    const [product, setProduct] = useState<any>([]);
+    const [variants, setVariants] = useState<any[]>([]);
+    useEffect(() => {
+        console.log('DEBUG categories:', categories);
+        console.log('DEBUG product.categoryId:', product.categoryId);
+        console.log('DEBUG variants:', variants);
+    }, [categories, product, variants]);
+
     function generateGuid() {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
             var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
@@ -44,6 +53,7 @@ export default function ProductsEditOrAddPage() {
         async function fetchInitialData() {
             const cats = await getAllCategoriesWithAttributesAndValuesAsync();
             setCategories(cats);
+            console.log('Fetched categories with attributes and values:', cats);
             // Fetch seller profile to get storeInfoId
             const sellerId = getUserIdFromToken();
             if (sellerId) {
@@ -273,14 +283,48 @@ export default function ProductsEditOrAddPage() {
         setVariants((variants || []).filter((_, i: number) => i !== idx));
     }
 
-    const [product, setProduct] = useState<any>([]);
-    const [variants, setVariants] = useState<any[]>([]);
+    // ...existing code...
 
     // Allow adding variants regardless of images
     const disableAdd = false;
 
     function handleCategoryChange(categoryId: string) {
-        // Removed unused previewImages state
+        // Update product with new categoryId
+        setProduct((prev: any) => ({ ...prev, categoryId }));
+        // Find all attributes for the selected category and its parent chain
+        function getAllParentAttributes(catId: string, cats: any[]): any[] {
+            let allAttrs: any[] = [];
+            let current = cats.find(c => c.id === catId);
+            while (current) {
+                if (current.attributes) {
+                    allAttrs = [...current.attributes, ...allAttrs];
+                }
+                if (!current.parentCategoryId) break;
+                current = cats.find(c => c.id === current.parentCategoryId);
+            }
+            return allAttrs;
+        }
+        const allAttributes = categoryId ? getAllParentAttributes(categoryId, categories) : [];
+        // Create a single empty variant with all attributes (or clear variants if no category)
+        if (allAttributes.length > 0) {
+            const newId = `var${Date.now()}_${Math.random()}`;
+            const newVariant = {
+                id: newId,
+                productId: "",
+                stock: "",
+                price: "",
+                weight: "",
+                discountPrice: "",
+                title: "",
+                description: "",
+                attributeValues: allAttributes.map((attr: any) => ({ productVariantId: newId, attributeId: attr.id, attributeValueId: attr.id + "___" })),
+                images: [],
+                mainImageIdx: 0,
+            };
+            setVariants([newVariant]);
+        } else {
+            setVariants([]);
+        }
     }
     const handleSubmit = async () => {
         setLoading(true);

@@ -52,7 +52,6 @@ export default function ProductDetailsPage() {
         }
         setDetails(result.data);
       } catch (error) {
-        console.error("Failed to fetch product details:", error);
       }
     }
     fetchDetails();

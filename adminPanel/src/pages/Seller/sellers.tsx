@@ -53,7 +53,6 @@ export default function SellersPage() {
                 });
             } else {
                 toast.error(error?.message || "Failed to delete admin profile");
-                console.error("Failed to delete admin profile:", error);
             }
         } finally {
             setLoading(false);
@@ -75,12 +74,10 @@ export default function SellersPage() {
         setLoading(true);
         try {
             const result = await apiCallWithManualRefresh(() => getSellerProfile(sellerToSearchId));
-            console.log("Fetched seller profile:", result);
             setSellers(result ? [result] : []);
             setPage(1);
             setTotalPages(1);
         } catch (error) {
-            console.error("Failed to fetch seller profile:", error);
             toast.error('Failed to fetch seller profile. Please check the User ID and try again.');
         } finally {
             setLoading(false);
@@ -90,12 +87,10 @@ export default function SellersPage() {
         setLoading(true);
         try {
             const result: PaginatedResult<SellerProfileResponseDTO> = await apiCallWithManualRefresh(() => getPaginatedSellerProfiles(newPage, pageSize));
-            console.log("Fetched paginated sellers:", result);
             setSellers(result.data || []);
             setPage(result.page || newPage);
             setTotalPages(result.totalPages || 1);
         } catch (error) {
-            console.error("Failed to fetch paginated sellers:", error);
         } finally {
             setLoading(false);
         }
@@ -107,7 +102,6 @@ export default function SellersPage() {
             const countriesResult = await apiCallWithManualRefresh(() => getCountries());
             setCountries(countriesResult);
         } catch (error) {
-            console.error("Failed to fetch countries:", error);
         } finally {
             setLoading(false);
         }

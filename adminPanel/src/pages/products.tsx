@@ -24,7 +24,6 @@ interface Product {
 export default function ProductsPage() {
   const [searchParams] = useSearchParams();
   const storeId = searchParams.get("storeInfoId");
-  console.log("storeId from params:", storeId);
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [totalPages, setTotalPages] = useState(1);
@@ -43,7 +42,6 @@ export default function ProductsPage() {
       } else {
         result = await apiCallWithManualRefresh(() => GetAllPaginatedProductAsync(null, newPage, pageSize));
       }
-      console.log("Fetched products:", result);
 
       const apiItems = Array.isArray(result?.data) ? result.data : [];
 
@@ -114,7 +112,6 @@ export default function ProductsPage() {
       setTotalPages(result ? (result.totalPages ?? 1) : 1);
       setPage(result ? (result.page ?? newPage) : newPage);
     } catch (error) {
-      console.error('fetchProducts error', error);
     } finally {
       setLoading(false);
     }

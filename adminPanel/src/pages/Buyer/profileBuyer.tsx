@@ -11,7 +11,6 @@ import ImageCropper from "@/components/ui/image-crop"; // Import the ImageCroppe
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { MdAccountCircle } from "react-icons/md";
 import { toast } from "sonner";
-import { useTranslation } from "react-i18next";
 import { uploadImage, getProfileImage } from "@/shared/utils/imagePost";
 import { forgotPassword } from "@/features/account/services/register.service";
 import { getCountries } from "@/features/profile/Country/country.service";
@@ -26,7 +25,6 @@ export default function AccountPage() {
   const buyerIdFromUrl = searchParams.get("buyerId");
   const [countryCode, setCountryCode] = useState<number | "">("");
   const [addressCountryCode, setAddressCountryCode] = useState<number | "">("");
-  const { t } = useTranslation();
   const [editProfileMode, setEditProfileMode] = useState(false);
   const [editAddressMode, setEditAddressMode] = useState(false);
   const [cropperOpen, setCropperOpen] = useState(false); // State to control cropper dialog
@@ -71,9 +69,7 @@ export default function AccountPage() {
     try {
       const countriesResult = await apiCallWithManualRefresh(() => getCountries());
       setCountries(countriesResult);
-      console.log("Fetched countries:", countriesResult);
     } catch (error) {
-      console.error("Failed to fetch countries:", error);
     } finally {
       setLoading(false);
     }
@@ -86,7 +82,6 @@ export default function AccountPage() {
       setLoading(true);
       try {
         const result = await apiCallWithManualRefresh(() => getBuyerProfile(buyerIdFromUrl));
-        console.log("Profile response:", result);
         const buyerData = result;
         setBuyer(buyerData);
         // Check if email is confirmed
@@ -94,7 +89,6 @@ export default function AccountPage() {
           toast.info("The buyer's email is not confirmed.");
         }
       } catch (error) {
-        console.error("Failed to fetch buyer profile:", error);
         extractApiErrors(error).forEach(msg => toast.error(msg));
       }
       try {
@@ -118,7 +112,6 @@ export default function AccountPage() {
     setAdding(true);
     try {
       const payload = { ...newAddress, buyerId: buyerIdFromUrl };
-      console.log("Add Address payload:", payload);
       const result = await apiCallWithManualRefresh(() => addAddress(payload));
       if (result && result.isSuccess) {
         setAddress(payload);
@@ -160,7 +153,6 @@ export default function AccountPage() {
     };
 
 
-    console.log("Edit Address payload:", payload);
     await editAddress(payload)
       .then(() => {
         toast.success("Address updated successfully");
@@ -196,13 +188,11 @@ export default function AccountPage() {
         toast.error("Confirm password cannot be empty");
         return;
       }
-      console.log(requestData);
       var result = await apiCallWithManualRefresh(() => forgotPassword(requestData));
       if (result.isSuccess) {
         toast.success("Password changed successfully");
         setShowPasswordModal(false);
       } else {
-        console.log("Password change failed:", result.message);
         toast.error(result.message || "Failed to change password");
       }
     } catch (error: any) {
@@ -240,7 +230,6 @@ export default function AccountPage() {
       const result = await apiCallWithManualRefresh(() => editBuyerProfile(buyer.id, payload));
       if (!result || !result.isSuccess) {
         toast.error(result.message || 'Profile update failed. Please check your details.');
-        console.error("Profile update error:", result);
         setLoading(false);
         return;
       }
@@ -301,7 +290,7 @@ export default function AccountPage() {
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center justify-between gap-4">
                       <Button onClick={() => navigator(-1)} className="text-sm text-indigo-600 bg-transparent hover:text-indigo-500 hover:bg-indigo-100">← Back</Button>
-                      {t('Profile & Addresses')}
+                      {('Profile & Addresses')}
                     </div>
                   </div>
                 </CardTitle>
@@ -457,7 +446,7 @@ export default function AccountPage() {
                               required
                               className="border rounded px-2 py-1"
                             >
-                              <option value="">{t("Select country")}</option>
+                              <option value="">{("Select country")}</option>
                               {countries.map((country) => (
                                 <option key={country.id} value={country.id}>
                                   {country.name}
@@ -570,7 +559,7 @@ export default function AccountPage() {
                                 required
                                 className="border rounded px-2 py-1"
                               >
-                                <option value="">{t("Select country")}</option>
+                                <option value="">{("Select country")}</option>
                                 {countries.map((country) => (
                                   <option key={country.id} value={country.id}>
                                     {country.name}
@@ -677,7 +666,7 @@ export default function AccountPage() {
                               required
                               className="w-full border rounded px-2 py-1"
                             >
-                              <option value="">{t("Select country")}</option>
+                              <option value="">{("Select country")}</option>
                               {countries.map((country) => (
                                 <option key={country.id} value={country.id}>
                                   {country.name}
@@ -731,7 +720,7 @@ export default function AccountPage() {
                       type="button"
                       className="absolute right-2 top-2 text-gray-500"
                       onClick={() => setShowCurrentPassword((v) => !v)}
-                      aria-label={showCurrentPassword ? t("Hide password") : t("Show password")}
+                      aria-label={showCurrentPassword ? ("Hide password") : ("Show password")}
                     >
                       {showCurrentPassword ? (
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z" /><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" /></svg>
@@ -750,7 +739,7 @@ export default function AccountPage() {
                       className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
                       onClick={() => setShowNewPassword((v) => !v)}
                       tabIndex={-1}
-                      aria-label={showNewPassword ? t("Hide password") : t("Show password")}
+                      aria-label={showNewPassword ? ("Hide password") : ("Show password")}
                     >
                       {showNewPassword ? (
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z" /><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" /></svg>
@@ -769,7 +758,7 @@ export default function AccountPage() {
                       className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
                       onClick={() => setShowConfirmPassword((v) => !v)}
                       tabIndex={-1}
-                      aria-label={showConfirmPassword ? t("Hide password") : t("Show password")}
+                      aria-label={showConfirmPassword ? ("Hide password") : ("Show password")}
                     >
                       {showConfirmPassword ? (
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z" /><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" /></svg>

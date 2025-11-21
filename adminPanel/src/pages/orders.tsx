@@ -59,9 +59,6 @@ export default function OrdersPage() {
 
 
   const handleSendToWarehouse = async () => {
-    console.log("Selected Warehouse:", selectedWarehouse);
-    console.log("Pending Order Item ID:", pendingOrderId);
-    console.log("Selected Order Item IDs:", selectedOrderItemIds);
     if (pendingOrderItemId && selectedWarehouse && selectedOrderItemIds.length > 0) {
       try {
         await apiCallWithManualRefresh(() =>
@@ -76,7 +73,6 @@ export default function OrdersPage() {
         setSelectedOrderItemIds([]);
         toast.success("Order items assigned to warehouse");
       } catch (err) {
-        console.log("Error assigning order items to warehouse:", err);
         toast.error("Failed to assign order items to warehouse");
       }
     } else {
@@ -89,7 +85,6 @@ export default function OrdersPage() {
     try {
       const res = await apiCallWithManualRefresh(() => getByUserId(userIdFilter || "", page, pageSize));
       const data = Array.isArray(res?.data) ? res.data : [];
-      console.log("Fetched orders data:", data);
       setTotalPages(res?.totalPages || 1);
       // Resolve images for each order's items
       const ordersWithImages = await Promise.all(
@@ -131,9 +126,7 @@ export default function OrdersPage() {
       try {
         // Pass page and pageSize to getOrders
         const res = await apiCallWithManualRefresh(() => getOrderId(page));
-        console.log("API response:", res);
         const data = Array.isArray(res?.data) ? res.data : [];
-        console.log("Fetched orders data:", data);
         setTotalPages(res?.totalPages || 1);
         // Resolve images for each order's items
         const ordersWithImages = await Promise.all(
@@ -200,7 +193,6 @@ export default function OrdersPage() {
             item.id === itemId ? { ...item, status: newStatus } : item
           )
         })));
-        console.log("Order item status updated:", itemId, newStatus);
         toast.success("Order item status updated");
       } catch (err) {
         toast.error("Failed to update item status");

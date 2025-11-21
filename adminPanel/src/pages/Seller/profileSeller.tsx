@@ -57,7 +57,6 @@ export default function ProfileSeller() {
                 : [];
             setCountries(normalizedCountries);
         } catch (err) {
-            console.error("Failed to fetch countries", err);
         }
     }
 
@@ -69,22 +68,18 @@ export default function ProfileSeller() {
                 : [];
             setCategories(normalizedCategories);
         } catch (err) {
-            console.error("Failed to fetch categories", err);
         }
     }
 
     async function fetchSellerProfile() {
         try {
-            console.log("Fetching seller profile for ID:", sellerIdFromUrl);
             const profile = await apiCallWithManualRefresh(() => getSellerProfile(sellerIdFromUrl));
             setIsVerified(profile?.isVerified || false);
-            console.log("Fetched seller profile:", profile);
             if (!profile) {
                 setSeller(null);
                 toast.error("Failed to fetch profile: No data returned.");
                 return;
             }
-            console.log("Fetched seller profile:", profile);
             setSeller(profile);
             setEditedTaxId(profile.taxId || "");
             setEditedTaxNumber(profile.taxNumber || "");
@@ -92,7 +87,6 @@ export default function ProfileSeller() {
                 toast.info("Your email is not confirmed. Please check your inbox.");
             }
         } catch (err) {
-            console.error("Failed to fetch seller profile", err);
             toast.error("Failed to fetch seller profile.");
         }
     }
@@ -163,7 +157,6 @@ export default function ProfileSeller() {
                 navigator("/login");
                 return;
             }
-            console.log("Saving profile with payload:", payload);
             const result = await apiCallWithManualRefresh(() => editSellerProfile(sellerIdFromUrl, payload));
             if (!result || !result.isSuccess) {
                 toast.error(result?.message || "Profile update failed. Please check your details.");
@@ -175,7 +168,6 @@ export default function ProfileSeller() {
             else setSeller({ ...seller, ...payload });
             setEditMode(false);
         } catch (error: any) {
-            console.error("Save profile failed", error);
             if (error?.response?.data) {
                 const data = error.response.data;
                 if (data.errors && typeof data.errors === "object") {
@@ -208,13 +200,11 @@ export default function ProfileSeller() {
                                 : [];
                             setTaxes(normalizedTaxes);
                         } catch (err) {
-                            console.error("Failed to fetch taxes", err);
                         }
                     })(),
                     fetchSellerProfile()
                 ]);
             } catch (err) {
-                console.error("Init load failed", err);
                 toast.error("Failed to load profile data.");
             } finally {
                 setLoading(false);
@@ -235,7 +225,6 @@ export default function ProfileSeller() {
             setCropperOpen(false);
             toast.success("Cropped image ready to save. Click Save to upload.");
         } catch (err) {
-            console.error("Crop failed", err);
             toast.error("Failed to process cropped image");
         }
     };

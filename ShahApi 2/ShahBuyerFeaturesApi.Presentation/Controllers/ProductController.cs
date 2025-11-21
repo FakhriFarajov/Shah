@@ -70,17 +70,7 @@ namespace ShahBuyerFeaturesApi.Presentation.Controllers
             var result = await _productService.GetVariantByAttributesAsync(productId, attributeValueIds, claimUserId);
             return Ok(result);
         }
-
-        [HttpGet("search")]
-        public async Task<IActionResult> SearchProductsByName([FromQuery] string title)
-        {
-            if (string.IsNullOrWhiteSpace(title))
-                return BadRequest("Product name is required");
-            var claimUserId = User.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
-            var result = await _productService.SearchProductsByTitleAsync(title, 1, 20, claimUserId);
-            return Ok(result);
-        }
-
+        
         [HttpGet("search-by-title")]
         public async Task<IActionResult> SearchProductsByTitle([FromQuery] string title, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
