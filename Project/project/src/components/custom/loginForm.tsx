@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState } from "react"
-import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { useNavigate } from "react-router-dom"
 import { useContext } from "react";
@@ -15,7 +14,6 @@ export default function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const { t } = useTranslation()
   const navigator = useNavigate()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -29,9 +27,9 @@ export default function LoginForm({
     const result = await login({ email, password })
     if (result.success) {
       navigator("/main") //take the userInfo from the localStorage or claims in the token
-      toast.success(t('Successfully logged in'))
+      toast.success(('Successfully logged in'))
     } else {
-      toast.error(t('Password or email is incorrect or the account does not exist'))
+      toast.error(('Password or email is incorrect or the account does not exist'))
     }
   }
 
@@ -48,35 +46,35 @@ export default function LoginForm({
                 <img
                   src="\src\assets\images\ShahLogo2.png"
                   className="w-50 h-50"
-                  alt={t("Company Logo")}
+                  alt={("Company Logo")}
                 />
               </div>
             </a>
-            <h1 className="text-xl font-bold">{t('Welcome to Shah.')}</h1>
+            <h1 className="text-xl font-bold">{("Welcome to Shah.")}</h1>
             <div className="text-center text-sm">
-              {t("Don't have an account?")}{" "}
+              {("Don't have an account?")}{" "}
               <a href="/reg" className="underline underline-offset-4">
-                {t('Sign up')}
+                {("Sign up")}
               </a>
             </div>
           </div>
           <div className="flex flex-col gap-6">
             <div className="grid gap-3">
-              <Label htmlFor="email">{t('Email')}</Label>
+              <Label htmlFor="email">{('Email')}</Label>
               <div className="relative">
                 <Input
                   id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder={t('m@example.com')}
+                  placeholder={('m@example.com')}
                   required
                 />
                 <UserRound className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500" />
               </div>
             </div>
             <div className="grid gap-3">
-              <Label htmlFor="password">{t('Password')}</Label>
+              <Label htmlFor="password">{('Password')}</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -91,7 +89,7 @@ export default function LoginForm({
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
                   onClick={() => setShowPassword((v) => !v)}
                   tabIndex={-1}
-                  aria-label={showPassword ? t("Hide password") : t("Show password")}
+                  aria-label={showPassword ? ("Hide password") : ("Show password")}
                 >
                   {showPassword ? (
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z" /><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" /></svg>
@@ -107,28 +105,15 @@ export default function LoginForm({
               className="w-full bg-gray-800 hover:bg-gray-700 text-white hover:text-gray-100"
               disabled={isLoading}
             >
-              {isLoading ? "Loading..." : t('Login')}
-            </Button>
-          </div>
-          <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
-            <span className="bg-background text-muted-foreground relative z-10 px-2">
-              {t('Or')}
-            </span>
-          </div>
-          <div className="grid gap-4 ">
-            <Button variant="outline" type="button" className="w-full">
-              <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100" viewBox="0 0 48 48">
-                <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path>
-              </svg>
-              {t('Continue with Google')}
+              {isLoading ? "Loading..." : ('Login')}
             </Button>
           </div>
         </div>
       </form>
       <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
-        {t('By clicking continue, you agree to our')} {" "}
-        <a href="#">{t('Terms of Service')}</a> {t('and')} {" "}
-        <a href="#">{t('Privacy Policy')}</a>.
+        {('By clicking continue, you agree to our')} {" "}
+        <a href="#">{('Terms of Service')}</a> {('and')} {" "}
+        <a href="#">{('Privacy Policy')}</a>.
       </div>
     </div>
   )

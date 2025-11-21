@@ -7,10 +7,10 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
-import { getFavouritesByUserId } from "@/features/profile/product/profile.service";
+import { getFavouritesByUserId } from "@/features/services/product/products.service";
 import { toast } from "sonner";
 import { getImage } from "@/shared/utils/imagePost";
-import Spinner from "@/components/custom/Spinner";
+import Spinner from "@/components/custom/spinner";
 
 
 export default function FavouritesPage() {

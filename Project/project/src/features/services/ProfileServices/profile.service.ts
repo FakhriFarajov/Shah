@@ -1,5 +1,5 @@
 import { authHttp } from "./httpClient";
-import type { BuyerProfileResponseDTO, EditBuyerRequestDTO } from "@/features/profile/DTOs/interfaces";
+import type { BuyerProfileResponseDTO, EditBuyerRequestDTO } from "@/features/profile/DTOs/profile.interfaces";
 
 
 // Buyer profile

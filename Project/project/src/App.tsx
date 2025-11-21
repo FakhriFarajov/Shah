@@ -3,7 +3,6 @@ import Main from './pages/mainPage';
 import LoginForm from './pages/login';
 import RegForm from './pages/register';
 import Cart from './pages/cartPage';
-import "./i18n";
 import ProductPage from './pages/ProductPage';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import CategoryPage from './pages/categoriesPage';

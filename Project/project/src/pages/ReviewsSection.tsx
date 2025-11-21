@@ -4,11 +4,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import React, { useEffect, useState } from "react";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
-import { getBuyerReviews } from "@/features/profile/ Reviews/Reviews.service";
-import { deleteReview as deleteReviewApi, editReview as editReviewApi } from "@/features/profile/ Reviews/Reviews.service";
+import { getBuyerReviews } from "@/features/services/ Reviews/Reviews.service";
+import { deleteReview as deleteReviewApi, editReview as editReviewApi } from "@/features/services/ Reviews/Reviews.service";
 import { getImage, uploadImage } from "@/shared/utils/imagePost";
 import { ImageZoom } from "@/components/ui/shadcn-io/image-zoom";
-import type { Review, ReviewsSectionProps } from "@/features/profile/DTOs/interfaces";
+import type { Review, ReviewsSectionProps } from "@/features/services/DTOs/interfaces";
 
 const ReviewsSection: React.FC<ReviewsSectionProps> = (props) => {
   const {

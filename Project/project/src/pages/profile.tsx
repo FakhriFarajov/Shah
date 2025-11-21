@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { getBuyerProfile } from "@/features/profile/ProfileServices/profile.service";
-import { getBuyerAddress, addAddress, editAddress } from "@/features/profile/addressService/address.service";
+import { getBuyerProfile } from "@/features/services/ProfileServices/profile.service";
+import { getBuyerAddress, addAddress, editAddress } from "@/features/services/addressService/address.service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FaCircleQuestion } from "react-icons/fa6";
 import { extractApiErrors } from "@/shared/utils/errorExtract";
@@ -20,16 +20,15 @@ import { FaStar } from "react-icons/fa";
 import { tokenStorage } from "@/shared";
 import { jwtDecode } from "jwt-decode";
 import { toast } from "sonner";
-import { useTranslation } from "react-i18next";
-import { editBuyerProfile } from "@/features/profile/ProfileServices/profile.service";
+import { editBuyerProfile } from "@/features/services/ProfileServices/profile.service";
 import { uploadImage, getImage } from "@/shared/utils/imagePost";
 import { confirmEmail, forgotPassword } from "@/features/account/services/register.service";
 import { faqs } from "@/static_data/faq"; //Import FAQ data
-import { getCountries } from "@/features/profile/Country/country.service";
-import Spinner from "@/components/custom/Spinner";
+import { getCountries } from "@/features/services/Country/country.service";
+import Spinner from "@/components/custom/spinner";
 import OrdersSection from "./OrdersSection";
 import { apiCallWithManualRefresh } from '@/shared/apiWithManualRefresh';
-import { Navigate, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 
 
 export default function AccountPage() {
@@ -37,7 +36,6 @@ export default function AccountPage() {
   const [editedReview, setEditedReview] = useState<{ comment: string; rating: number }>({ comment: '', rating: 5 });
   const [countryCode, setCountryCode] = useState<number | "">("");
   const [addressCountryCode, setAddressCountryCode] = useState<number | "">("");
-  const { t } = useTranslation();
   const [editProfileMode, setEditProfileMode] = useState(false);
   const [editAddressMode, setEditAddressMode] = useState(false);
   const [cropperOpen, setCropperOpen] = useState(false); // State to control cropper dialog
@@ -470,9 +468,9 @@ export default function AccountPage() {
                         <Label>
                           Email
                           {!buyer.isEmailConfirmed && !editProfileMode && (
-                            <Button variant="link" className="ml-2 p-0" onClick={handleConfirmEmail}>
+                            <Label className="ml-2 p-0" onClick={handleConfirmEmail}>
                               (Confirm Email)
-                            </Button>
+                            </Label>
                           )}
                         </Label>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -538,7 +536,7 @@ export default function AccountPage() {
                               required
                               className="border rounded px-2 py-1"
                             >
-                              <option value="">{t("Select country")}</option>
+                              <option value="">{"Select country"}</option>
                               {countries.map((country) => (
                                 <option key={country.id} value={country.id}>
                                   {country.name}
@@ -651,7 +649,7 @@ export default function AccountPage() {
                                 required
                                 className="border rounded px-2 py-1"
                               >
-                                <option value="">{t("Select country")}</option>
+                                <option value="">{("Select country")}</option>
                                 {countries.map((country) => (
                                   <option key={country.id} value={country.id}>
                                     {country.name}
@@ -758,7 +756,7 @@ export default function AccountPage() {
                               required
                               className="w-full border rounded px-2 py-1"
                             >
-                              <option value="">{t("Select country")}</option>
+                              <option value="">{("Select country")}</option>
                               {countries.map((country) => (
                                 <option key={country.id} value={country.id}>
                                   {country.name}
@@ -802,7 +800,7 @@ export default function AccountPage() {
             />
           )}
           {activePage === "notifications" && (
-            <NotificationsSection history={history} />
+            <NotificationsSection />
           )}
           {activePage === "reviews" && (
             <ReviewsSection
@@ -834,7 +832,7 @@ export default function AccountPage() {
                       type="button"
                       className="absolute right-2 top-2 text-gray-500"
                       onClick={() => setShowCurrentPassword((v) => !v)}
-                      aria-label={showCurrentPassword ? t("Hide password") : t("Show password")}
+                      aria-label={showCurrentPassword ? ("Hide password") : ("Show password")}
                     >
                       {showCurrentPassword ? (
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z" /><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" /></svg>
@@ -853,7 +851,7 @@ export default function AccountPage() {
                       className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
                       onClick={() => setShowNewPassword((v) => !v)}
                       tabIndex={-1}
-                      aria-label={showNewPassword ? t("Hide password") : t("Show password")}
+                      aria-label={showNewPassword ? ("Hide password") : ("Show password")}
                     >
                       {showNewPassword ? (
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z" /><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" /></svg>
@@ -872,7 +870,7 @@ export default function AccountPage() {
                       className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
                       onClick={() => setShowConfirmPassword((v) => !v)}
                       tabIndex={-1}
-                      aria-label={showConfirmPassword ? t("Hide password") : t("Show password")}
+                      aria-label={showConfirmPassword ? ("Hide password") : ("Show password")}
                     >
                       {showConfirmPassword ? (
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z" /><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" /></svg>

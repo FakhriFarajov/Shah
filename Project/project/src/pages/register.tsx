@@ -1,4 +1,4 @@
-import RegForm from "@/components/custom/reg-form";
+import RegForm from "@/components/custom/regForm";
 
 export default function register() {
     return (

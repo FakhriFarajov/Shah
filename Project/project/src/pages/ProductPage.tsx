@@ -9,16 +9,16 @@ import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from "react-i18next";
 import { toast } from 'sonner';
 import { apiCallWithManualRefresh } from '@/shared/apiWithManualRefresh';
-import { addToCart, addToFavourites, getProductDetailsById, removeFromCart, removeFromFavourites, addReview, getReviewsByProductVariantId, editReview } from '@/features/profile/product/profile.service';
+import { addToCart, addToFavourites, getProductDetailsById, removeFromCart, removeFromFavourites, addReview, getReviewsByProductVariantId, editReview } from '@/features/services/product/products.service';
 import { tokenStorage } from '@/shared/tokenStorage';
 import { decodeUserFromToken } from '@/shared/utils/decodeToken';
-import { getRandomPaginated } from '@/features/profile/product/profile.service';
+import { getRandomPaginated } from '@/features/services/product/products.service';
 import { jwtDecode } from 'jwt-decode';
 import { uploadImage } from '@/shared/utils/imagePost';
 import { getImage } from '@/shared/utils/imagePost';
 import ProductCard from "@/components/custom/itemCard";
 import { useNavigate } from 'react-router-dom';
-import Spinner from '@/components/custom/Spinner';
+import Spinner from '@/components/custom/spinner';
 import { ImageZoom } from '@/components/ui/shadcn-io/image-zoom';
 
 

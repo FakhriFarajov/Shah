@@ -1,11 +1,11 @@
 import React, { useEffect } from "react";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
-import { getOrderDetails, getOrders } from "@/features/profile/Order/Order.service";
+import { getOrderDetails, getOrders } from "@/features/services/Order/Order.service";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
 import { getImage } from "@/shared/utils/imagePost";
 import { toast } from "sonner";
-import Spinner from "@/components/custom/Spinner";
-import type { OrderItem, OrderData, OrdersSectionProps } from "@/features/profile/DTOs/interfaces";
+import Spinner from "@/components/custom/spinner";
+import type { OrderItem, OrderData, OrdersSectionProps } from "@/features/services/DTOs/interfaces";
 
 
 

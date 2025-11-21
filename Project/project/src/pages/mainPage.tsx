@@ -3,16 +3,15 @@ import Carousel from "@/components/custom/carousel";
 import Footer from "@/components/custom/footer"
 import { Label } from "@/components/ui/label";
 import ProductCard from "@/components/custom/itemCard";
-import "../i18n"; // Import i18n configuration
 import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
-import { getRandomPaginated } from "@/features/profile/product/profile.service";
+import { getRandomPaginated } from "@/features/services/product/products.service";
 import { getImage } from "@/shared/utils/imagePost";
 import { decodeUserFromToken } from "@/shared/utils/decodeToken";
 import { tokenStorage } from "@/shared/tokenStorage";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
-import Spinner from "@/components/custom/Spinner";
-import { getProductDetailsById } from "@/features/profile/product/profile.service";
+import Spinner from "@/components/custom/spinner";
+import { getProductDetailsById } from "@/features/services/product/products.service";
 import { toast } from "sonner";
 
 // Type for subcategory filter
@@ -120,7 +119,6 @@ export default function Main() {
                                     element.mainImage = "https://via.placeholder.com/300x200";
                                 }
                             } catch (error) {
-                                console.warn("Error resolving product image:", error);
                                 element.mainImage = "https://via.placeholder.com/300x200";
                             }
                         })
@@ -161,7 +159,6 @@ export default function Main() {
                             <div className="col-span-full text-center p-8 text-gray-600">{t('No products found')}</div>
                         ) : (
                             products.map((product: any) => (
-                                console.log("Rendering product:", product),
                                 <ProductCard key={product.id || product.representativeVariantId} product={product} />
                             ))
                         )}

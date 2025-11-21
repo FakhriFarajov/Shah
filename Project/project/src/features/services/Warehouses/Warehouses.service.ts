@@ -1,5 +1,5 @@
 import { authHttp } from "./httpClient";
-import type { PaginatedResult, Warehouse, Order } from "../DTOs/interfaces";
+import type { PaginatedResult, Warehouse, Order } from "../DTOs/profile.interfaces";
 
 
 

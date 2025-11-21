@@ -1,16 +1,15 @@
 import { useEffect, useState } from "react";
-import { t } from "i18next";
 import { Button } from "@/components/ui/button";
 import NavBar from "@/components/custom/Navbar/navbar";
 import Footer from "@/components/custom/footer";
 import { BsCart3 } from "react-icons/bs";
-import CartItem from "@/components/custom/CartItem";
+import CartItem from "@/components/custom/cartItem";
 import { useNavigate } from "react-router-dom";
-import { getCartItems } from "@/features/profile/product/profile.service";
+import { getCartItems } from "@/features/services/product/products.service";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
 import { getImage } from "@/shared/utils/imagePost";
 import { toast } from "sonner";
-import Spinner from "@/components/custom/Spinner";
+import Spinner from "@/components/custom/spinner";
 
 export default function Cart() {
     const navigate = useNavigate();
@@ -86,7 +85,7 @@ export default function Cart() {
             }
             catch (error) {
                 navigate('/login');
-                toast.info(t('You have to login in order to view your cart'));
+                toast.info('You have to login in order to view your cart');
                 setLoading(false);
             }
 
@@ -127,9 +126,9 @@ export default function Cart() {
     const handleProceedToCheckout = () => {
         if (!canCheckout) {
             if (cartItems.length === 0) {
-                toast.info(t('Your cart is empty'));
+                toast.info('Your cart is empty');
             } else {
-                toast.error(t('Some items are out of stock or exceed available quantity. Please adjust your cart.'));
+                toast.error('Some items are out of stock or exceed available quantity. Please adjust your cart.');
             }
             return;
         }
@@ -147,7 +146,7 @@ export default function Cart() {
             }
             <NavBar />
             <div className="container mx-auto px-2 sm:px-4 py-4 min-h-screen">
-                <h1 className="text-2xl font-bold mb-4 sm:mb-6">{t('Your Cart')}</h1>
+                <h1 className="text-2xl font-bold mb-4 sm:mb-6">{'Your Cart'}</h1>
                 {/* Mobile: stack summary below items, desktop: side-by-side */}
                 <div className="flex flex-col-reverse md:flex-row gap-4 md:gap-8">
                     {/* Cart Items */}
@@ -162,18 +161,18 @@ export default function Cart() {
                         ) : (
                             <div className="flex flex-col items-center justify-center h-64">
                                 <BsCart3 className="text-6xl" />
-                                <h2 className="text-xl font-semibold mb-4 mt-12">{t('No items in your cart')}</h2>
+                                <h2 className="text-xl font-semibold mb-4 mt-12">{'No items in your cart'}</h2>
                                 <Button className="py-2 px-4 rounded-lg" variant="outline" onClick={() => navigate('/main')}>
-                                    {t('Go shopping!')}
+                                    {'Go shopping!'}
                                 </Button>
                             </div>
                         )}
                     </div>
                     {/* Cart Summary */}
                     <div className="w-full md:w-96 bg-white rounded-lg shadow-md p-4 sm:p-6 h-fit">
-                        <h2 className="text-xl font-bold mb-4">{t('Your cart')}</h2>
+                        <h2 className="text-xl font-bold mb-4">{'Your cart'}</h2>
                         <div className="mb-2 flex justify-between text-base sm:text-lg">
-                            <span>{t('Products')} ({cartItems.length})</span>
+                            <span>{'Products'} ({cartItems.length})</span>
                             <span className="font-semibold">
                                 {cartItems.reduce((sum: number, item: any) => {
                                     const v = item.productVariant ?? item.variant ?? null;
@@ -184,7 +183,7 @@ export default function Cart() {
                             </span>
                         </div>
                         <div className="mb-2 flex justify-between text-red-500 text-base sm:text-lg">
-                            <span>{t('Discount')}</span>
+                            <span>{'Discount'}</span>
                             <span>
                                 -{cartItems.reduce((sum: number, item: any) => {
                                     const v = item.productVariant ?? item.variant ?? null;
@@ -195,7 +194,7 @@ export default function Cart() {
                             </span>
                         </div>
                         <div className="mb-4 flex justify-between font-bold text-lg">
-                            <span>{t('Total cost')}</span>
+                            <span>{'Total cost'}</span>
                             <span>
                                 {cartItems.reduce((sum: number, item: any) => {
                                     const v = item.productVariant ?? item.variant ?? null;
@@ -206,7 +205,7 @@ export default function Cart() {
                         </div>
                         {invalidItems.length > 0 && (
                             <div className="mb-3 text-sm text-red-600">
-                                {t('Some items are out of stock or exceed available quantity. Please adjust your cart.')}
+                                {'Some items are out of stock or exceed available quantity. Please adjust your cart.'}
                             </div>
                         )}
                         <Button
@@ -214,7 +213,7 @@ export default function Cart() {
                             onClick={handleProceedToCheckout}
                             disabled={!canCheckout}
                         >
-                            {t('Proceed to checkout')}
+                            {'Proceed to checkout'}
                         </Button>
                     </div>
                 </div>

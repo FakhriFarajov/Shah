@@ -3,11 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { useEffect, useRef, useState } from "react";
-import { t } from "i18next";
 import { toast } from "sonner";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
-import { increaseQuantity, removeFromCart } from "@/features/profile/product/profile.service";
-import { decreaseQuantity } from "@/features/profile/product/profile.service";
+import { increaseQuantity, removeFromCart } from "@/features/services/product/products.service";
+import { decreaseQuantity } from "@/features/services/product/products.service";
 import { useNavigate } from "react-router-dom";
 interface CartItemProps {
   item: any;
@@ -20,7 +19,6 @@ export default function CartItem({ item }: CartItemProps) {
     quantityRef.current = quantity;
   }, [quantity]);
   const variant = item.productVariant ?? item.variant ?? null;
-  console.log("CartItem variant:", variant);
   const product = item.product ?? item.productInfo ?? null;
   const name = variant?.title ?? product?.productTitle ?? item.name ?? product?.storeName ?? 'Product';
   const price = variant?.price ?? item.price ?? 0;
@@ -29,17 +27,16 @@ export default function CartItem({ item }: CartItemProps) {
   // Try multiple places for image
   const image = variant?.images?.[0]?.imageUrl ?? item.mainImage ?? item.image ?? null;
   const attrs = variant?.attributes ?? item.attributes ?? [];
-  console.log("CartItem image URL:", variant.id);
   const navigator = useNavigate();
 
   async function handleQuantityIncrease(opts?: { silent?: boolean }) {
     try {
       if (quantityRef.current >= stock) {
-        if (!opts?.silent) toast.error(t('Cannot increase quantity. Stock limit reached.'));
+        if (!opts?.silent) toast.error('Cannot increase quantity. Stock limit reached.');
         return;
       }
       await apiCallWithManualRefresh(() => increaseQuantity(variant.id));
-      if (!opts?.silent) toast.success(t('Item quantity increased'));
+      if (!opts?.silent) toast.success('Item quantity increased');
       const next = quantityRef.current + 1;
       setQuantity(() => next);
       try {
@@ -47,19 +44,18 @@ export default function CartItem({ item }: CartItemProps) {
         window.dispatchEvent(new CustomEvent('cart:count-delta', { detail: { delta: 1 } }));
       } catch { }
     } catch (error) {
-      console.error("Failed to increase item quantity:", error);
-      if (!opts?.silent) toast.error(t('Failed to increase item quantity'));
+      if (!opts?.silent) toast.error('Failed to increase item quantity');
     }
   }
 
   async function handleQuantityDecrease(opts?: { silent?: boolean }) {
     try {
       if (quantityRef.current <= 1) {
-        if (!opts?.silent) toast.error(t('Cannot decrease quantity below 1.'));
+        if (!opts?.silent) toast.error('Cannot decrease quantity below 1.');
         return;
       }
       await apiCallWithManualRefresh(() => decreaseQuantity(variant.id));
-      if (!opts?.silent) toast.success(t('Item quantity decreased'));
+      if (!opts?.silent) toast.success('Item quantity decreased');
       const next = quantityRef.current - 1;
       setQuantity(() => next);
       try {
@@ -67,8 +63,7 @@ export default function CartItem({ item }: CartItemProps) {
         window.dispatchEvent(new CustomEvent('cart:count-delta', { detail: { delta: -1 } }));
       } catch { }
     } catch (error) {
-      console.error("Failed to decrease item quantity:", error);
-      if (!opts?.silent) toast.error(t('Failed to decrease item quantity'));
+      if (!opts?.silent) toast.error('Failed to decrease item quantity');
     }
   }
 
@@ -76,17 +71,15 @@ export default function CartItem({ item }: CartItemProps) {
   async function handleRemove(itemId: string) {
     try {
       const removedQty = quantityRef.current || 0;
-      var res = await apiCallWithManualRefresh(() => removeFromCart(itemId));
-      console.log("Item removed from cart:", res);
-      toast.success(t('Item removed from cart'));
+      await apiCallWithManualRefresh(() => removeFromCart(itemId));
+      toast.success('Item removed from cart');
       // Notify app to refresh cart lists
       try {
         window.dispatchEvent(new CustomEvent('cart:updated', { detail: { action: 'remove', itemId } }));
         if (removedQty > 0) window.dispatchEvent(new CustomEvent('cart:count-delta', { detail: { delta: -removedQty } }));
       } catch { }
     } catch (error) {
-      console.error("Failed to remove item from cart:", error);
-      toast.error(t('Failed to remove item from cart'));
+      toast.error('Failed to remove item from cart');
     }
   }
 
@@ -153,7 +146,7 @@ export default function CartItem({ item }: CartItemProps) {
       <img src={image || 'https://picsum.photos/seed/product1/400/400'} alt={name} className="w-full md:w-32 h-auto rounded-md" onClick={() => navigator(`/product?id=${product.id}&productVariantId=${variant.id}`)} />
       <CardContent className="flex flex-col flex-1 ml-4 mb-2">
         <h3 className="text-lg font-semibold flex items-center gap-2">
-          {t(name)} -
+          {(name)} -
           {typeof variant?.discountPrice === 'number' && variant.discountPrice < price ? (
             <>
               <span className="text-gray-500 line-through mr-2">${price}</span>
@@ -166,12 +159,12 @@ export default function CartItem({ item }: CartItemProps) {
             <span className="font-bold">${price}</span>
           )}
           {outOfStock && (
-            <Badge className="bg-red-100 text-red-700">{t('Out of stock')}</Badge>
+            <Badge className="bg-red-100 text-red-700">{'Out of stock'}</Badge>
           )}
         </h3>
         <div className="flex items-center gap-2 mb-2">
           <Label>
-            {t('Subtotal')}: $
+            {'Subtotal'}: $
             {typeof variant?.discountPrice === 'number' && variant.discountPrice < price
               ? (variant.discountPrice * quantity).toFixed(2)
               : (price * quantity).toFixed(2)}
@@ -187,9 +180,9 @@ export default function CartItem({ item }: CartItemProps) {
           </div>
         )}
 
-        <Label className="mb-2">{t('Quantity')}: {quantity}</Label>
-        <Label className="mb-2">{t('In Stock')}: {Math.max(0, stock)}</Label>
-        <Label className="text-red-500">{!outOfStock && stock <= 3 ? `${t('Left')} ${stock} ${t('pcs')}` : ""}</Label>
+        <Label className="mb-2">{'Quantity'}: {quantity}</Label>
+        <Label className="mb-2">{'In Stock'}: {Math.max(0, stock)}</Label>
+        <Label className="text-red-500">{!outOfStock && stock <= 3 ? `${'Left'} ${stock} ${'pcs'}` : ""}</Label>
       </CardContent>
       <CardFooter className="flex flex-col md:items-end gap-3">
         <div className="flex items-center gap-2">
@@ -217,7 +210,7 @@ export default function CartItem({ item }: CartItemProps) {
             +
           </Button>
         </div>
-        <Button variant="destructive" onClick={() => handleRemove(variant.id)}>{t('Remove')}</Button>
+        <Button variant="destructive" onClick={() => handleRemove(variant.id)}>{'Remove'}</Button>
       </CardFooter>
     </Card >
   );

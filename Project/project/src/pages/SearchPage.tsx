@@ -2,19 +2,15 @@ import NavBar from "@/components/custom/Navbar/navbar";
 import Footer from "@/components/custom/footer";
 import ProductCard from "@/components/custom/itemCard";
 import { useState, useEffect } from "react";
-import { Heart } from "lucide-react";
-import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
-import { getSearched } from "@/features/profile/product/profile.service";
+import { getSearched } from "@/features/services/product/products.service";
 import { getImage } from "@/shared/utils/imagePost";
-import Spinner from "@/components/custom/Spinner";
-import { MagnifyingGlass } from "react-loader-spinner";
+import Spinner from "@/components/custom/spinner";
 import { FaMagnifyingGlass } from "react-icons/fa6";
 
 export default function SearchPage() {
-    const { t } = useTranslation();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const query = searchParams.get('query') || '';
@@ -84,13 +80,13 @@ export default function SearchPage() {
             }
             <NavBar />
             <div className="container mx-auto px-4 py-6 min-h-screen">
-                <h1 className="text-2xl font-bold mb-6">{t('The searched')} "{searchTerm}"</h1>
+                <h1 className="text-2xl font-bold mb-6">{('The searched')} "{searchTerm}"</h1>
                 {searchResults.length === 0 ? (
                     <div className="text-center py-12">
                         <FaMagnifyingGlass className="mx-auto mb-4" size={48} />
-                        <h1 className="text-xl font-bold">{t('No products found.')}</h1>
+                        <h1 className="text-xl font-bold">{('No products found.')}</h1>
                         <Button className="py-2 px-4 mt-10 rounded-lg"  onClick={() => navigate('/main')}>
-                            {t('Go shopping!')}
+                            {('Go shopping!')}
                         </Button>
                     </div>
                 ) : (

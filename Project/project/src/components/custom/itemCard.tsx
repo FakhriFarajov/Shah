@@ -4,9 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { Star, Heart } from "lucide-react";
 import { ShoppingCart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import type { productCardDTO } from "@/features/profile/DTOs/interfaces";
+import type { productCardDTO } from "@/features/services/DTOs/interfaces";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
-import { addToCart, addToFavourites, removeFromCart, removeFromFavourites, getProductDetailsById } from "@/features/profile/product/profile.service";
+import { addToCart, addToFavourites, removeFromCart, removeFromFavourites, getProductDetailsById } from "@/features/services/product/products.service";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 
@@ -47,24 +47,21 @@ export default function ProductCard({ product }: { product: productCardDTO }) {
 
 
   const handleFavAdd = async () => {
-    console.log("Toggling favourite for product:", product);
     const data = {
       productId: product.representativeVariantId,
     };
     try {
-      const result = await apiCallWithManualRefresh(() => addToFavourites(data.productId));
-      console.log("Favourites updated:", result);
+      await apiCallWithManualRefresh(() => addToFavourites(data.productId));
       toast.success("Favourites updated");
       setIsFavorite(true);
     }
     catch (error: any) {
-      console.error("Failed to update favourites:", error);
       // Network/axios specific handling
       if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
         toast.error('Network error: could not reach server. Check your connection or backend.');
       } else if (error.response) {
         if (error.response.status === 401) {
-          toast.error(`Unauthorized: Please log in to manage favourites.`);
+          toast.info(`You have to login in order to manage favourites.`);
           navigator('/login');
         } else {
           toast.error('Failed to update favourites');
@@ -79,13 +76,11 @@ export default function ProductCard({ product }: { product: productCardDTO }) {
       productId: product.representativeVariantId,
     };
     try {
-      const result = await apiCallWithManualRefresh(() => removeFromFavourites(data.productId));
-      console.log("Favourites updated:", result);
+      await apiCallWithManualRefresh(() => removeFromFavourites(data.productId));
       setIsFavorite(false);
       toast.success("Favourites updated");
     }
     catch (error: any) {
-      console.error("Failed to update favourites:", error);
       // Network/axios specific handling
       if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
         toast.error('Network error: could not reach server. Check your connection or backend.');
@@ -99,29 +94,25 @@ export default function ProductCard({ product }: { product: productCardDTO }) {
   };
 
   const handleCartAdd = async () => {
-    console.log("Adding to cart for product:", product);
     const data = {
       productId: product.representativeVariantId,
     };
     try {
-      const result = await apiCallWithManualRefresh(() => addToCart(data.productId));
-      console.log("Cart updated:", result);
+      await apiCallWithManualRefresh(() => addToCart(data.productId));
       toast.success("Cart updated");
       setIsInCart(true);
     }
     catch (error: any) {
-      console.error("Failed to update cart:", error);
       // Network/axios specific handling
       if (error.response.code === 'ERR_NETWORK' || error.message === 'Network Error') {
         toast.error('Network error: could not reach server. Check your connection or backend.');
       } else if (error.response) {
         if (error.response.status === 401) {
-          toast.error(`Unauthorized: Please log in to manage cart.`);
+          toast.info(`You have to login in order to manage cart.`);
           navigator('/login');
         } else {
-          console.error("Failed to update cart:", error.response);
           toast.error(`Server error: ${error.response.status} ${error.response.statusText}`);
-        } ƒ
+        }
       } else {
         toast.error('Failed to update favourites');
       }
@@ -134,18 +125,19 @@ export default function ProductCard({ product }: { product: productCardDTO }) {
       productId: product.representativeVariantId,
     };
     try {
-      const result = await apiCallWithManualRefresh(() => removeFromCart(data.productId));
-      console.log("Cart updated:", result);
+      await apiCallWithManualRefresh(() => removeFromCart(data.productId));
       setIsInCart(false);
       toast.success("Cart updated");
     }
     catch (error: any) {
-      console.error("Failed to update cart:", error);
       // Network/axios specific handling
       if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
         toast.error('Network error: could not reach server. Check your connection or backend.');
       } else if (error.response) {
         toast.error(`Server error: ${error.response.status} ${error.response.statusText}`);
+      } else if (error.response.status === 401) {
+        toast.info(`You have to login in order to manage cart.`);
+        navigator('/login');
       } else {
         toast.error('Failed to update favourites');
       }

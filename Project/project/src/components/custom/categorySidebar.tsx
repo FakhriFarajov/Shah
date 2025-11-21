@@ -1,9 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { TbCategory } from "react-icons/tb";
-import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import type { Category } from '@/features/profile/DTOs/interfaces';
+import type { Category } from '@/features/services/DTOs/interfaces';
 
 
 import {
@@ -23,7 +22,6 @@ import {
 
 
 export default function SideBar({ categories }: { categories: Record<string, Category> }) {
-    const { t } = useTranslation();
     const navigate = useNavigate();
     // Find root categories
     const rootCategories = Object.entries(categories).filter(([_key, category]) => category.parentCategoryId == null);
@@ -43,7 +41,7 @@ export default function SideBar({ categories }: { categories: Record<string, Cat
                             <Accordion type="single" collapsible key={subKey}>
                                 <AccordionItem value={subCat.id} className="text-white border-none">
                                     <AccordionTrigger className="flex items-center justify-between text-white hover:no-underline p-2 rounded-md cursor-pointer" >
-                                        <span className={`text-base font-medium ${level > 1 ? 'pl-2' : ''}`} onClick={() => navigate(`/category?id=${subCat.id}&name=${subCat.categoryName}`)}>{t(subCat.categoryName)}</span>
+                                        <span className={`text-base font-medium ${level > 1 ? 'pl-2' : ''}`} onClick={() => navigate(`/category?id=${subCat.id}&name=${subCat.categoryName}`)}>{(subCat.categoryName)}</span>
                                     </AccordionTrigger>
                                     <AccordionContent>
                                         {renderSubcategories(subCat.id, level + 1)}
@@ -51,19 +49,17 @@ export default function SideBar({ categories }: { categories: Record<string, Cat
                                 </AccordionItem>
                             </Accordion>
                         );
-                    }
-
-                    return (
-                        <div key={subKey} className="p-1">
-                            <button
-                                type="button"
-                                className="flex items-center justify-between text-white hover:no-underline ms-10 rounded-md cursor-pointer"
-                                onClick={() => navigate(`/category?id=${subKey}&name=${subCat.categoryName}`)}
+                    } else {
+                        return (
+                            <span
+                                key={subKey}
+                                className={`block text-base font-medium text-white p-2 rounded-md cursor-pointer hover:bg-gray-700 ${level > 1 ? 'pl-2' : ''}`}
+                                onClick={() => navigate(`/category?id=${subCat.id}&name=${subCat.categoryName}`)}
                             >
-                                {t(subCat.categoryName)}
-                            </button>
-                        </div>
-                    );
+                                {(subCat.categoryName)}
+                            </span>
+                        );
+                    }
                 })}
             </div>
         );
@@ -78,24 +74,39 @@ export default function SideBar({ categories }: { categories: Record<string, Cat
                             <div id='Orders' className="flex items-center justify-center rounded-full p-2 relative">
                                 <TbCategory className="mr-2 w-2" />
                             </div>
-                            <span>{t('Category')}</span>
+                            <span>{('Category')}</span>
                         </Button>
                     </SheetTrigger>
                     <SheetContent side="left" className="bg-gray-800 text-gray-100">
                         <SheetHeader>
-                            <SheetTitle className="text-white">{t('Category')}</SheetTitle>
+                            <SheetTitle className="text-white">{('Category')}</SheetTitle>
                             <Separator />
                             <Accordion type="single" collapsible >
-                                {rootCategories.map(([key, category]) => (
-                                    <AccordionItem value={category.categoryName} className="text-white border-none" key={key}>
-                                        <AccordionTrigger className="flex items-center justify-between text-white hover:no-underline p-2 rounded-md cursor-pointer" >
-                                            <span className="text-lg font-semibold" onClick={() => navigate(`/category?id=${category.id}&name=${category.categoryName}`)}>{t(category.categoryName)}</span>
-                                        </AccordionTrigger>
-                                        <AccordionContent>
-                                            {renderSubcategories(category.id)}
-                                        </AccordionContent>
-                                    </AccordionItem>
-                                ))}
+                                {rootCategories.map(([key, category]) => {
+                                    const hasChildren = Object.values(categories).some((c: any) => c.parentCategoryId === category.id);
+                                    if (hasChildren) {
+                                        return (
+                                            <AccordionItem value={category.categoryName} className="text-white border-none" key={key}>
+                                                <AccordionTrigger className="flex items-center justify-between text-white hover:no-underline p-2 rounded-md cursor-pointer hover:bg-gray-700" >
+                                                    <span className="text-lg font-semibold" onClick={() => navigate(`/category?id=${category.id}&name=${category.categoryName}`)}>{(category.categoryName)}</span>
+                                                </AccordionTrigger>
+                                                <AccordionContent>
+                                                    {renderSubcategories(category.id)}
+                                                </AccordionContent>
+                                            </AccordionItem>
+                                        );
+                                    } else {
+                                        return (
+                                            <h1
+                                                key={key}
+                                                className="text-lg font-semibold text-white p-2 rounded-md cursor-pointer hover:bg-gray-700"
+                                                onClick={() => navigate(`/category?id=${category.id}&name=${category.categoryName}`)}
+                                            >
+                                                {(category.categoryName)}
+                                            </h1>
+                                        );
+                                    }
+                                })}
                             </Accordion>
                         </SheetHeader>
                     </SheetContent>
@@ -108,7 +119,7 @@ export default function SideBar({ categories }: { categories: Record<string, Cat
                             type="button" 
                             onClick={() => navigate(`/category?id=${key}&name=${category.categoryName}`)}
                         >
-                            {t(category.categoryName)}
+                            {(category.categoryName)}
                         </button>
                     ))}
                 </div>

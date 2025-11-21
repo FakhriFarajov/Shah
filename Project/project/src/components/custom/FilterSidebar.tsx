@@ -35,7 +35,6 @@ export default function FilterSidebar({
     const apply = () => {
         const selected = Object.entries(values).filter(([_k, v]) => v).map(([key]) => key);
         const payload = { minPrice: minInput, maxPrice: maxInput, filters: selected };
-        console.log("Applied filters:", payload);
         onApply?.(payload as Partial<FilterValues>);
     }
 

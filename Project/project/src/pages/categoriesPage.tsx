@@ -17,16 +17,16 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination"
 import { DropdownMenuTrigger, DropdownMenuContent } from '@/components/ui/dropdown-menu';
-import { getFilteredProducts } from '@/features/profile/product/profile.service';
+import { getFilteredProducts } from '@/features/services/product/products.service';
 import { getImage } from '@/shared/utils/imagePost';
 import FilterSidebar from '@/components/custom/FilterSidebar';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { getCategoryAttributesAndValues } from '@/features/profile/Category/category.service';
+import { getCategoryAttributesAndValues } from '@/features/services/Category/category.service';
 import { Button } from '@/components/ui/button';
 import { tokenStorage } from '@/shared';
 import { apiCallWithManualRefresh } from '@/shared/apiWithManualRefresh';
 import { DropdownMenu } from '@radix-ui/react-dropdown-menu';
-import Spinner from '@/components/custom/Spinner';
+import Spinner from '@/components/custom/spinner';
 
 export default function CategoryPage() {
   const [loading, setLoading] = useState<boolean>(false);

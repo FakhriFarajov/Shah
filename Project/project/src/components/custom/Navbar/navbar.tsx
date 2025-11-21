@@ -16,12 +16,12 @@ import { tokenStorage } from '@/shared';
 import { useEffect } from 'react';
 import { jwtDecode } from "jwt-decode";
 import { logout } from '@/features/auth/services/auth.service';
-import { getCountries } from "@/features/profile/Country/country.service";
-import { getCategories } from "@/features/profile/Category/category.service";
-import { getCartItems, getFavouritesByUserId, getSearched } from "@/features/profile/product/profile.service";
-import type { Category } from '@/features/profile/DTOs/interfaces';
+import { getCountries } from "@/features/services/Country/country.service";
+import { getCategories } from "@/features/services/Category/category.service";
+import { getCartItems, getFavouritesByUserId, getSearched } from "@/features/services/product/products.service";
+import type { Category } from '@/features/services/DTOs/interfaces';
 import { getImage } from '@/shared/utils/imagePost';
-import type { Country } from '@/features/profile/DTOs/interfaces';
+import type { Country } from '@/features/services/DTOs/interfaces';
 import { apiCallWithManualRefresh } from '@/shared/apiWithManualRefresh';
 
 
@@ -84,13 +84,11 @@ export default function Navbar() {
         const fetchCategories = async () => {
             try {
                 const result = await getCategories();
-                console.log('Fetched categories:', result);
                 const arr = Array.isArray(result)
                     ? result
                     : (result && Array.isArray((result as any).data) ? (result as any).data : []);
                 setCategories(arr);
             } catch (err) {
-                console.error('Failed to fetch categories', err);
                 setCategories([]);
             }
         };
@@ -109,7 +107,6 @@ export default function Navbar() {
                 setCartCount(cartArr.reduce((sum: number, it: any) => sum + (Number(it.quantity) || 1), 0));
                 setFavouritesCount(favArr.length);
             } catch (err) {
-                console.warn('Failed initial counts fetch', err);
             }
         };
         fetchCounts();
@@ -119,7 +116,6 @@ export default function Navbar() {
                 const delta = e?.detail?.count ?? 0;
                 setFavouritesCount((c) => Math.max(0, c + Number(delta)));
             } catch (err) {
-                console.warn('Invalid favourites update event', err);
             }
         };
         // Listen for cart updates (delta-based and full refresh)
@@ -129,7 +125,6 @@ export default function Navbar() {
                 if (!Number.isFinite(delta)) return;
                 setCartCount((c) => Math.max(0, c + delta));
             } catch (err) {
-                console.warn('Invalid cart delta event', err);
             }
         };
         const onCartUpdated = async () => {
@@ -201,7 +196,6 @@ export default function Navbar() {
             // Make API request to search products by title
             try {
                 const result = await apiCallWithManualRefresh(() => getSearched({ title: value, page: 1, pageSize: 10 }));
-                console.log("Search results:", result);
                 const items = Array.isArray(result?.data)
                     ? result.data
                     : Array.isArray(result?.data?.data)
@@ -221,7 +215,6 @@ export default function Navbar() {
                                     element.mainImage = "https://via.placeholder.com/300x200";
                                 }
                             } catch (error) {
-                                console.warn("Error resolving product image:", error);
                                 element.mainImage = "https://via.placeholder.com/300x200";
                             }
                         })

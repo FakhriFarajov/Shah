@@ -1,24 +1,23 @@
 import { useEffect, useState, useMemo } from "react";
-import { t } from "i18next";
 
 import { Button } from "@/components/ui/button";
 import NavBar from "@/components/custom/Navbar/navbar";
 import Footer from "@/components/custom/footer";
-import CartItem from "@/components/custom/CartItem";
+import CartItem from "@/components/custom/cartItem";
 import { useNavigate } from "react-router-dom";
-import { getCartItems } from "@/features/profile/product/profile.service";
+import { getCartItems } from "@/features/services/product/products.service";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
 import { getImage } from "@/shared/utils/imagePost";
 import { toast } from "sonner";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { getBuyerAddress } from "@/features/profile/addressService/address.service";
-import { getBuyerProfile } from "@/features/profile/ProfileServices/profile.service";
+import { getBuyerAddress } from "@/features/services/addressService/address.service";
+import { getBuyerProfile } from "@/features/services/ProfileServices/profile.service";
 import { tokenStorage } from "@/shared";
 import { jwtDecode } from "jwt-decode";
-import { getCountries } from "@/features/profile/Country/country.service";
+import { getCountries } from "@/features/services/Country/country.service";
 import GooglePayButton from "@google-pay/button-react";
 import { checkout } from '@/features/payment/checkout.service';
-import Spinner from "@/components/custom/Spinner";
+import Spinner from "@/components/custom/spinner";
 
 export default function Checkout() {
     const navigate = useNavigate();
@@ -49,7 +48,7 @@ export default function Checkout() {
 
                 if(items.length === 0) {
                     navigate('/main');
-                    toast.info(t('Your cart is empty.'));
+                    toast.info('Your cart is empty.');
                 }
 
                 if (Array.isArray(items)) {
@@ -107,7 +106,7 @@ export default function Checkout() {
             catch (error) {
                 if(error.response?.status === 401) {
                     navigate('/main');
-                    toast.info(t('You are not logged in.'));
+                    toast.info('You are not logged in.');
                 }
             }
         }
@@ -258,7 +257,7 @@ export default function Checkout() {
             }
             <NavBar />
             <div className="container mx-auto px-4 py-6 min-h-screen">
-                <h1 className="text-2xl font-bold mb-6">{t('Your Cart')}</h1>
+                <h1 className="text-2xl font-bold mb-6">{'Your Cart'}</h1>
                 <div className="w-full mx-auto max-w-7xl p-2 sm:p-6 bg-white rounded-lg mt-4">
                     <div className="flex flex-col md:flex-row gap-4 md:gap-8">
                         <div className="flex-1 w-full min-w-0 justify-center">
@@ -273,47 +272,47 @@ export default function Checkout() {
                         </div>
                         <div className="w-full md:w-96 bg-white rounded-lg shadow-md p-2 sm:p-6 h-fit sticky top-2 self-start">
                             <div className="flex items-center justify-between mb-1">
-                                <h2 className="text-xl font-bold">{t('Your cart')}</h2>
+                                <h2 className="text-xl font-bold">{'Your cart'}</h2>
                                 <div className="text-xs">
                                     {!address || !address.street ? (
                                         <button className="inline-flex items-center px-2 py-1 rounded bg-blue-100 text-blue-700" onClick={() => navigate('/profile')}>
-                                            {t('Add address in profile')}
+                                            {'Add address in profile'}
                                         </button>
                                     ) : addressConfirmed ? (
-                                        <span className="inline-flex items-center px-2 py-1 rounded bg-green-100 text-green-700">{t('Address confirmed')}</span>
+                                        <span className="inline-flex items-center px-2 py-1 rounded bg-green-100 text-green-700">{('Address confirmed')}</span>
                                     ) : (
                                         <button className="inline-flex items-center px-2 py-1 rounded bg-yellow-100 text-yellow-700" onClick={() => setShowConfirmAddressDialog(true)}>
-                                            {t('Confirm address')}
+                                            {('Confirm address')}
                                         </button>
                                     )}
                                 </div>
                             </div>
                             <div className="mb-2 flex justify-between">
-                                <span>{t('Products')} ({cartItems.length})</span>
+                                <span>{'Products'} ({cartItems.length})</span>
                                 <span className="font-semibold">{productsSubtotal.toFixed(2)}$</span>
                             </div>
 
 
                             <div className="mb-2 flex justify-between">
-                                <span>{t('Shipping')}</span>
-                                <span className="font-semibold">{t('Free')}</span>
+                                <span>{'Shipping'}</span>
+                                <span className="font-semibold">{('Free')}</span>
                             </div>
 
                             <div className="mb-2 flex justify-between text-red-500">
-                                <span>{t('Discount')}</span>
+                                <span>{('Discount')}</span>
                                 <span>
                                     -{discountTotal.toFixed(2)}$
                                 </span>
                             </div>
 
                             <div className="mb-4 flex justify-between font-bold text-lg">
-                                <span>{t('Total cost')}</span>
+                                <span>{('Total cost')}</span>
                                 <span>{total.toFixed(2)}$</span>
                             </div>
                             {!addressConfirmed ? (
                                 <div className="flex justify-center">
                                     <button className="px-4 py-2 bg-gray-300 text-gray-700 rounded" disabled>
-                                        {t('Confirm the address to proceed')}
+                                        {'Confirm the address to proceed'}
                                     </button>
                                 </div>
                             ) : (
@@ -372,27 +371,27 @@ export default function Checkout() {
             <Dialog open={showConfirmAddressDialog} onOpenChange={setShowConfirmAddressDialog}>
                 <DialogContent className="max-w-lg w-full">
                     <div className="space-y-4">
-                        <h3 className="text-lg font-semibold">{t('Confirm your address')}</h3>
+                        <h3 className="text-lg font-semibold">{'Confirm your address'}</h3>
                         <p className="text-sm text-gray-500">Be careful when confirming your address. If the address is incorrect go to profile then change or add it!</p>
                         {!address || !address.street ? (
-                            <div className="text-gray-500">{t('No address found. Please add your address in profile first.')}</div>
+                            <div className="text-gray-500">{'No address found. Please add your address in profile first.'}</div>
                         ) : (
                             <div className="space-y-2 text-sm">
-                                <div><span className="font-medium">{t('Street')}:</span> {address.street}</div>
-                                <div><span className="font-medium">{t('City')}:</span> {address.city}</div>
-                                <div><span className="font-medium">{t('State')}:</span> {address.state}</div>
-                                <div><span className="font-medium">{t('Postal Code')}:</span> {address.postalCode}</div>
-                                <div><span className="font-medium">{t('Country')}:</span> {countries.find(country => country.id === address.countryId)?.name || address.country}</div>
+                                <div><span className="font-medium">{'Street'}:</span> {address.street}</div>
+                                <div><span className="font-medium">{'City'}:</span> {address.city}</div>
+                                <div><span className="font-medium">{'State'}:</span> {address.state}</div>
+                                <div><span className="font-medium">{'Postal Code'}:</span> {address.postalCode}</div>
+                                <div><span className="font-medium">{'Country'}:</span> {countries.find(country => country.id === address.countryId)?.name || address.country}</div>
                             </div>
                         )}
                         <div className="flex justify-end gap-2 pt-2">
-                            <Button variant="outline" onClick={() => setShowConfirmAddressDialog(false)}>{t('Cancel')}</Button>
+                            <Button variant="outline" onClick={() => setShowConfirmAddressDialog(false)}>{('Cancel')}</Button>
                             {!address || !address.street ? (
                                 <Button onClick={() => { setShowConfirmAddressDialog(false); navigate('/profile'); }}>
-                                    {t('Go to profile to add address')}
+                                    {('Go to profile to add address')}
                                 </Button>
                             ) : (
-                                <Button onClick={handleConfirmAddress}>{t('Yes, it is my address')}</Button>
+                                <Button onClick={handleConfirmAddress}>{('Yes, it is my address')}</Button>
                             )}
                         </div>
                     </div>
