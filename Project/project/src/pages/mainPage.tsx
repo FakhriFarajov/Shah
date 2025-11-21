@@ -7,12 +7,13 @@ import "../i18n"; // Import i18n configuration
 import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import { getRandomPaginated } from "@/features/profile/product/profile.service";
-import { getProfileImage } from "@/shared/utils/imagePost";
+import { getImage } from "@/shared/utils/imagePost";
 import { decodeUserFromToken } from "@/shared/utils/decodeToken";
 import { tokenStorage } from "@/shared/tokenStorage";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
 import Spinner from "@/components/custom/Spinner";
 import { getProductDetailsById } from "@/features/profile/product/profile.service";
+import { toast } from "sonner";
 
 // Type for subcategory filter
 
@@ -35,6 +36,7 @@ export default function Main() {
     // Load product history from localStorage
     const [historyProducts, setHistoryProducts] = useState<any[]>([]);
     useEffect(() => {
+        setLoading(true);
         const historyKey = 'productHistory';
         let history: Array<{ productId: string, variantId: string | null, timestamp: number }> = [];
         try {
@@ -67,7 +69,7 @@ export default function Main() {
                     // Resolve image if it's an ID or needs fetching
                     if (imageUrl) {
                         try {
-                            const resolved = await getProfileImage(imageUrl);
+                            const resolved = await getImage(imageUrl);
                             productData.mainImage = resolved || imageUrl;
                         } catch {
                             productData.mainImage = imageUrl;
@@ -80,6 +82,7 @@ export default function Main() {
             }
             setHistoryProducts(results);
         };
+        setLoading(false);
         fetchHistoryProducts();
     }, []);
 
@@ -87,15 +90,11 @@ export default function Main() {
         const load = async () => {
             const tok: string | null = tokenStorage.get();
             const result = decodeUserFromToken(tok || "");
-            console.log("Decoded user from token:", result);
             setLoading(true);
             try {
                 const userId = (result?.buyer_profile_id || result?.id) ?? null;
-                console.log("Fetching products for page:", currentPage, "with pageSize:", pageSize, "and userId:", userId);
                 const fetched = await apiCallWithManualRefresh(() => getRandomPaginated(currentPage, pageSize, userId as any));
-                console.log("Fetched Products response:", fetched);
                 const payload: any = (fetched as any)?.data ?? fetched;
-                console.log("Fetched Products payload:", payload);
 
                 // Support multiple API shapes: array directly, { data: [] }, { items: [] }, { data: { data: [] | items: [] } }
                 const items: any[] = Array.isArray(payload)
@@ -115,7 +114,7 @@ export default function Main() {
                         items.map(async (element: any) => {
                             try {
                                 if (element.mainImage) {
-                                    const url = await getProfileImage(element.mainImage);
+                                    const url = await getImage(element.mainImage);
                                     element.mainImage = url || element.mainImage || "https://via.placeholder.com/300x200";
                                 } else {
                                     element.mainImage = "https://via.placeholder.com/300x200";
@@ -128,12 +127,10 @@ export default function Main() {
                     );
                 }
 
-                // If API doesn't provide totals, fall back to infinite-scroll style: hasMore when we received a full page
                 setHasMore(items.length >= pageSize);
                 setProducts(prev => currentPage > 1 ? [...prev, ...items] : items);
-                console.log("Updated products state:", products);
             } catch (e) {
-                console.error('Fetch failed', e);
+                toast.info("An error has occured.");
             } finally {
                 setLoading(false);
             }

@@ -11,4 +11,5 @@ public interface IAccountService
     public Task ConfirmEmailAsync(ClaimsPrincipal user, string token, HttpContext context);
     public Task<Result> VerifyEmailAsync(string id);
     Task<Result> ForgotPasswordAsync(ForgotPasswordRequestDTO requestDto);
+    Task<Result> SendPasswordResetEmailToUserAsync(string email);
 }

@@ -22,13 +22,14 @@ import { jwtDecode } from "jwt-decode";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { editBuyerProfile } from "@/features/profile/ProfileServices/profile.service";
-import { uploadProfileImage, getProfileImage } from "@/shared/utils/imagePost";
+import { uploadImage, getImage } from "@/shared/utils/imagePost";
 import { confirmEmail, forgotPassword } from "@/features/account/services/register.service";
 import { faqs } from "@/static_data/faq"; //Import FAQ data
 import { getCountries } from "@/features/profile/Country/country.service";
 import Spinner from "@/components/custom/Spinner";
 import OrdersSection from "./OrdersSection";
 import { apiCallWithManualRefresh } from '@/shared/apiWithManualRefresh';
+import { Navigate, useNavigate } from "react-router";
 
 
 export default function AccountPage() {
@@ -73,6 +74,7 @@ export default function AccountPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [countries, setCountries] = useState<{ id: number; name: string; code: string }[]>([]);
   const [loading, setLoading] = useState(false);
+  const navigator = useNavigate();
   // Address confirmation handled on checkout page, not here
 
   const handleConfirmEmail = async () => {
@@ -91,9 +93,8 @@ export default function AccountPage() {
     try {
       const countriesResult = await apiCallWithManualRefresh(() => getCountries());
       setCountries(countriesResult);
-      console.log("Fetched countries:", countriesResult);
     } catch (error) {
-      console.error("Failed to fetch countries:", error);
+      // Handle error if needed
     } finally {
       setLoading(false);
     }
@@ -103,21 +104,14 @@ export default function AccountPage() {
     fetchCountries();
     let token = tokenStorage.get();
     if (!token) {
-      const params = new URLSearchParams(window.location.search);
-      const urlToken = params.get('access_token');
-      if (urlToken) {
-        localStorage.setItem('access_token', urlToken);
-        token = urlToken;
-      }
+      toast.info("You must be logged in to access the profile page.");
+      navigator("/login");
     }
-    console.log("Token:", token); // Debug log to check the token value
     if (!token) return;
     let buyerId = "";
     try {
       const decoded: any = jwtDecode(token);
       buyerId = decoded.buyer_profile_id;
-      console.log("Decoded token:", decoded); // Debug log to check the decoded token
-      console.log("Decoded buyerId:", buyerId); // Debug log to check the decoded buyerId
     } catch {
       toast.error("Invalid token");
       return;
@@ -130,16 +124,13 @@ export default function AccountPage() {
     async function fetchBuyerAndAddress() {
       setLoading(true);
       try {
-        console.log("Fetching profile for ID:", buyerId);
         const result = await apiCallWithManualRefresh(() => getBuyerProfile(buyerId));
-        console.log("Profile response:", result);
         setBuyer(result);
         if (result.isEmailConfirmed === false) {
           toast.info("Your email is not confirmed. Please check your inbox.");
         }
       } catch (error) {
-        console.error("Failed to fetch buyer profile:", error);
-        extractApiErrors(error).forEach(msg => toast.error(msg));
+        navigator("/");
       }
       try {
         const addressResult = await apiCallWithManualRefresh(() => getBuyerAddress(buyerId));
@@ -167,7 +158,6 @@ export default function AccountPage() {
         buyerId = decoded.buyer_profile_id;
       }
       const payload = { ...newAddress, buyerId };
-      console.log("Add Address payload:", payload);
       const result = await apiCallWithManualRefresh(() => addAddress(payload));
       if (result && result.isSuccess) {
         try {
@@ -248,13 +238,11 @@ export default function AccountPage() {
         toast.error("Confirm password cannot be empty");
         return;
       }
-      console.log(requestData);
       var result = await apiCallWithManualRefresh(() => forgotPassword(requestData));
       if (result.isSuccess) {
         toast.success("Password changed successfully");
         setShowPasswordModal(false);
       } else {
-        console.log("Password change failed:", result.message);
         toast.error(result.message || "Failed to change password");
       }
     } catch (error: any) {
@@ -286,15 +274,13 @@ export default function AccountPage() {
       let objectName = null;
       let imageProfileUrl = null;
       if (buyer.ImageFile) {
-        objectName = await uploadProfileImage(buyer.ImageFile);
-        imageProfileUrl = await getProfileImage(objectName);
+        objectName = await uploadImage(buyer.ImageFile);
+        imageProfileUrl = await getImage(objectName);
         payload.imageProfile = objectName;
       }
-
       const result = await apiCallWithManualRefresh(() => editBuyerProfile(buyer.id, payload));
       if (!result || !result.isSuccess) {
         toast.error(result.message || 'Profile update failed. Please check your details.');
-        console.error("Profile update error:", result);
         setLoading(false);
         return;
       }

@@ -2,7 +2,7 @@ import axios from "axios";
 import { tokenStorage } from "@/shared/tokenStorage";
 
 
-export async function uploadProfileImage(file: File): Promise<string> {
+export async function uploadImage(file: File): Promise<string> {
   const VITE_FEATURES_API = import.meta.env.VITE_FEATURES_API || "http://localhost:5298";
   const formData = new FormData();
   formData.append("file", file);
@@ -24,7 +24,7 @@ export async function uploadProfileImage(file: File): Promise<string> {
 }
 
 
-export async function getProfileImage(objectName: string): Promise<string> {
+export async function getImage(objectName: string): Promise<string> {
   const VITE_FEATURES_API = import.meta.env.VITE_FEATURES_API || "http://localhost:5298";
   const response = await axios.get(
     `${VITE_FEATURES_API}/api/BuyerFeatures/Image/GetImage`,

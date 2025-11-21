@@ -167,15 +167,13 @@ public class TokenManager
         await _context.SaveChangesAsync();
     }
     
-    
     public async Task<string> CreateRefreshTokenAsync(User user)
     {
         var refreshToken = Guid.NewGuid().ToString();
         user.RefreshToken = refreshToken;
-        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddMinutes(1);//Change
         _context.Users.Update(user);
         await _context.SaveChangesAsync();
         return refreshToken;
     }
-
 }

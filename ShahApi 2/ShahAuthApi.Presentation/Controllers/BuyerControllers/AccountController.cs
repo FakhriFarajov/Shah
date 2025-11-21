@@ -63,4 +63,12 @@ public class AccountController : ControllerBase
         var result = await _accountService.ForgotPasswordAsync(request);
         return Ok(result);
     }
+    
+    [HttpPost("forgot-password")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ForgotPassword([FromBody] string email)
+    {
+        var result = await _accountService.SendPasswordResetEmailToUserAsync(email);
+        return Ok(result);
+    }
 }

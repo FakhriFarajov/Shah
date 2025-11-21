@@ -2,83 +2,20 @@ import React, { useEffect } from "react";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { getOrderDetails, getOrders } from "@/features/profile/Order/Order.service";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
-import { getProfileImage } from "@/shared/utils/imagePost";
+import { getImage } from "@/shared/utils/imagePost";
+import { toast } from "sonner";
+import Spinner from "@/components/custom/Spinner";
+import type { OrderItem, OrderData, OrdersSectionProps } from "@/features/profile/DTOs/interfaces";
 
-export interface OrderResponse {
-  isSuccess: boolean;
-  message: string;
-  statusCode: number;
-  data: OrderData;
-}
 
-export interface OrderData {
-  id: string;
-  status: number;
-  createdAt: string;
-  updatedAt: string | null;
-  totalAmount: number;
-  receipt: Receipt;
-  payment: Payment;
-  items: OrderItem[];
-}
-
-export interface OrderSummary {
-  id: string;
-  status: number;
-  createdAt: string;
-  totalAmount: number;
-  itemCount: number;
-  paymentStatus: number;
-  receiptId: string;
-}
-
-export interface Receipt {
-  id: string;
-  fileUrl: string;
-  issuedAt: string;
-}
-
-export interface Payment {
-  id: string;
-  totalAmount: number;
-  currency: string;
-  method: number;
-  status: number;
-  gatewayTransactionId: string;
-  createdAt: string;
-}
-
-export interface OrderItem {
-  id: string;
-  productVariantId: string;
-  title: string;
-  price: number;
-  quantity: number;
-  status: number;
-  images: ProductImage[];
-  lineTotal: number;
-}
-
-export interface ProductImage {
-  id: string;
-  imageUrl: string;
-  isMain: boolean;
-  productVariantId: string;
-  productVariant: any | null;
-}
-
-interface OrdersSectionProps {
-  orderStatusFilter: string;
-  setOrderStatusFilter: (val: string) => void;
-  MdAccountCircle: React.ElementType;
-}
 
 const OrdersSection: React.FC<OrdersSectionProps> = ({ orderStatusFilter, setOrderStatusFilter, MdAccountCircle }) => {
   const [orderHistory, setOrderHistory] = React.useState<OrderData[]>([]);
+  const [loading, setLoading] = React.useState<boolean>(false);
 
   useEffect(() => {
     let cancelled = false;
-
+    setLoading(true);
     async function load() {
       try {
         const res = await apiCallWithManualRefresh(() => getOrders());
@@ -102,7 +39,7 @@ const OrdersSection: React.FC<OrdersSectionProps> = ({ orderStatusFilter, setOrd
                     ? await Promise.all(
                       it.images.map(async (img) => {
                         try {
-                          const url = await getProfileImage(img.imageUrl);
+                          const url = await getImage(img.imageUrl);
                           return { ...img, imageUrl: url || img.imageUrl };
                         } catch {
                           return img;
@@ -122,11 +59,12 @@ const OrdersSection: React.FC<OrdersSectionProps> = ({ orderStatusFilter, setOrd
         if (!cancelled) setOrderHistory(details);
       } catch (e) {
         if (!cancelled) {
-          console.error("Failed to load orders:", e);
+          toast.info("An error has occured.");
           setOrderHistory([]);
         }
       }
     }
+    setLoading(false);
 
     load();
     return () => {
@@ -134,11 +72,8 @@ const OrdersSection: React.FC<OrdersSectionProps> = ({ orderStatusFilter, setOrd
     };
   }, []);
 
-  // Order status is now per item, not per order
-  // Filter orders by item status
   const filteredOrders = orderHistory.filter(order => {
     if (!orderStatusFilter) return true;
-    // Show order if any item matches the filter
     return order.items.some(item => item.status?.toString() === orderStatusFilter);
   });
 
@@ -156,6 +91,11 @@ const OrdersSection: React.FC<OrdersSectionProps> = ({ orderStatusFilter, setOrd
 
   return (
     <div className="flex flex-col gap-6">
+      {loading &&
+        <div className="fixed inset-0 flex items-center justify-center bg-white bg-opacity-100 z-50">
+          <Spinner />
+        </div>
+      }
       <Card>
         <CardHeader>
           <CardTitle>Order History</CardTitle>

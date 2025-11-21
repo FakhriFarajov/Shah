@@ -1,5 +1,5 @@
 import { authHttp } from "./httpClient";
-import type { AddressResponseDTO, AddAddressDto, EditAddressDto } from "@/features/profile/DTOs/profile.interfaces";
+import type { AddressResponseDTO, AddAddressDto, EditAddressDto } from "@/features/profile/DTOs/interfaces";
 
 
 export async function getBuyerAddress(id: string): Promise<AddressResponseDTO> {

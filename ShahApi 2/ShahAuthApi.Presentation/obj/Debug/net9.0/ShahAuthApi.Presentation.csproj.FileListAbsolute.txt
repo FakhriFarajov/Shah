@@ -183,4 +183,5 @@
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Presentation/obj/Debug/net9.0/ShahAuthApi.Presentation.pdb
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Presentation/obj/Debug/net9.0/ShahAuthApi.Presentation.genruntimeconfig.cache
 /Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Presentation/obj/Debug/net9.0/ref/ShahAuthApi.Presentation.dll
-/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Presentation/obj/Debug/net9.0/compressed/tpwtvtbp8r-10izus2x5w.gz
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Presentation/obj/Debug/net9.0/compressed/tpwtvtbp8r-usip59x2sb.gz
+/Users/fakhrifarajov/Desktop/Shah/ShahApi 2/ShahAuthApi.Presentation/obj/Debug/net9.0/compressed/dvruumwuv5-w90a4imco3.gz

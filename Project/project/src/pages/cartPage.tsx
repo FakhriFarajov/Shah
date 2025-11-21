@@ -8,7 +8,7 @@ import CartItem from "@/components/custom/CartItem";
 import { useNavigate } from "react-router-dom";
 import { getCartItems } from "@/features/profile/product/profile.service";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
-import { getProfileImage } from "@/shared/utils/imagePost";
+import { getImage } from "@/shared/utils/imagePost";
 import { toast } from "sonner";
 import Spinner from "@/components/custom/Spinner";
 
@@ -30,8 +30,6 @@ export default function Cart() {
                             ? res.data.data
                             : (res?.data?.data || []);
 
-
-
                 if (Array.isArray(items)) {
                     // items is an array of cart entries. Each entry may have `productVariant.images`.
                     await Promise.all(items.map(async (element: any) => {
@@ -42,10 +40,10 @@ export default function Cart() {
                                     variant.images.map(async (img: any, i: number) => {
                                         try {
                                             const idOrUrl = img.imageUrl ?? img.url ?? img;
-                                            const url = await getProfileImage(idOrUrl);
+                                            const url = await getImage(idOrUrl);
                                             variant.images[i].imageUrl = url || idOrUrl;
                                         } catch (e) {
-                                            console.warn('Error resolving variant image', e);
+                                            //
                                         }
                                     })
                                 );
@@ -56,7 +54,7 @@ export default function Cart() {
                                 element.mainImage = variant?.images?.[0]?.imageUrl ?? element.mainImage ?? null;
                                 if (element.mainImage) {
                                     try {
-                                        const resolved = await getProfileImage(element.mainImage);
+                                        const resolved = await getImage(element.mainImage);
                                         element.mainImage = resolved || element.mainImage;
                                     } catch (e) {
                                         // ignore
@@ -64,7 +62,7 @@ export default function Cart() {
                                 }
                             }
                         } catch (e) {
-                            console.warn('Error processing cart item images', e);
+                            setLoading(false);
                         }
                     }));
                 } else if (items && Array.isArray(items.productVariants)) {
@@ -74,23 +72,24 @@ export default function Cart() {
                             await Promise.all(v.images.map(async (img: any, i: number) => {
                                 try {
                                     const idOrUrl = img.imageUrl ?? img.url ?? img;
-                                    const url = await getProfileImage(idOrUrl);
+                                    const url = await getImage(idOrUrl);
                                     v.images[i].imageUrl = url || idOrUrl;
                                 } catch (e) {
-                                    console.warn('Error resolving variant image', e);
+                                    setLoading(false);
                                 }
                             }));
                         }
                     }));
                 }
-                console.log("Fetched cart items:", items);
                 setCartItems(items);
                 setLoading(false);
             }
             catch (error) {
-                console.error("Failed to fetch cart items:", error);
-                toast.error("Failed to load cart items");
+                navigate('/login');
+                toast.info(t('You have to login in order to view your cart'));
+                setLoading(false);
             }
+
         }
         fetchCartItems();
         const onCartUpdated = () => { fetchCartItems(); };
@@ -139,13 +138,13 @@ export default function Cart() {
 
     return (
         <>
-            {loading && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-16 w-16">
+            {
+                loading && (
+                    <div className="fixed inset-0 bg-white bg-opacity-100 flex items-center justify-center z-50">
                         <Spinner />
                     </div>
-                </div>
-            )}
+                )
+            }
             <NavBar />
             <div className="container mx-auto px-2 sm:px-4 py-4 min-h-screen">
                 <h1 className="text-2xl font-bold mb-4 sm:mb-6">{t('Your Cart')}</h1>

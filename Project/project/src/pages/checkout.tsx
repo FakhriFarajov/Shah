@@ -8,7 +8,7 @@ import CartItem from "@/components/custom/CartItem";
 import { useNavigate } from "react-router-dom";
 import { getCartItems } from "@/features/profile/product/profile.service";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
-import { getProfileImage } from "@/shared/utils/imagePost";
+import { getImage } from "@/shared/utils/imagePost";
 import { toast } from "sonner";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { getBuyerAddress } from "@/features/profile/addressService/address.service";
@@ -17,10 +17,8 @@ import { tokenStorage } from "@/shared";
 import { jwtDecode } from "jwt-decode";
 import { getCountries } from "@/features/profile/Country/country.service";
 import GooglePayButton from "@google-pay/button-react";
-
 import { checkout } from '@/features/payment/checkout.service';
 import Spinner from "@/components/custom/Spinner";
-
 
 export default function Checkout() {
     const navigate = useNavigate();
@@ -64,10 +62,9 @@ export default function Checkout() {
                                     variant.images.map(async (img: any, i: number) => {
                                         try {
                                             const idOrUrl = img.imageUrl ?? img.url ?? img;
-                                            const url = await getProfileImage(idOrUrl);
+                                            const url = await getImage(idOrUrl);
                                             variant.images[i].imageUrl = url || idOrUrl;
                                         } catch (e) {
-                                            console.warn('Error resolving variant image', e);
                                         }
                                     })
                                 );
@@ -78,7 +75,7 @@ export default function Checkout() {
                                 element.mainImage = variant?.images?.[0]?.imageUrl ?? element.mainImage ?? null;
                                 if (element.mainImage) {
                                     try {
-                                        const resolved = await getProfileImage(element.mainImage);
+                                        const resolved = await getImage(element.mainImage);
                                         element.mainImage = resolved || element.mainImage;
                                     } catch (e) {
                                         // ignore
@@ -86,7 +83,7 @@ export default function Checkout() {
                                 }
                             }
                         } catch (e) {
-                            console.warn('Error processing cart item images', e);
+                            // ignore
                         }
                     }));
                 } else if (items && Array.isArray(items.productVariants)) {
@@ -96,10 +93,10 @@ export default function Checkout() {
                             await Promise.all(v.images.map(async (img: any, i: number) => {
                                 try {
                                     const idOrUrl = img.imageUrl ?? img.url ?? img;
-                                    const url = await getProfileImage(idOrUrl);
+                                    const url = await getImage(idOrUrl);
                                     v.images[i].imageUrl = url || idOrUrl;
                                 } catch (e) {
-                                    console.warn('Error resolving variant image', e);
+                                    // ignore
                                 }
                             }));
                         }
@@ -108,17 +105,18 @@ export default function Checkout() {
                 setCartItems(items);
             }
             catch (error) {
-                console.error("Failed to fetch cart items:", error);
-                toast.error("Failed to load cart items");
+                if(error.response?.status === 401) {
+                    navigate('/main');
+                    toast.info(t('You are not logged in.'));
+                }
             }
         }
         async function fetchCountries() {
             try {
                 const countriesResult = await apiCallWithManualRefresh(() => getCountries());
                 setCountries(countriesResult);
-                console.log("Fetched countries:", countriesResult);
             } catch (error) {
-                console.error("Failed to fetch countries:", error);
+                // ignore
             }
         }
         async function fetchBuyerAndAddress() {
@@ -145,7 +143,6 @@ export default function Checkout() {
                 setBuyer(buyerRes);
                 const addr = await apiCallWithManualRefresh(() => getBuyerAddress(buyerId));
                 setAddress(addr);
-                console.log("Fetched buyer address:", addr);
                 try {
                     const key = `addressConfirmed:${buyerId}`;
                     const persisted = localStorage.getItem(key);
@@ -222,6 +219,7 @@ export default function Checkout() {
         setProcessingPayment(true);
         setPaymentStatus('Initiated');
         try {
+            setLoading(true);
             const gatewayTransactionId = paymentRequestData?.paymentMethodData?.tokenizationData?.token || paymentRequestData?.paymentMethodData?.info?.cardNetwork || 'txn-temp';
             // Perform backend checkout directly with gateway transaction id
             const checkoutRes = await checkout({
@@ -234,17 +232,16 @@ export default function Checkout() {
                 toast.error(checkoutRes.message || 'Checkout failed');
                 return;
             }
-            const summary = checkoutRes.data!;
             setPaymentStatus('Authorized');
-            toast.success('Payment authorized');
-            toast.success(`Order ${summary.OrderId} created!`);
+            toast.success('Payment has been authorized!');
+            toast.success(`Order has been created!`);
             window.dispatchEvent(new CustomEvent('cart:updated'));
             navigate('/');
         } catch (e: any) {
             setPaymentStatus('Failed');
-            console.log('Google Pay processing error:', e);
             toast.error(e?.message || 'Payment error');
         } finally {
+            setLoading(false);
             setProcessingPayment(false);
         }
 
@@ -355,11 +352,9 @@ export default function Checkout() {
                                         },
                                     }}
                                     onLoadPaymentData={paymentRequest => {
-                                        console.log('Success', paymentRequest);
                                         handleGooglePaySuccess(paymentRequest);
                                     }}
                                     onError={error => {
-                                        console.error('Error', error);
                                         toast.error('Payment failed to load. Please try again.');
                                     }}
                                     buttonColor="default"

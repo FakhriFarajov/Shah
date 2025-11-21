@@ -6,7 +6,7 @@ import { useContext, useEffect, useState } from "react"
 import ImageCropper from "@/components/ui/image-crop"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
-import { Eye, EyeOff } from "lucide-react"
+import { Eye, EyeOff, FileText, Mail, PhoneCall, UserRound } from "lucide-react"
 import { Dialog, DialogContent } from "../ui/dialog"
 import { MdAccountCircle } from "react-icons/md"
 import type { RegisterRequest } from "@/features/account/DTOs/account.interfaces"
@@ -260,49 +260,62 @@ export default function RegForm({
                 <h1 className="border-b pb-2">Enter Personal Details</h1>
                 <div className="grid gap-3">
                   <Label htmlFor="name">{t("Name")}</Label>
-                  <Input
-                    id="name"
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                    placeholder={t("John")}
-                  />
+                  <div className="relative">
+                    <Input
+                      id="name"
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                      placeholder={t("John")}
+                    />
+                    <UserRound className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500" />
+
+                  </div>
                 </div>
                 <div className="grid gap-3">
                   <Label htmlFor="surname">{t("Surname")}</Label>
-                  <Input
-                    id="surname"
-                    type="text"
-                    value={surname}
-                    onChange={(e) => setSurname(e.target.value)}
-                    required
-                    placeholder={t("Doe")}
-                  />
+                  <div className="relative">
+                    <Input
+                      id="surname"
+                      type="text"
+                      value={surname}
+                      onChange={(e) => setSurname(e.target.value)}
+                      required
+                      placeholder={t("Doe")}
+                    />
+                    <UserRound className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500" />
+                  </div>
                 </div>
 
                 <div className="grid gap-3">
                   <Label htmlFor="email">{t("Email")}</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder={t("m@example.com")}
-                    required
-                  />
+                  <div className="relative">
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder={t("m@example.com")}
+                      required
+                    />
+                    <Mail className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500" />
+                  </div>
                 </div>
 
                 <div className="grid gap-3">
                   <Label htmlFor="phone">{t("Phone")}</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder={t("055 555 55 55")}
-                    required
-                  />
+                  <div className="relative">
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder={t("055 555 55 55")}
+                      required
+                    />
+                    <PhoneCall className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500" />
+                  </div>
                 </div>
                 <div className="grid gap-3">
                   <Label htmlFor="countryCode">{t("Country")}</Label>
@@ -332,14 +345,17 @@ export default function RegForm({
                 </div>
                 <div className="grid gap-3">
                   <Label htmlFor="idPassport">{t("ID/Passport")}</Label>
-                  <Input
-                    id="idPassport"
-                    type="text"
-                    value={passport}
-                    onChange={(e) => setPassport(e.target.value)}
-                    required
-                    placeholder={t("AB1234567")}
-                  />
+                  <div className="relative">
+                    <Input
+                      id="idPassport"
+                      type="text"
+                      value={passport}
+                      onChange={(e) => setPassport(e.target.value)}
+                      required
+                      placeholder={t("AB1234567")}
+                    />
+                    <FileText className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500" />
+                  </div>
                 </div>
                 <div className="grid gap-3">
                   <Label htmlFor="password">{t("Password")}</Label>
@@ -420,47 +436,62 @@ export default function RegForm({
                     </div>
                     <div className="grid gap-3">
                       <Label htmlFor="storeName">{t("Store Name")}</Label>
-                      <Input
-                        id="storeName"
-                        type="text"
-                        value={storeName}
-                        onChange={(e) => setStoreName(e.target.value)}
-                        required
-                        placeholder={t("e.g. Shah Electronics")}
-                      />
+                      <div className="relative">
+                        <Input
+                          id="storeName"
+                          type="text"
+                          value={storeName}
+                          onChange={(e) => setStoreName(e.target.value)}
+                          required
+                          placeholder={t("e.g. Shah Electronics")}
+                          className="pr-8"
+                        />
+                        <UserRound className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500" />
+                      </div>
                     </div>
                     <div className="grid gap-3">
                       <Label htmlFor="storeDescription">{t("Store Description")}</Label>
-                      <textarea
-                        className="border rounded px-2 py-1 w-full resize-none"
-                        id="storeDescription"
-                        value={storeDescription}
-                        onChange={(e) => setStoreDescription(e.target.value)}
-                        required
-                        placeholder={t("Describe your store")}
-                      />
+                      <div className="relative">
+                        <textarea
+                          className="border rounded px-2 py-1 w-full resize-none pr-8"
+                          id="storeDescription"
+                          value={storeDescription}
+                          onChange={(e) => setStoreDescription(e.target.value)}
+                          required
+                          placeholder={t("Describe your store")}
+                        />
+                        <FileText className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500" />
+                      </div>
                     </div>
                     <div className="grid gap-3">
                       <Label htmlFor="contactPhone">{t("Store Contact Phone")}</Label>
-                      <Input
-                        id="storePhone"
-                        type="tel"
-                        value={storeContactPhone}
-                        onChange={(e) => setStoreContactPhone(e.target.value)}
-                        required
-                        placeholder={t("e.g. +994501234567")}
-                      />
+                      <div className="relative">
+                        <Input
+                          id="storePhone"
+                          type="tel"
+                          value={storeContactPhone}
+                          onChange={(e) => setStoreContactPhone(e.target.value)}
+                          required
+                          placeholder={t("e.g. +994501234567")}
+                          className="pr-8"
+                        />
+                        <PhoneCall className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500" />
+                      </div>
                     </div>
                     <div className="grid gap-3">
                       <Label htmlFor="storeEmail">{t("Store Email")}</Label>
-                      <Input
-                        id="storeEmail"
-                        type="email"
-                        value={storeContactEmail}
-                        onChange={(e) => setStoreContactEmail(e.target.value)}
-                        required
-                        placeholder={t("e.g. info@shah.com")}
-                      />
+                      <div className="relative">
+                        <Input
+                          id="storeEmail"
+                          type="email"
+                          value={storeContactEmail}
+                          onChange={(e) => setStoreContactEmail(e.target.value)}
+                          required
+                          placeholder={t("e.g. info@shah.com")}
+                          className="pr-8"
+                        />
+                        <Mail className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500" />
+                      </div>
                     </div>
 
                   </div>
@@ -485,14 +516,18 @@ export default function RegForm({
                     </div>
                     <div className="grid gap-3">
                       <Label htmlFor="sellerTaxInfoId">{t("Seller Tax Info ID")}</Label>
-                      <Input
-                        id="sellerTaxInfoId"
-                        type="text"
-                        value={taxIdNumber}
-                        onChange={handleTaxIdNumberChange}
-                        required
-                        placeholder={t("123456789")}
-                      />
+                      <div className="relative">
+                        <Input
+                          id="sellerTaxInfoId"
+                          type="text"
+                          value={taxIdNumber}
+                          onChange={handleTaxIdNumberChange}
+                          required
+                          placeholder={t("123456789")}
+                          className="pr-8"
+                        />
+                        <FileText className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500" />
+                      </div>
                       {taxIdNumberError && (
                         <div className="text-red-500 text-xs mt-1">{taxIdNumberError}</div>
                       )}
@@ -502,47 +537,59 @@ export default function RegForm({
                     </h1>
                     <div className="grid gap-3">
                       <Label htmlFor="addressStreet">{t("Street")}</Label>
-                      <Input
-                        id="addressStreet"
-                        type="text"
-                        value={street}
-                        onChange={(e) => setStreet(e.target.value)}
-                        required
-                        placeholder={t("e.g. 123 Main St")}
-                      />
+                      <div className="relative">
+                        <Input
+                          id="addressStreet"
+                          type="text"
+                          value={street}
+                          onChange={(e) => setStreet(e.target.value)}
+                          required
+                          placeholder={t("e.g. 123 Main St")}
+                          className="pr-8"
+                        />
+                      </div>
                     </div>
                     <div className="grid gap-3">
                       <Label htmlFor="addressCity">{t("City")}</Label>
-                      <Input
-                        id="addressCity"
-                        type="text"
-                        value={city}
-                        onChange={(e) => setCity(e.target.value)}
-                        required
-                        placeholder={t("e.g. Baku")}
-                      />
+                      <div className="relative">
+                        <Input
+                          id="addressCity"
+                          type="text"
+                          value={city}
+                          onChange={(e) => setCity(e.target.value)}
+                          required
+                          placeholder={t("e.g. Baku")}
+                          className="pr-8"
+                        />
+                      </div>
                     </div>
                     <div className="grid gap-3">
                       <Label htmlFor="addressState">{t("State")}</Label>
-                      <Input
-                        id="addressState"
-                        type="text"
-                        value={state}
-                        onChange={(e) => setState(e.target.value)}
-                        required
-                        placeholder={t("e.g. Absheron")}
-                      />
+                      <div className="relative">
+                        <Input
+                          id="addressState"
+                          type="text"
+                          value={state}
+                          onChange={(e) => setState(e.target.value)}
+                          required
+                          placeholder={t("e.g. Absheron")}
+                          className="pr-8"
+                        />
+                      </div>
                     </div>
                     <div className="grid gap-3">
                       <Label htmlFor="addressPostalCode">{t("Postal Code")}</Label>
-                      <Input
-                        id="addressPostalCode"
-                        type="text"
-                        value={postalCode}
-                        onChange={(e) => setPostalCode(e.target.value)}
-                        required
-                        placeholder={t("e.g. AZ1000")}
-                      />
+                      <div className="relative">
+                        <Input
+                          id="addressPostalCode"
+                          type="text"
+                          value={postalCode}
+                          onChange={(e) => setPostalCode(e.target.value)}
+                          required
+                          placeholder={t("e.g. AZ1000")}
+                          className="pr-8"
+                        />
+                      </div>
                     </div>
                     <div className="grid gap-3">
                       <Label htmlFor="countryCode">{t("Address Country")}</Label>

@@ -18,13 +18,12 @@ import {
 } from "@/components/ui/pagination"
 import { DropdownMenuTrigger, DropdownMenuContent } from '@/components/ui/dropdown-menu';
 import { getFilteredProducts } from '@/features/profile/product/profile.service';
-import { getProfileImage } from '@/shared/utils/imagePost';
+import { getImage } from '@/shared/utils/imagePost';
 import FilterSidebar from '@/components/custom/FilterSidebar';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { getCategoryAttributesAndValues } from '@/features/profile/Category/category.service';
 import { Button } from '@/components/ui/button';
 import { tokenStorage } from '@/shared';
-import { toast } from 'sonner';
 import { apiCallWithManualRefresh } from '@/shared/apiWithManualRefresh';
 import { DropdownMenu } from '@radix-ui/react-dropdown-menu';
 import Spinner from '@/components/custom/Spinner';
@@ -46,7 +45,6 @@ export default function CategoryPage() {
       const result = decodeUserFromToken(tok as string);
       setBuyerId(result?.buyer_profile_id ?? null);
     } else {
-      toast.error("You are not logged in123");
       setBuyerId(null);
     }
     setLoading(false);
@@ -61,8 +59,6 @@ export default function CategoryPage() {
 
   const [currentPage, setCurrentPage] = useState(1);
 
-  const category = { name: t("Unknown Category") };
-
   const [filters, setFilters] = useState<any>(null);
   useEffect(() => {
     setLoading(true);
@@ -70,11 +66,9 @@ export default function CategoryPage() {
       setLoading(true);
       try {
         const fetched = await apiCallWithManualRefresh(() => getCategoryAttributesAndValues(categoryIdUrl || ""));
-        console.log("Fetched category filters:", fetched);
         setFilters(fetched);
-        console.log(fetched, filters);
       } catch (e) {
-        console.error('Fetch failed', e);
+        // failed to load filters
       } finally {
         setLoading(false);
       }
@@ -100,7 +94,6 @@ export default function CategoryPage() {
         userId: result?.id ?? null,
       };
       setActiveFilters(payload);
-      console.log("Filter products request:", request);
       const res = await apiCallWithManualRefresh(() => getFilteredProducts(request as any));
       // API may return a shaped response { data: items, total: number }
       const items = Array.isArray(res)
@@ -119,7 +112,7 @@ export default function CategoryPage() {
           items.map(async (element: any) => {
             try {
               if (element.mainImage) {
-                const url = await getProfileImage(element.mainImage);
+                const url = await getImage(element.mainImage);
                 element.mainImage = url || "https://picsum.photos/seed/product1/400/400";
               } else if (element.mainImage) {
                 element.mainImage = element.mainImage;
@@ -127,7 +120,6 @@ export default function CategoryPage() {
                 element.mainImage = "https://picsum.photos/seed/product1/400/400";
               }
             } catch (error) {
-              console.warn("Error resolving product image:", error);
               element.mainImage = null;
             }
           })
@@ -136,7 +128,7 @@ export default function CategoryPage() {
       setProducts(sort ? sortProducts(items, sort) : items);
       setCurrentPage(1);
     } catch (e) {
-      console.error('Apply filter failed', e);
+      // handle error
     } finally {
       setLoading(false);
     }
@@ -147,10 +139,9 @@ export default function CategoryPage() {
     const load = async () => {
       setLoading(true);
       const tok = tokenStorage.get();
-      const result = decodeUserFromToken(tok);
+      const result = decodeUserFromToken(tok as any);
       try {
         const request: any = { categoryId: categoryIdUrl, page: currentPage, pageSize, userId: result?.id ?? null };
-        console.log("CategoryPage - Fetching products with request:", request);
         const fetched = await apiCallWithManualRefresh(() => getFilteredProducts(request));
 
         const items = Array.isArray(fetched)
@@ -168,7 +159,7 @@ export default function CategoryPage() {
             items.map(async (element: any) => {
               try {
                 if (element.mainImage) {
-                  const url = await getProfileImage(element.mainImage);
+                  const url = await getImage(element.mainImage);
                   element.mainImage = url || "https://picsum.photos/seed/product1/400/400";
                 } else if (element.mainImage) {
                   element.mainImage = element.mainImage;
@@ -176,7 +167,6 @@ export default function CategoryPage() {
                   element.mainImage = "https://picsum.photos/seed/product1/400/400";
                 }
               } catch (error) {
-                console.warn("Error resolving product image:", error);
                 element.mainImage = null;
               }
             })
@@ -187,7 +177,7 @@ export default function CategoryPage() {
           return sort ? sortProducts(all, sort) : all;
         });
       } catch (e) {
-        console.error('Fetch failed', e);
+        // handle error
       } finally {
         setLoading(false);
       }
@@ -223,10 +213,8 @@ export default function CategoryPage() {
     <>
       {
         loading && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-16 w-16">
-              <Spinner />
-            </div>
+          <div className="fixed inset-0 bg-white bg-opacity-100 flex items-center justify-center z-50">
+            <Spinner />
           </div>
         )
       }
@@ -234,7 +222,7 @@ export default function CategoryPage() {
       <div className="p-8 gap-6 flex justify-center">
         <section className="col-span-12 lg:col-span-9 w-full max-w-7xl">
           <div className="mb-6 flex flex-col lg:flex-row md:items-center md:justify-between">
-            <h1 className="text-3xl font-bold mb-6 text-left">{t(categoryNameUrl)}</h1>
+            <h1 className="text-3xl font-bold mb-6 text-left">{t(categoryNameUrl ?? '')}</h1>
             <div className='flex flex-row justify-start md:items-center xl:justify-between'>
               <div className='flex justify-end mr-4 mb-4 flex xl:hidden'>
                 <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
@@ -319,7 +307,6 @@ export default function CategoryPage() {
                   ) : (
                     products.map((product: any) => {
                       product.buyerId = buyerId;
-                      console.log("Rendering ProductCard for product in CategoryPage:", product);
                       return (
                         <ProductCard product={product} />
                       )

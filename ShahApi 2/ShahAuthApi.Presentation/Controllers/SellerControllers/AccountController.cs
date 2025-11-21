@@ -57,12 +57,19 @@ public class AccountController : ControllerBase
         throw new Exception("Error token confirmation");
     }
     
-    
     [Authorize(Policy = "SellerPolicy")] //We need to send a Bearer token in the header to access this endpoint
     [HttpPost("ForgotPassword")]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDTO request)
     {
         var result = await _accountService.ForgotPasswordAsync(request);
+        return Ok(result);
+    }
+    
+    [HttpPost("forgot-password")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ForgotPassword([FromBody] string email)
+    {
+        var result = await _accountService.SendPasswordResetEmailToUserAsync(email);
         return Ok(result);
     }
 }

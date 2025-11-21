@@ -154,10 +154,10 @@ export default function BuyersPage() {
                             <Button onClick={handleSearch} variant="outline">Search</Button>
                         </div>
                     </div>
-                    <div className="max-w-5xl mx-auto mt-4">
+                    <div className="max-w-6xl mx-auto mt-4">
                         <div className="flex flex-row flex-wrap gap-6 justify-center items-stretch">
                             {buyers.map(buyer => (
-                                <div key={buyer.id} className="chad-card bg-white rounded-2xl shadow-xl border border-gray-200 p-6 flex flex-col xl:flex-row items-center gap-6 transition-transform hover:scale-[1.02] hover:shadow-2xl">
+                                <div key={buyer.id} className="chad-card bg-white rounded-2xl shadow-xl border border-gray-200 p-6 flex flex-col xl:flex-row items-center gap-6 transition-transform hover:scale-[1.02] hover:shadow-2xl w-full">
                                     <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-purple-400 to-blue-400 flex items-center justify-center shadow-lg mb-2 md:mb-0">
                                         <span className="text-3xl font-bold text-white">{buyer.name[0]}{buyer.surname[0]}</span>
                                     </div>

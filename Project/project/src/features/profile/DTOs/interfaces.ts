@@ -176,3 +176,96 @@ export interface Address {
     postalCode: string;
     countryId: number;
 }
+
+export interface Review {
+  id: string;
+  buyerProfileId?: string;
+  buyerName?: string;
+  productVariantId?: string;
+  rating: number;
+  comment: string;
+  images?: string[];
+  createdAt?: string;
+  // enriched
+  imageUrls?: string[];
+}
+
+export interface ReviewsSectionProps {
+  editingReviewId?: string | null;
+  setEditingReviewId?: (id: string | null) => void;
+  editedReview?: { comment: string; rating: number };
+  setEditedReview?: (review: { comment: string; rating: number }) => void;
+  saveReview?: (id: string) => void;
+  deleteReview?: (id: string) => void;
+  buyer?: any;
+}
+
+
+export interface OrderResponse {
+  isSuccess: boolean;
+  message: string;
+  statusCode: number;
+  data: OrderData;
+}
+
+export interface OrderData {
+  id: string;
+  status: number;
+  createdAt: string;
+  updatedAt: string | null;
+  totalAmount: number;
+  receipt: Receipt;
+  payment: Payment;
+  items: OrderItem[];
+}
+
+export interface OrderSummary {
+  id: string;
+  status: number;
+  createdAt: string;
+  totalAmount: number;
+  itemCount: number;
+  paymentStatus: number;
+  receiptId: string;
+}
+
+export interface Receipt {
+  id: string;
+  fileUrl: string;
+  issuedAt: string;
+}
+
+export interface Payment {
+  id: string;
+  totalAmount: number;
+  currency: string;
+  method: number;
+  status: number;
+  gatewayTransactionId: string;
+  createdAt: string;
+}
+
+export interface OrderItem {
+  id: string;
+  productVariantId: string;
+  title: string;
+  price: number;
+  quantity: number;
+  status: number;
+  images: ProductImage[];
+  lineTotal: number;
+}
+
+export interface ProductImage {
+  id: string;
+  imageUrl: string;
+  isMain: boolean;
+  productVariantId: string;
+  productVariant: any | null;
+}
+
+export interface OrdersSectionProps {
+  orderStatusFilter: string;
+  setOrderStatusFilter: (val: string) => void;
+  MdAccountCircle: React.ElementType;
+}

@@ -19,9 +19,9 @@ import { logout } from '@/features/auth/services/auth.service';
 import { getCountries } from "@/features/profile/Country/country.service";
 import { getCategories } from "@/features/profile/Category/category.service";
 import { getCartItems, getFavouritesByUserId, getSearched } from "@/features/profile/product/profile.service";
-import type { Category } from '@/features/profile/DTOs/profile.interfaces';
-import { getProfileImage } from '@/shared/utils/imagePost';
-import type { Country } from '@/features/profile/DTOs/profile.interfaces';
+import type { Category } from '@/features/profile/DTOs/interfaces';
+import { getImage } from '@/shared/utils/imagePost';
+import type { Country } from '@/features/profile/DTOs/interfaces';
 import { apiCallWithManualRefresh } from '@/shared/apiWithManualRefresh';
 
 
@@ -215,7 +215,7 @@ export default function Navbar() {
                         items.map(async (element: any) => {
                             try {
                                 if (element.mainImage) {
-                                    const url = await getProfileImage(element.mainImage);
+                                    const url = await getImage(element.mainImage);
                                     element.mainImage = url || element.mainImage || "https://via.placeholder.com/300x200";
                                 } else {
                                     element.mainImage = "https://via.placeholder.com/300x200";

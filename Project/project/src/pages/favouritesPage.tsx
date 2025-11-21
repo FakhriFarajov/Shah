@@ -9,18 +9,20 @@ import { Button } from "@/components/ui/button";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
 import { getFavouritesByUserId } from "@/features/profile/product/profile.service";
 import { toast } from "sonner";
-import { getProfileImage } from "@/shared/utils/imagePost";
-
+import { getImage } from "@/shared/utils/imagePost";
+import Spinner from "@/components/custom/Spinner";
 
 
 export default function FavouritesPage() {
     const [favourites, setFavourites] = useState<any[]>([]);
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const [loading, setLoading] = useState<boolean>(false);
 
     useEffect(() => {
         async function fetchFavourites() {
             try {
+                setLoading(true);
                 var res = await apiCallWithManualRefresh(() => getFavouritesByUserId());
                 const items = Array.isArray(res)
                     ? res
@@ -35,7 +37,7 @@ export default function FavouritesPage() {
                         items.map(async (element: any) => {
                             try {
                                 if (element.mainImage) {
-                                    const url = await getProfileImage(element.mainImage);
+                                    const url = await getImage(element.mainImage);
                                     element.mainImage = url || "https://picsum.photos/seed/product1/400/400";
                                 } else if (element.mainImage) {
                                     element.mainImage = element.mainImage;
@@ -43,18 +45,21 @@ export default function FavouritesPage() {
                                     element.mainImage = "https://picsum.photos/seed/product1/400/400";
                                 }
                             } catch (error) {
-                                console.warn("Error resolving product image:", error);
                                 element.mainImage = null;
                             }
                         })
                     );
                 }
-                console.log("Fetched Favourites:", items);
                 setFavourites(items);
+                setLoading(false);
             }
             catch (error) {
-                console.error("Failed to fetch favourites:", error);
-                toast.error("Failed to load favourites");
+                setLoading(false);
+                if (error.response?.status == 401) {
+                    toast.info("You have to login in order to view your favourites.");
+                    navigate('/login');
+                    return;
+                }
             }
         }
         fetchFavourites();
@@ -62,6 +67,13 @@ export default function FavouritesPage() {
 
     return (
         <>
+            {
+                loading && (
+                    <div className="fixed inset-0 bg-white bg-opacity-100 flex items-center justify-center z-50">
+                        <Spinner />
+                    </div>
+                )
+            }
             <NavBar />
             <div className="container mx-auto px-4 py-6 min-h-screen">
                 <h1 className="text-2xl font-bold mb-6">{t('Your Likes')}</h1>

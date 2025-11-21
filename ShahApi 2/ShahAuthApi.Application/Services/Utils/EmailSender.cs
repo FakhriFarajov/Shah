@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Mail;
 using Microsoft.Extensions.Configuration;
+using System.IO;
 
 namespace ShahAuthApi.Application.Services.Utils;
 
@@ -42,4 +43,14 @@ public class EmailSender
         await _smtpClient.SendMailAsync(message);
     }
     
+    public async Task SendPasswordResetEmailAsync(string email, string userName, string resetLink)
+    {
+        // Load the password reset template
+        var templatePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "PasswordResetMessage.html");
+        string htmlBody = await File.ReadAllTextAsync(templatePath);
+        htmlBody = htmlBody.Replace("{User}", userName)
+                           .Replace("{ResetLink}", resetLink);
+        string subject = "Password Reset Request";
+        await SendEmailAsync(email, subject, htmlBody);
+    }
 }

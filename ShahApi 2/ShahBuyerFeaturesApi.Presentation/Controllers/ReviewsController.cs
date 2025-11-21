@@ -20,7 +20,7 @@ public class ReviewsController : ControllerBase
         _reviewService = reviewService;
     }
 
-    // Public: list reviews for a variant
+    [AllowAnonymous]
     [HttpGet("getByVariant/{productVariantId}")]
     public async Task<IActionResult> GetByVariant(string productVariantId)
     {
@@ -28,7 +28,6 @@ public class ReviewsController : ControllerBase
         return StatusCode(result.StatusCode, result);
     }
 
-    // Public: get single review
     [HttpGet("get/{id}")]
     public async Task<IActionResult> Get(string id)
     {
@@ -44,7 +43,6 @@ public class ReviewsController : ControllerBase
         return StatusCode(result.StatusCode, result);
     }
 
-    // Create review - must be buyer
     [HttpPost("create")]
     public async Task<IActionResult> Create([FromBody] CreateReviewRequestDto request)
     {
@@ -53,7 +51,6 @@ public class ReviewsController : ControllerBase
         return StatusCode(result.StatusCode, result);
     }
 
-    // Update - author only
     [HttpPut("update/{id}")]
     public async Task<IActionResult> Update(string id, [FromBody] UpdateReviewRequestDto request)
     {
@@ -62,7 +59,6 @@ public class ReviewsController : ControllerBase
         return StatusCode(result.StatusCode, result);
     }
 
-    // Delete - author only
     [HttpDelete("delete/{id}")]
     public async Task<IActionResult> Delete(string id)
     {

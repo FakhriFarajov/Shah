@@ -1,5 +1,5 @@
 import { authHttp } from "./httpClient";
-import type { ProductFilterRequest } from "@/features/profile/DTOs/profile.interfaces";
+import type { ProductFilterRequest } from "@/features/profile/DTOs/interfaces";
 
 
 export async function getRandomPaginated(page: number, pageSize: number, userId: string): Promise<any> {

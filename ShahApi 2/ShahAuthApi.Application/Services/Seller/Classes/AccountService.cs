@@ -153,4 +153,17 @@ public class AccountService : IAccountService
     
         return Result.Success("Password updated successfully");
     }
+
+    public async Task<Result> SendPasswordResetEmailToUserAsync(string email)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
+        if (user == null)
+            return Result.Error("User not found.", 404);
+        // Generate a secure token (for demo, use Guid)
+        var token = Guid.NewGuid().ToString();
+        // Save token to DB or cache (not implemented here)
+        var resetLink = $"https://yourdomain.com/reset-password?token={token}";
+        await _emailSender.SendPasswordResetEmailAsync(user.Email, user.Name, resetLink);
+        return Result.Success("Password reset email sent.");
+    }
 }

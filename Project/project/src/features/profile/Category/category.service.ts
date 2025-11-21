@@ -1,5 +1,5 @@
 import { authHttp } from "./httpClient";
-import type { Category } from "../DTOs/profile.interfaces";
+import type { Category } from "../DTOs/interfaces";
 
 
 export async function getCategories(): Promise<Category[]> {

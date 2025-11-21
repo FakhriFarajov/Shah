@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Star, Heart } from "lucide-react";
 import { ShoppingCart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import type { productCardDTO } from "@/features/profile/DTOs/profile.interfaces";
+import type { productCardDTO } from "@/features/profile/DTOs/interfaces";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
 import { addToCart, addToFavourites, removeFromCart, removeFromFavourites, getProductDetailsById } from "@/features/profile/product/profile.service";
 import { toast } from "sonner";

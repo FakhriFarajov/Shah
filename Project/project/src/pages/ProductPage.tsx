@@ -14,15 +14,15 @@ import { tokenStorage } from '@/shared/tokenStorage';
 import { decodeUserFromToken } from '@/shared/utils/decodeToken';
 import { getRandomPaginated } from '@/features/profile/product/profile.service';
 import { jwtDecode } from 'jwt-decode';
-import { uploadProfileImage } from '@/shared/utils/imagePost';
-import { getProfileImage } from '@/shared/utils/imagePost';
+import { uploadImage } from '@/shared/utils/imagePost';
+import { getImage } from '@/shared/utils/imagePost';
 import ProductCard from "@/components/custom/itemCard";
 import { useNavigate } from 'react-router-dom';
 import Spinner from '@/components/custom/Spinner';
 import { ImageZoom } from '@/components/ui/shadcn-io/image-zoom';
 
+
 export default function ProductPage() {
-  // Save productId and productVariantId to localStorage as history
   useEffect(() => {
     if (!productId) return;
     const historyKey = 'productHistory';
@@ -32,7 +32,7 @@ export default function ProductPage() {
     try {
       const raw = localStorage.getItem(historyKey);
       if (raw) history = JSON.parse(raw);
-    } catch {}
+    } catch { }
     // Add new entry
     history.unshift({ productId, variantId, timestamp: Date.now() });
     // Remove duplicates (keep most recent)
@@ -65,7 +65,6 @@ export default function ProductPage() {
       setLoading(true);
       try {
         const fetched = await apiCallWithManualRefresh(() => getRandomPaginated(1, 16, result?.id ?? ''));
-
         const items = Array.isArray(fetched)
           ? fetched
           : Array.isArray(fetched?.data)
@@ -80,7 +79,7 @@ export default function ProductPage() {
             items.map(async (element: any) => {
               try {
                 if (element.mainImage) {
-                  const url = await getProfileImage(element.mainImage);
+                  const url = await getImage(element.mainImage);
                   element.mainImage = url || "https://via.placeholder.com/300x200";
                 } else if (element.mainImage) {
                   element.mainImage = element.mainImage;
@@ -103,9 +102,6 @@ export default function ProductPage() {
     load();
   }, []);
 
-
-
-
   useEffect(() => {
     async function fetchProductDetails() {
       if (!productId) {
@@ -115,14 +111,11 @@ export default function ProductPage() {
       try {
         const res = await apiCallWithManualRefresh(() => getProductDetailsById(productId));
         const productData = res && res.data ? res.data : res;
-        console.log("Product details fetched:", productData);
         try {
           // Optionally fetch reviews separately if needed
         } catch (error) {
           toast.error("Failed to load product reviews");
         }
-
-
         // Resolve image identifiers to URLs for top-level images and variant images
         const resolveImages = async (pd: any) => {
           try {
@@ -131,7 +124,7 @@ export default function ProductPage() {
                 pd.images.map(async (img: any, idx: number) => {
                   try {
                     const idOrUrl = img.imageUrl ?? img.url ?? img;
-                    const url = await getProfileImage(idOrUrl);
+                    const url = await getImage(idOrUrl);
                     pd.images[idx].imageUrl = url || idOrUrl;
                   } catch (e) {
                   }
@@ -147,7 +140,7 @@ export default function ProductPage() {
                       v.images.map(async (img: any, i: number) => {
                         try {
                           const idOrUrl = img.imageUrl ?? img.url ?? img;
-                          const url = await getProfileImage(idOrUrl);
+                          const url = await getImage(idOrUrl);
                           v.images[i].imageUrl = url || idOrUrl;
                         } catch (e) {
                         }
@@ -267,7 +260,7 @@ export default function ProductPage() {
             if (Array.isArray(r.images) && r.images.length > 0) {
               imageUrls = await Promise.all(
                 r.images.map(async (name: string) => {
-                  try { return await getProfileImage(name); } catch { return name; }
+                  try { return await getImage(name); } catch { return name; }
                 })
               );
             }
@@ -286,7 +279,7 @@ export default function ProductPage() {
           }
         }
       } catch (err) {
-        if (!cancelled) console.warn('Failed to load reviews', err);
+        // toast.error("Failed to load reviews"); --- IGNORE ---
       } finally {
         if (!cancelled) setLoadingReviews(false);
       }
@@ -299,8 +292,7 @@ export default function ProductPage() {
     const effectiveVariantId = productVariantIdParam || productData.productVariantId;
     if (!effectiveVariantId) { toast.error(t('Variant not selected')); return; }
     try {
-      const result = await apiCallWithManualRefresh(() => addToFavourites(effectiveVariantId));
-      console.log("Favourites updated:", result);
+      await apiCallWithManualRefresh(() => addToFavourites(effectiveVariantId));
       toast.success("Favourites updated");
       setIsFavorite(true);
       // reflect in local product data
@@ -319,13 +311,12 @@ export default function ProductPage() {
       try { window.dispatchEvent(new CustomEvent('favourites:updated', { detail: { count: 1 } })); } catch (e) { }
     }
     catch (error: any) {
-      console.error("Failed to update favourites:", error);
       // Network/axios specific handling
       if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
         toast.error('Network error: could not reach server. Check your connection or backend.');
       } else if (error.response) {
         if (error.response.status === 401) {
-          toast.error(`Unauthorized: Please log in to manage favourites.`);
+          toast.info(`You have to login in order to manage favourites.`);
           navigator('/login');
         } else {
           toast.error(`Server error: ${error.response.status} ${error.response.statusText}`);
@@ -341,8 +332,7 @@ export default function ProductPage() {
     const effectiveVariantId = productVariantIdParam || productData.productVariantId;
     if (!effectiveVariantId) { toast.error(t('Variant not selected')); return; }
     try {
-      const result = await apiCallWithManualRefresh(() => removeFromFavourites(effectiveVariantId));
-      console.log("Favourites updated:", result);
+      await apiCallWithManualRefresh(() => removeFromFavourites(effectiveVariantId));
       setIsFavorite(false);
       toast.success("Favourites updated");
       setInfo((prev: any) => {
@@ -359,7 +349,6 @@ export default function ProductPage() {
       try { window.dispatchEvent(new CustomEvent('favourites:updated', { detail: { count: -1 } })); } catch (e) { }
     }
     catch (error: any) {
-      console.error("Failed to update favourites:", error);
       // Network/axios specific handling
       if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
         toast.error('Network error: could not reach server. Check your connection or backend.');
@@ -376,8 +365,7 @@ export default function ProductPage() {
     const effectiveVariantId = productVariantIdParam || productData.productVariantId;
     if (!effectiveVariantId) { toast.error(t('Variant not selected')); return; }
     try {
-      const result = await apiCallWithManualRefresh(() => addToCart(effectiveVariantId));
-      console.log("Cart updated:", result);
+      await apiCallWithManualRefresh(() => addToCart(effectiveVariantId));
       toast.success("Cart updated");
       setIsInCart(true);
       setInfo((prev: any) => {
@@ -393,13 +381,11 @@ export default function ProductPage() {
       });
     }
     catch (error: any) {
-      console.error("Failed to update cart:", error);
-      // Network/axios specific handling
       if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
         toast.error('Network error: could not reach server. Check your connection or backend.');
       } else if (error.response) {
         if (error.response.status === 401) {
-          toast.error(`Unauthorized: Please log in to manage cart.`);
+          toast.info(`You have to login in order to manage cart.`);
           navigator('/login');
         } else {
           toast.error(`Server error: ${error.response.status} ${error.response.statusText}`);
@@ -415,8 +401,7 @@ export default function ProductPage() {
     const effectiveVariantId = productVariantIdParam || productData.productVariantId;
     if (!effectiveVariantId) { toast.error(t('Variant not selected')); return; }
     try {
-      const result = await apiCallWithManualRefresh(() => removeFromCart(effectiveVariantId));
-      console.log("Cart updated:", result);
+      await apiCallWithManualRefresh(() => removeFromCart(effectiveVariantId));
       setIsInCart(false);
       toast.success("Cart updated");
       setInfo((prev: any) => {
@@ -432,7 +417,6 @@ export default function ProductPage() {
       });
     }
     catch (error: any) {
-      console.error("Failed to update cart:", error);
       // Network/axios specific handling
       if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
         toast.error('Network error: could not reach server. Check your connection or backend.');
@@ -454,7 +438,7 @@ export default function ProductPage() {
       return;
     }
     if (commentRating < 1 || commentRating > 5) {
-      toast.error(t('Please select a rating'));
+      toast.info(t('Please select a rating'));
       return;
     }
     try {
@@ -464,10 +448,9 @@ export default function ProductPage() {
       const uploaded: string[] = [];
       for (const file of selectedFiles) {
         try {
-          const objectName = await uploadProfileImage(file);
+          const objectName = await uploadImage(file);
           uploaded.push(objectName);
         } catch (err) {
-          console.warn('Failed to upload one image', err);
           toast.error(t('Failed to upload an image'));
         }
       }
@@ -505,7 +488,6 @@ export default function ProductPage() {
         // In case the wrapper returns a structured error
         setCommentSubmitted(false);
         const msg = (res as any)?.message || (res as any)?.errors || t('Failed to submit review');
-        console.error('Review submit server error:', msg, res);
         toast.error(typeof msg === 'string' ? msg : t('Failed to submit review'));
         return;
       }
@@ -529,7 +511,7 @@ export default function ProductPage() {
             if (Array.isArray(r.images) && r.images.length > 0) {
               imageUrls = await Promise.all(
                 r.images.map(async (name: string) => {
-                  try { return await getProfileImage(name); } catch { return name; }
+                  try { return await getImage(name); } catch { return name; }
                 })
               );
             }
@@ -541,9 +523,10 @@ export default function ProductPage() {
         const myId2 = getCurrentBuyerId();
         const mine2 = Array.isArray(list2) ? list2.find((r: any) => isReviewMine(r, myId2)) : null;
         setMyReview(mine2 || null);
-      } catch (e) { /* ignore refresh errors */ }
+      } catch (e) {
+        toast.info("You have to login in order to add or edit reviews.");
+      }
       finally {
-        // Safety: guarantee UI is interactive again
         setCommentSubmitted(false);
         setUploadingImages(false);
       }
@@ -551,11 +534,13 @@ export default function ProductPage() {
       setCommentSubmitted(false);
       setUploadingImages(false);
       if (error?.response?.data) {
-        console.error('Review submit validation error:', error.response.data);
         const serverMsg = error.response.data?.message || error.response.data?.title || JSON.stringify(error.response.data);
         toast.error(serverMsg);
       } else if (error?.code === 'ERR_NETWORK' || error?.message === 'Network Error') {
         toast.error(t('Network error: could not reach server.'));
+      } else if (error?.response.status === 401) {
+        toast.info(t('You have to login in order to submit a review.'));
+        navigator('/login');
       } else if (error?.response) {
         toast.error(`${t('Server error')}: ${error.response.status} ${error.response.statusText}`);
       } else {
@@ -595,22 +580,34 @@ export default function ProductPage() {
     setPreviewUrls(prev => prev.filter((_, i) => i !== idx));
   };
 
-  const removeExistingImageAt = (idx: number) => {
-    setExistingImageNames(prev => prev.filter((_, i) => i !== idx));
-    setExistingImageUrls(prev => prev.filter((_, i) => i !== idx));
+  const removeExistingImageAt = async (idx: number) => {
+    // Get image name to delete
+    const imageName = existingImageNames[idx];
+    // If editing a review and image exists, call backend to delete
+    if (isEditingReview && myReview?.id && imageName) {
+      try {
+        // Call editReview with images minus the deleted one
+        const updatedImages = existingImageNames.filter((_, i) => i !== idx);
+        await apiCallWithManualRefresh(() => editReview(myReview.id, commentRating, commentText, updatedImages));
+        toast.success('Image deleted');
+        setExistingImageNames(updatedImages);
+        setExistingImageUrls(existingImageUrls.filter((_, i) => i !== idx));
+      } catch (err) {
+        toast.error('Failed to delete image');
+      }
+    } else {
+      setExistingImageNames(prev => prev.filter((_, i) => i !== idx));
+      setExistingImageUrls(prev => prev.filter((_, i) => i !== idx));
+    }
   };
 
   const images = Array.isArray(displayImages) ? displayImages : [];
-
-  // const isOutOfStock = ((productData.stock ?? 0) <= 0) && !(Array.isArray(productData.variants) && productData.variants.some((v: any) => (v.stock ?? 0) > 0)); // unused currently
 
   // State for selected main image index
   const [mainImageIdx, setMainImageIdx] = useState(0);
   const trackRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const [slideWidth, setSlideWidth] = useState<number>(420);
-
-
 
   const handleNextImage = () => {
     if (!images.length) return;
@@ -699,8 +696,6 @@ export default function ProductPage() {
       }
     } catch { /* ignore navigation errors */ }
   };
-
-  // When productVariantId changes in URL, align the selects to match that variant's attributes
   useEffect(() => {
     if (!productVariantIdParam || !Array.isArray(productData?.variants)) return;
     const v = productData.variants.find((vv: any) => String(vv.productVariantId ?? vv.id) === String(productVariantIdParam));
@@ -721,9 +716,6 @@ export default function ProductPage() {
     });
     setSelectedProperties((prev) => ({ ...initial, ...prev }));
   }, [JSON.stringify(combinedMap)]);
-
-  // Helper to check if all properties are selected
-
 
 
   const avgRating = Array.isArray(productData.reviews) && productData.reviews.length > 0
@@ -826,7 +818,7 @@ export default function ProductPage() {
               </div>
               <p className="text-muted-foreground">{t(productData.categoryName ?? productData.category ?? '')}</p>
               <div>
-                {showDiscount && displayDiscountPrice != 0? (
+                {showDiscount && displayDiscountPrice != 0 ? (
                   <>
                     <Label className='text-3xl font-bold text-red-600'>{displayDiscountPrice}₼</Label>
                     <span className="text-lg line-through text-gray-400 ml-2">{displayPrice}₼</span>
@@ -916,8 +908,6 @@ export default function ProductPage() {
                 </div>
               </div>
             </div>
-
-
           </div>
         </div>
 
@@ -929,7 +919,7 @@ export default function ProductPage() {
             </div>
           )}
           {Array.isArray(reviews) && reviews.length > 0 && !loadingReviews && (
-            <div className="mt-8 bg-white rounded-lg shadow p-4 max-w-4xl w-full max-h-[400px] overflow-y-auto">
+            <div className="mt-8 p-4 max-w-4xl w-full" style={{ minHeight: '350px', maxHeight: '470px', overflowY: 'auto' }}>
               <h2 className="text-lg font-semibold mb-2">{t('Reviews')}</h2>
               <div className="flex items-center gap-2 mb-4">
                 <span className="text-yellow-500 font-bold text-xl">
@@ -979,7 +969,7 @@ export default function ProductPage() {
                               try {
                                 urls = await Promise.all(
                                   names.map(async (n: string) => {
-                                    try { return await getProfileImage(n); } catch { return n; }
+                                    try { return await getImage(n); } catch { return n; }
                                   })
                                 );
                               } catch { }
@@ -1002,7 +992,7 @@ export default function ProductPage() {
             </div>
           )}
           {(isEditingReview || !myReview) && (
-            <form ref={formRef} onSubmit={handleCreateReview} className="mt-4 bg-white rounded-lg shadow p-4 max-w-4xl max-h-[470px] w-full">
+            <form ref={formRef} onSubmit={handleCreateReview} className="mt-8 p-4 max-w-4xl max-h-[470px] w-full">
               <h2 className="text-lg font-semibold mb-2">{t(isEditingReview && myReview ? 'Edit your comment' : 'Add your comment')}</h2>
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-sm text-gray-700">{t('Your rating')}:</span>

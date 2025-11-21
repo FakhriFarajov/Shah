@@ -3,7 +3,7 @@ import { Separator } from "@/components/ui/separator";
 import { TbCategory } from "react-icons/tb";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import type { Category } from '@/features/profile/DTOs/profile.interfaces';
+import type { Category } from '@/features/profile/DTOs/interfaces';
 
 
 import {

@@ -30,5 +30,6 @@ namespace ShahSellerFeaturesApi.Presentation.Controllers
         public async Task<IActionResult> EditSellerProfileAsync([FromRoute] string sellerId, [FromBody] EditSellerRequestDTO dto)
         => Ok(await _sellerService.EditSellerAsync(sellerId, dto));
         
+
     }
 }
