@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import { getStats } from "@/features/profile/Stats/stats.service";
 import Spinner from "@/components/custom/spinner";
 import { toast } from "sonner";
+import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
 
 type TopCountry = { name: string; percent: number };
 type SalesByMonth = { month: string; sales: number; date: string };
@@ -41,7 +42,7 @@ export default function Main() {
     (async () => {
       setLoading(true);
       try {
-        const response = await getStats();
+        const response = await apiCallWithManualRefresh(() => getStats());
         let data = response.data ?? response;
 
         // Always resolve productImage for each orderItemRow
@@ -218,7 +219,7 @@ export default function Main() {
             </Card>
           </div>
           <div className="bg-white rounded-xl shadow p-6">
-            <h2 className="text-xl font-bold mb-4 text-indigo-700">Recent Orders</h2>
+            <h2 className="text-xl font-bold mb-4 text-indigo-700">Recent OrderItems</h2>
             <AdaptiveTable columns={orderColumns} data={dashboard.orderItemRows} />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">

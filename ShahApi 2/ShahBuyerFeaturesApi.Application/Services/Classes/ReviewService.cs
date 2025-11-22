@@ -61,6 +61,7 @@ public class ReviewService : IReviewService
             .AsNoTracking()
             .Where(r => r.BuyerProfile.UserId == userId)
             .Include(r => r.BuyerProfile).ThenInclude(bp => bp.User)
+            .Include(r => r.ProductVariant)
             .OrderByDescending(r => r.CreatedAt)
             .ToListAsync();
 
@@ -75,6 +76,7 @@ public class ReviewService : IReviewService
             .AsNoTracking()
             .Where(r => r.ProductVariantId == productVariantId)
             .Include(r => r.BuyerProfile).ThenInclude(bp => bp.User)
+            .Include(r => r.ProductVariant)
             .OrderByDescending(r => r.CreatedAt)
             .ToListAsync();
 
@@ -87,6 +89,7 @@ public class ReviewService : IReviewService
         var r = await _context.Reviews
             .AsNoTracking()
             .Include(rr => rr.BuyerProfile).ThenInclude(bp => bp.User)
+            .Include(rr => rr.ProductVariant)
             .FirstOrDefaultAsync(rr => rr.Id == reviewId);
         if (r == null) return TypedResult<ReviewResponseDto>.Error("Review not found", 404);
         return TypedResult<ReviewResponseDto>.Success(MapToDto(r));
@@ -118,7 +121,10 @@ public class ReviewService : IReviewService
             await _context.SaveChangesAsync();
         }
 
-        var r = await _context.Reviews.AsNoTracking().Include(rr => rr.BuyerProfile).ThenInclude(bp => bp.User).FirstOrDefaultAsync(rr => rr.Id == reviewId);
+        var r = await _context.Reviews.AsNoTracking()
+            .Include(rr => rr.BuyerProfile).ThenInclude(bp => bp.User)
+            .Include(rr => rr.ProductVariant)
+            .FirstOrDefaultAsync(rr => rr.Id == reviewId);
         return TypedResult<ReviewResponseDto>.Success(MapToDto(r!));
     }
 
@@ -135,12 +141,19 @@ public class ReviewService : IReviewService
 
     private static ReviewResponseDto MapToDto(Review r)
     {
+        string? productId = null;
+        if (r.ProductVariantId != null && r.ProductVariant is ProductVariant pv && pv.ProductId != null)
+        {
+            productId = pv.ProductId;
+        }
+        // If ProductVariant is not loaded, fallback to null (or load if needed elsewhere)
         return new ReviewResponseDto
         {
             Id = r.Id,
             BuyerProfileId = r.BuyerProfileId,
             BuyerName = r.BuyerProfile != null && r.BuyerProfile.User != null ? (r.BuyerProfile.User.Name + " " + r.BuyerProfile.User.Surname).Trim() : null,
             ProductVariantId = r.ProductVariantId,
+            ProductId = productId,
             Rating = r.Rating,
             Comment = r.Comment,
             Images = r.Images ?? new List<string>(),

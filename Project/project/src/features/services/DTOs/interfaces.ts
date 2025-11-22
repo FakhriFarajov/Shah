@@ -182,6 +182,7 @@ export interface Review {
   buyerProfileId?: string;
   buyerName?: string;
   productVariantId?: string;
+  productId?: string;
   rating: number;
   comment: string;
   images?: string[];

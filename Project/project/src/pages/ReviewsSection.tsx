@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
 import { getBuyerReviews } from "@/features/services/ Reviews/Reviews.service";
 import { deleteReview as deleteReviewApi, editReview as editReviewApi } from "@/features/services/ Reviews/Reviews.service";
@@ -23,6 +24,8 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = (props) => {
   // Local state for images being added while editing
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [selectedPreviews, setSelectedPreviews] = useState<string[]>([]);
+  // Track deleted old images by review id
+  const [deletedOldImages, setDeletedOldImages] = useState<Record<string, Set<string>>>({});
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
@@ -65,6 +68,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = (props) => {
     return () => { cancelled = true; };
   }, []);
 
+  const navigate = useNavigate();
   return (
     <div>
       {loading && <div className="text-center">Loading...</div>}
@@ -98,11 +102,30 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = (props) => {
                           />
                           {(Array.isArray(r.imageUrls) && r.imageUrls.length > 0) && (
                             <div className="mt-2 flex gap-2 flex-wrap max-h-40 overflow-y-auto pr-1">
-                              {r.imageUrls.map((src, i) => (
-                                <ImageZoom key={i}>
-                                  <img src={src} alt={`old-${i}`} className="w-16 h-16 object-cover rounded border" />
-                                </ImageZoom>
-                              ))}
+                              {r.imageUrls.map((src, i) => {
+                                // Only show if not deleted
+                                const isDeleted = deletedOldImages[r.id]?.has(src);
+                                if (isDeleted) return null;
+                                return (
+                                  <div key={i} className="relative group">
+                                    <ImageZoom>
+                                      <img src={src} alt={`old-${i}`} className="w-16 h-16 object-cover rounded border" />
+                                    </ImageZoom>
+                                    <button
+                                      type="button"
+                                      className="absolute top-0 right-0 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-80 group-hover:opacity-100"
+                                      title="Delete image"
+                                      onClick={() => {
+                                        setDeletedOldImages(prev => {
+                                          const set = new Set(prev[r.id] || []);
+                                          set.add(src);
+                                          return { ...prev, [r.id]: set };
+                                        });
+                                      }}
+                                    >×</button>
+                                  </div>
+                                );
+                              })}
                             </div>
                           )}
                           {selectedPreviews.length > 0 && (
@@ -140,35 +163,42 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = (props) => {
                               onClick={async () => {
                                 if (!editedReview) return;
                                 try {
-                                  let imageIds: string[] | undefined = undefined;
+                                  // Get remaining old images (not deleted)
+                                  const deletedSet = deletedOldImages[r.id] || new Set();
+                                  const remainingOldImages = (r.imageUrls || []).filter((src) => !deletedSet.has(src));
+                                  // Upload new images if any
+                                  let newImageIds: string[] = [];
                                   if (selectedFiles.length > 0) {
                                     const uploaded = await Promise.all(selectedFiles.map(async (file) => uploadImage(file)));
-                                    imageIds = uploaded.filter(Boolean) as string[];
+                                    newImageIds = uploaded.filter(Boolean) as string[];
                                   }
-                                  if (imageIds && imageIds.length > 0) {
-                                    await apiCallWithManualRefresh(() => editReviewApi(r.id, editedReview.rating, editedReview.comment, imageIds));
-                                    // Resolve URLs for new images and append in UI
-                                    const urls = await Promise.all(imageIds.map((id) => getImage(id).catch(() => "")));
-                                    setLocalReviews(prev => prev.map(rv => rv.id === r.id ? { ...rv, comment: editedReview.comment, rating: editedReview.rating, imageUrls: [...(rv.imageUrls || []), ...urls.filter(Boolean)] } : rv));
-                                  } else if (saveReview) {
-                                    await saveReview(r.id);
-                                    setLocalReviews(prev => prev.map(rv => rv.id === r.id ? { ...rv, comment: editedReview.comment, rating: editedReview.rating } : rv));
-                                  } else {
-                                    await apiCallWithManualRefresh(() => editReviewApi(r.id, editedReview.rating, editedReview.comment));
-                                    setLocalReviews(prev => prev.map(rv => rv.id === r.id ? { ...rv, comment: editedReview.comment, rating: editedReview.rating } : rv));
-                                  }
+                                  // Combine old and new image IDs (assuming imageUrls are URLs, need to map back to IDs if possible)
+                                  // If you have a way to map URLs to IDs, do it here. For now, assume URLs are IDs or can be used as such.
+                                  const allImageIds = [...remainingOldImages, ...newImageIds];
+                                  await apiCallWithManualRefresh(() => editReviewApi(r.id, editedReview.rating, editedReview.comment, allImageIds));
+                                  // Update UI
+                                  const allImageUrls = [
+                                    ...remainingOldImages,
+                                    ...(
+                                      newImageIds.length > 0
+                                        ? (await Promise.all(newImageIds.map((id) => getImage(id).catch(() => "")))).filter(Boolean)
+                                        : []
+                                    )
+                                  ];
+                                  setLocalReviews(prev => prev.map(rv => rv.id === r.id ? { ...rv, comment: editedReview.comment, rating: editedReview.rating, imageUrls: allImageUrls } : rv));
                                   setEditingReviewId && setEditingReviewId(null);
                                   setSelectedFiles([]);
                                   setSelectedPreviews([]);
+                                  setDeletedOldImages(prev => ({ ...prev, [r.id]: new Set() }));
                                 } catch {
                                   // Optionally add toast here
                                 }
                               }}
                               disabled={
-                                !editedReview ||
-                                typeof editedReview.rating !== 'number' ||
-                                editedReview.rating < 1 ||
-                                editedReview.rating > 5 ||
+                                !editedReview || 
+                                typeof editedReview.rating !== 'number' || 
+                                editedReview.rating < 1 || 
+                                editedReview.rating > 5 || 
                                 !(editedReview.comment || '').trim()
                               }
                             >
@@ -178,6 +208,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = (props) => {
                               setEditingReviewId && setEditingReviewId(null);
                               setSelectedFiles([]);
                               setSelectedPreviews([]);
+                              setDeletedOldImages(prev => ({ ...prev, [r.id]: new Set() }));
                             }}>Cancel</Button>
                             <Button
                               size="sm"
@@ -211,6 +242,19 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = (props) => {
                                 <img src={u} alt={`review-${i}`} className="w-16 h-16 object-cover rounded border" />
                               </ImageZoom>
                             ))}
+                          </div>
+                        )}
+                        {/* Product page link */}
+                        {r.productVariantId && r.productId && (
+                          <div className="mt-2">
+                            <a
+                              href={`/product?Id=${r.productId}&productVariantId=${r.productVariantId}`}
+                              className="text-blue-600 hover:underline text-sm"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              View Product Page
+                            </a>
                           </div>
                         )}
                         <div className="flex items-center gap-2 mt-3">

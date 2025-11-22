@@ -8,6 +8,8 @@ namespace ShahBuyerFeaturesApi.Core.DTOs.Response
         public string Id { get; set; } = string.Empty;
         public string BuyerProfileId { get; set; } = string.Empty;
         public string? BuyerName { get; set; }
+        
+        public string ProductId { get; set; } = string.Empty;
         public string ProductVariantId { get; set; } = string.Empty;
         public int Rating { get; set; }
         public string? Comment { get; set; }
