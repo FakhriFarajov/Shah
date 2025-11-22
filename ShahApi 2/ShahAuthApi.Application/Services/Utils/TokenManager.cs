@@ -171,7 +171,7 @@ public class TokenManager
     {
         var refreshToken = Guid.NewGuid().ToString();
         user.RefreshToken = refreshToken;
-        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddMinutes(1);//Change
+        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);//Change
         _context.Users.Update(user);
         await _context.SaveChangesAsync();
         return refreshToken;

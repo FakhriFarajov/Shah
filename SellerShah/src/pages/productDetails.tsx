@@ -117,13 +117,11 @@ export default function ProductDetailsPage() {
 
   return (
     <>
-      {
-        loading && (
-          <div className="fixed inset-0 bg-white bg-opacity-100 flex items-center justify-center z-50">
-            <Spinner />
-          </div>
-        )
-      }
+      {loading && (
+        <div className="fixed inset-0 bg-white bg-opacity-100 flex items-center justify-center z-50">
+          <Spinner />
+        </div>
+      )}
       <Navbar />
       <div className="min-h-screen flex flex-col md:flex-row">
         <AppSidebar />

@@ -7,7 +7,7 @@ import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
 import { assignOrderItemsToWarehouse } from "@/features/profile/Warehouses/Warehouses.service";
 import { toast } from "sonner";
 
-import { getProfileImage } from "@/shared/utils/imagePost";
+import { getImage } from "@/shared/utils/imagePost";
 import { Button } from "@/components/ui/button";
 
 const OrderStatusText: Record<number, string> = {
@@ -96,7 +96,7 @@ export default function OrdersPage() {
                   ? await Promise.all(
                     item.images.map(async (img: any) => {
                       try {
-                        const url = await getProfileImage(img.imageUrl);
+                        const url = await getImage(img.imageUrl);
                         return { ...img, imageUrl: url || img.imageUrl };
                       } catch {
                         return img;
@@ -138,7 +138,7 @@ export default function OrdersPage() {
                     ? await Promise.all(
                       item.images.map(async (img: any) => {
                         try {
-                          const url = await getProfileImage(img.imageUrl);
+                          const url = await getImage(img.imageUrl);
                           return { ...img, imageUrl: url || img.imageUrl };
                         } catch {
                           return img;

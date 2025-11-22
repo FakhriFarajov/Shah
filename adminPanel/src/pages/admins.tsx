@@ -165,9 +165,10 @@ export default function AdminProfilesPage() {
     }
 
     async function handleSave() {
+        setLoading(true);
         if (isEdit) {
             try {
-                handleEditAdminProfile(editing!.id, form);
+                await handleEditAdminProfile(editing!.id, form);
             } catch (error) {
                 toast.error("Failed to update admin profile");
             }
@@ -182,6 +183,9 @@ export default function AdminProfilesPage() {
             await handleAddAdminProfile(addPayload);
         } catch (error) {
             toast.error("Failed to add admin profile");
+        }
+        finally {
+            setLoading(false);
         }
     }
 
@@ -269,7 +273,7 @@ export default function AdminProfilesPage() {
     return (
         <>
             {loading && (
-                <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(255,255,255,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div className="fixed inset-0 bg-white bg-opacity-100 flex items-center justify-center z-50">
                     <Spinner />
                 </div>
             )}

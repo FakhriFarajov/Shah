@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
 import { GetAllPaginatedProductAsync } from "@/features/profile/Product/Product.service";
-import { getProfileImage } from "@/shared/utils/imagePost";
+import { getImage } from "@/shared/utils/imagePost";
 import { getDetails } from "@/features/profile/Product/Product.service";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -83,7 +83,7 @@ export default function ProductsPage() {
         const productsWithImages = await Promise.all(mapped.map(async (p: Product) => {
           if (p.mainImage) {
             try {
-              const url = await getProfileImage(p.mainImage);
+              const url = await getImage(p.mainImage);
               return { ...p, mainImage: url };
             } catch (err) {
               return { ...p, mainImage: null };
@@ -97,7 +97,7 @@ export default function ProductsPage() {
         const productsWithImages = await Promise.all(apiItems.map(async (product: any): Promise<Product> => {
           if (product.mainImage) {
             try {
-              const url = await getProfileImage(product.mainImage);
+              const url = await getImage(product.mainImage);
               return { ...product, mainImage: url };
             } catch (err) {
               return product;

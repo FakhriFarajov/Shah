@@ -58,7 +58,7 @@ export default function ProductsEditOrAddPage() {
             const sellerId = getUserIdFromToken();
             if (sellerId) {
                 try {
-                    const seller = await apiCallWithManualRefresh(() => getSellerProfile(sellerId));
+                    const seller:any = await apiCallWithManualRefresh(() => getSellerProfile(sellerId));
                     setProduct((prev: any) => ({ ...prev, storeInfoId: seller.storeInfoId }));
                     // Example: status === 'Verified' (change if your API uses a different property/value)
                     setIsVerified(seller.isConfirmed === true);

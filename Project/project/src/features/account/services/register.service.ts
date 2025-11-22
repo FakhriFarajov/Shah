@@ -20,9 +20,9 @@ export async function confirmEmail(): Promise<{ success: boolean; error?: string
   }
 }
 
-export async function forgotPassword(payload: ForgetPasswordRequest): Promise<{ isSuccess: boolean; message?: string }> {
+export async function ChangePassword(payload: ForgetPasswordRequest): Promise<{ isSuccess: boolean; message?: string }> {
   try {
-    const { data } = await authHttp.post<{ isSuccess: boolean; message?: string }>("/ForgotPassword", payload);
+    const { data } = await authHttp.post<{ isSuccess: boolean; message?: string }>("/ChangePassword", payload);
     return data;
   } catch (error) {
     return { isSuccess: false, message: (error as Error).message };

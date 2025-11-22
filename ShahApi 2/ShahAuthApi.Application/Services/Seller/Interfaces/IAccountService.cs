@@ -10,6 +10,6 @@ public interface IAccountService
     public Task<Result> RegisterSellerAsync(SellerRegisterRequestDTO requestDto);
     public Task ConfirmEmailAsync(ClaimsPrincipal user, string token, HttpContext context);
     public Task<Result> VerifyEmailAsync(string id);
-    Task<Result> ForgotPasswordAsync(ForgotPasswordRequestDTO requestDto);
+    Task<Result> ChangePassword(ChangePassword requestDto);
     Task<Result> SendPasswordResetEmailToUserAsync(string email);
 }

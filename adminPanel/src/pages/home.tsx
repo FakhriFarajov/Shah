@@ -1,144 +1,168 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useTranslation } from "react-i18next";
-import { useState, useContext, useEffect } from "react";
-import Navbar from "../components/custom/Navbar/navbar";
-import { PieChart, Pie, Cell } from "recharts";
-import { AuthContext } from "@/features/auth/contexts/AuthProvider";
-import { useNavigate } from "react-router-dom";
-
+import { useEffect, useState } from "react";
+import Navbar from "@/components/custom/Navbar/navbar";
 import { AppSidebar } from "@/components/custom/sidebar";
+import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
+import { getStats } from "@/features/profile/Stats/stats.service";
+import { Bar } from 'react-chartjs-2';
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    Title,
+    Tooltip as ChartTooltip,
+    Legend,
+} from 'chart.js';
+import { AdaptiveTable } from "@/components/custom/adaptive-table";
+import type { AdaptiveTableColumn } from "@/components/custom/adaptive-table";
+import { getImage } from "@/shared/utils/imagePost";
+import Spinner from "@/components/custom/Spinner";
 
-type Product = {
-    id: number;
-    productName: string;
-    subcategory: string;
-    status: string;
-    price: string;
-    quantity: string;
-    totalPrice: string;
-    destination: string;
-};
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, ChartTooltip, Legend);
 
-export default function Home() {
-    const { t } = useTranslation();
-    const [goods] = useState<Product[]>([
-        {
-            id: 1,
-            productName: "Cover page",
-            subcategory: "Cover page",
-            status: "In Process",
-            price: "100",
-            quantity: "5",
-            totalPrice: "500",
-            destination: "Eddie Lake"
-        },
-        {
-            id: 2,
-            productName: "Executive Summary",
-            subcategory: "Summary",
-            status: "Done",
-            price: "200",
-            quantity: "2",
-            totalPrice: "400",
-            destination: "Jamik Tashpulatov"
-        },
-    ]);
-    const [counts, setCounts] = useState({
-        buyers: 12,
-        sellers: 8,
-        warehouses: 2,
-        orders: 34,
-    });
 
-    const { isAuthenticated } = useContext(AuthContext);
-    const navigate = useNavigate();
+export default function HomePage() {
+    const [stats, setStats] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [orderRows, setOrderRows] = useState<any[]>([]);
 
     useEffect(() => {
-        if (!isAuthenticated) {
-            navigate("/login");
+        async function fetchStats() {
+            setLoading(true);
+            try {
+                const result = await apiCallWithManualRefresh(() => getStats());
+                console.log("Fetched stats:", result);
+                setStats(result);
+            } catch (err) {
+                setStats(null);
+            } finally {
+                setLoading(false);
+            }
         }
-    }, [isAuthenticated, navigate]);
+        fetchStats();
+    }, []);
 
-    // Utility to generate random color
-    function getRandomColor() {
-        return `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, "0")}`;
-    }
+    useEffect(() => {
+        if (stats && stats.orderItemRows) {
+            (async () => {
+                const rowsWithImages = await Promise.all(
+                    stats.orderItemRows.map(async (order: any) => {
+                        let resolvedImage = order.productImage;
+                        if (resolvedImage && !resolvedImage.startsWith('http')) {
+                            try {
+                                resolvedImage = await getImage(resolvedImage);
+                            } catch { }
+                        }
+                        return { ...order, resolvedImage };
+                    })
+                );
+                setOrderRows(rowsWithImages);
+            })();
+        }
+    }, [stats]);
 
-    // Assign random colors to earningsData
-    const earningsData = [
-        { name: "Buyers", value: 8000 },
-        { name: "Sellers", value: 4560 },
-    ].map(e => ({ ...e, color: getRandomColor() }));
+    const orderColumns: AdaptiveTableColumn<any>[] = [
+        {
+            key: "productName",
+            label: "Product Name",
+            render: (_: any, row: any) => (
+                <span className="flex items-center gap-2">
+                    <img src={row.resolvedImage} alt={row.productName} className="w-7 h-7 rounded object-cover" />
+                    <span>{row.productName}</span>
+                </span>
+            ),
+        },
+        { key: "orderDate", label: "Order Date", render: (v) => new Date(v).toLocaleString() },
+        { key: "price", label: "Price", render: (v) => `$${v}` },
+        { key: "quantity", label: "Quantity" },
+        {
+            key: "paymentStatus",
+            label: "Status",
+            render: (v) => {
+                let color = "gray", bg = "gray-100", text = "gray-500", label = v;
+                switch (v) {
+                    case "Pending": color = "yellow-500"; bg = "yellow-100"; text = "yellow-600"; label = "Pending"; break;
+                    case "Processing": color = "blue-500"; bg = "blue-100"; text = "blue-600"; label = "Processing"; break;
+                    case "Shipped": color = "purple-500"; bg = "purple-100"; text = "purple-600"; label = "Shipped"; break;
+                    case "Delivered": color = "green-500"; bg = "green-100"; text = "green-600"; label = "Delivered"; break;
+                    case "Cancelled": color = "red-500"; bg = "red-100"; text = "red-600"; label = "Cancelled"; break;
+                    case "Returned": color = "orange-500"; bg = "orange-100"; text = "orange-600"; label = "Returned"; break;
+                }
+                return (
+                    <span className={`bg-${bg} text-${text} px-3 py-1 rounded text-xs flex items-center gap-1`}>
+                        <span className={`w-2 h-2 bg-${color} rounded-full inline-block`}></span>{label}
+                    </span>
+                );
+            },
+        },
+    ];
+
+    if (!stats) return <div className="p-8">Failed to load stats.</div>;
+
+    // Chart.js data and options
+    const barData = {
+        labels: [
+            'Total Users',
+            'Buyers',
+            'Sellers',
+            ...(typeof stats.totalAdmins === 'number' ? ['Admins'] : []),
+        ],
+        datasets: [
+            {
+                label: 'User Count',
+                data: [
+                    stats.totalUsers,
+                    stats.totalBuyers,
+                    stats.totalSellers,
+                    ...(typeof stats.totalAdmins === 'number' ? [stats.totalAdmins] : []),
+                ],
+                backgroundColor: [
+                    '#6366f1',
+                    '#60a5fa',
+                    '#a78bfa',
+                    ...(typeof stats.totalAdmins === 'number' ? ['#f59e42'] : []),
+                ],
+                borderRadius: 8,
+            },
+        ],
+    };
+    const barOptions = {
+        responsive: true,
+        plugins: {
+            legend: { display: false },
+            title: { display: false },
+            tooltip: { enabled: true },
+        },
+        scales: {
+            x: { grid: { display: false }, ticks: { color: '#6366f1', font: { weight: 600 } } },
+            y: { grid: { color: '#e0e7ff' }, ticks: { color: '#6366f1', font: { weight: 600 } } },
+        },
+    };
 
     return (
         <>
+                    {loading && (
+                <div className="fixed inset-0 bg-white bg-opacity-100 flex items-center justify-center z-50">
+                    <Spinner />
+                </div>
+            )}
             <Navbar />
-            <div className="min-h-screen bg-gray-50 flex">
+            <div className="min-h-screen flex ">
                 <AppSidebar />
-                {/* Main Content */}
-                <div className="flex-1 py-8 px-2 md:px-8">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Buyers</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <span className="text-3xl font-bold">{counts.buyers}</span>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Sellers</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <span className="text-3xl font-bold">{counts.sellers}</span>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Users Statistics</CardTitle>
-                            </CardHeader>
-                            <div className="flex flex-col items-center">
-                                <PieChart width={180} height={180}>
-                                    <Pie
-                                        data={earningsData}
-                                        dataKey="value"
-                                        nameKey="name"
-                                        cx="50%"
-                                        cy="50%"
-                                        innerRadius={50}
-                                        outerRadius={80}
-                                        fill="#8884d8"
-                                        label
-                                    >
-                                        {earningsData.map((entry, idx) => (
-                                            <Cell key={`cell-${idx}`} fill={entry.color} />
-                                        ))}
-                                    </Pie>
-                                </PieChart>
-                                <div className="text-2xl font-bold mt-2">{(counts.buyers + counts.sellers).toLocaleString()} <span className="text-gray-400 text-base">Total</span></div>
-                                <div className="flex flex-col gap-1 mt-2">
-                                    {earningsData.map(e => (
-                                        <div key={e.name} className="flex items-center gap-2 text-sm">
-                                            <span className="inline-block w-3 h-3 rounded-full" style={{ background: e.color }}></span>
-                                            <span>{e.name}</span>
-                                            <span className="font-semibold">{e.value.toLocaleString()}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                            <CardContent>
-                                <span className="text-3xl font-bold">{counts.warehouses}</span>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Orders</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <span className="text-3xl font-bold">{counts.orders}</span>
-                            </CardContent>
-                        </Card>
+                <div className="flex-1 p-8">
+                    <h1 className="text-3xl font-extrabold mb-8 drop-shadow">Admin Dashboard</h1>
+                    <p className="mb-4 ">Welcome to the admin dashboard. Here you can manage users, view statistics, and handle orders.</p>
+                    <div className="mb-10 w-full max-w-4xl mx-auto">
+                        <div className="bg-white rounded-2xl shadow-xl p-8 border border-indigo-100">
+                            <h2 className="text-xl font-semibold mb-4 text-indigo-700">User Distribution</h2>
+                            <Bar data={barData} options={barOptions} height={220} width={700} />
+                        </div>
+                    </div>
+                    <div className="mb-16">
+                        <div className="bg-white rounded-2xl shadow-lg p-8 border border-indigo-100 max-w-4xl mx-auto">
+                            <h2 className="text-xl font-semibold mb-6 text-indigo-700">Latest Orders Table</h2>
+                            <AdaptiveTable columns={orderColumns} data={orderRows} />
+                        </div>
                     </div>
                 </div>
             </div>

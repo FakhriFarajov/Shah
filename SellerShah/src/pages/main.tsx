@@ -4,308 +4,273 @@ import type { AdaptiveTableColumn } from "@/components/custom/adaptive-table";
 import Navbar from "../components/custom/Navbar/navbar";
 import Footer from "../components/custom/footer";
 import { AppSidebar } from "@/components/custom/sidebar";
-import {
-  BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, PieChart, Pie, Cell
-} from "recharts";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useState } from "react";
+import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { getImage } from "@/shared/utils/imagePost";
+import { useEffect, useState } from "react";
+import { getStats } from "@/features/profile/Stats/stats.service";
 import Spinner from "@/components/custom/spinner";
+import { toast } from "sonner";
 
-
-
-// --- Order and OrderItem types matching C# models ---
-type OrderItem = {
-  id: string;
-  productId: string;
-  productName: string;
-  productImage: string;
-  quantity: number;
-  unitPrice: number;
+type TopCountry = { name: string; percent: number };
+type SalesByMonth = { month: string; sales: number; date: string };
+type SalesPoint = { date: string; sales: number; productImage?: string; productName?: string };
+type DashboardData = {
+  orderItemRows: any[];
+  totalProducts: number;
+  totalOrders: number;
+  totalEarnings: number;
+  topCountries: TopCountry[];
+  salesByMonth?: SalesByMonth[];
 };
-
-type Order = {
-  id: string;
-  orderDate: string;
-  price: number;
-  paymentStatus: 'Unpaid' | 'Packed' | 'Completed';
-  status: string;
-  orderItem: OrderItem;
-};
-
-// Example data (replace with real API data as needed)
-const initialOrderData: Order[] = [
-  {
-    id: "#SLR980131-9N",
-    orderDate: "13 February, 2025",
-    price: 28,
-    paymentStatus: "Unpaid",
-    status: "Unpaid",
-    orderItem: {
-      id: "OI-1",
-      productId: "P-1",
-      productName: "Apple iPad (Gen 10)",
-      productImage: "/src/assets/images/man.png",
-      quantity: 1,
-      unitPrice: 28,
-    },
-  },
-  {
-    id: "#SLR980130-8N",
-    orderDate: "13 February, 2025",
-    price: 32,
-    paymentStatus: "Packed",
-    status: "Packed",
-    orderItem: {
-      id: "OI-2",
-      productId: "P-2",
-      productName: "Apple iPhone 13",
-      productImage: "/src/assets/images/ShahLogo1.jpg",
-      quantity: 1,
-      unitPrice: 32,
-    },
-  },
-  {
-    id: "#SLR980129-7N",
-    orderDate: "13 February, 2025",
-    price: 24,
-    paymentStatus: "Packed",
-    status: "Packed",
-    orderItem: {
-      id: "OI-3",
-      productId: "P-3",
-      productName: "Apple MacBook Air M2",
-      productImage: "/src/assets/images/ShahLogo2.png",
-      quantity: 1,
-      unitPrice: 24,
-    },
-  },
-  {
-    id: "#SLR980128-6F",
-    orderDate: "13 February, 2025",
-    price: 38,
-    paymentStatus: "Completed",
-    status: "Completed",
-    orderItem: {
-      id: "OI-4",
-      productId: "P-4",
-      productName: "Apple iMac 2023",
-      productImage: "/src/assets/images/man.png",
-      quantity: 1,
-      unitPrice: 38,
-    },
-  },
-  {
-    id: "#SLR980127-5F",
-    orderDate: "13 February, 2025",
-    price: 46,
-    paymentStatus: "Completed",
-    status: "Completed",
-    orderItem: {
-      id: "OI-5",
-      productId: "P-5",
-      productName: "Apple Airpods 4",
-      productImage: "/src/assets/images/man.png",
-      quantity: 1,
-      unitPrice: 46,
-    },
-  },
-];
-
-function OrderDetailsModal({ order }: { order: Order }) {
-  return (
-    <DialogContent>
-      <DialogHeader>
-        <DialogTitle>Order Details</DialogTitle>
-      </DialogHeader>
-      <div className="flex flex-col gap-2">
-        <div><b>Order ID:</b> {order.id}</div>
-        <div><b>Product:</b> {order.orderItem.productName}</div>
-        <div><b>Quantity:</b> {order.orderItem.quantity}</div>
-        <div><b>Price:</b> ${order.price}</div>
-        <div><b>Status:</b> {order.paymentStatus}</div>
-        <div><b>Order Date:</b> {order.orderDate}</div>
-        <div><b>Product Image:</b><br /><img src={order.orderItem.productImage} alt={order.orderItem.productName} className="w-20 h-20 rounded object-cover mt-1" /></div>
-      </div>
-    </DialogContent>
-  );
-}
 
 export default function Main() {
-  const [orderData] = useState<Order[]>(initialOrderData);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [dashboard, setDashboard] = useState<DashboardData>({
+    orderItemRows: [],
+    totalProducts: 0,
+    totalOrders: 0,
+    totalEarnings: 0,
+    topCountries: [],
+    salesByMonth: []
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [salesRange, setSalesRange] = useState<'day' | 'month' | 'year'>('month');
+  const [salesPoints, setSalesPoints] = useState<SalesPoint[]>([]);
 
-  const orderColumns: AdaptiveTableColumn<Order>[] = [
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      try {
+        const response = await getStats();
+        let data = response.data ?? response;
+
+        // Always resolve productImage for each orderItemRow
+        const orderItemRowsWithImages = await Promise.all(
+          (data.orderItemRows || []).map(async (order: any) => {
+            let resolvedImage = order.productImage;
+            if (resolvedImage && !resolvedImage.startsWith('http')) {
+              try {
+                resolvedImage = await getImage(resolvedImage);
+                console.log("Resolved product image for order:", order.orderId, resolvedImage);
+              } catch {
+                // fallback to original
+              }
+            }
+            return { ...order, resolvedImage };
+          })
+        );
+        data.orderItemRows = orderItemRowsWithImages;
+        console.log("Resolved order item images:", data.orderItemRows);
+
+        // Build sales points for the selected range
+        let points: SalesPoint[] = [];
+        if (salesRange === 'day' && Array.isArray(data.salesPerDay)) {
+          // Map product images from orderItemRows by date
+          const orderImages = (data.orderItemRows || []).reduce((acc: Record<string, { img: string, name: string }>, row: any) => {
+            const date = row.orderDate ? row.orderDate.slice(0, 10) : null;
+            if (date) {
+              acc[date] = { img: row.resolvedImage || row.productImage, name: row.productName };
+            }
+            return acc;
+          }, {});
+          points = data.salesPerDay.map((item: any) => {
+            const date = item.date.slice(0, 10);
+            const imgData = orderImages[date];
+            return {
+              date: item.date,
+              sales: item.sales,
+              productImage: imgData ? imgData.img : undefined,
+              productName: imgData ? imgData.name : undefined
+            };
+          });
+        } else if (salesRange === 'month' && Array.isArray(data.salesPerMonth)) {
+          points = data.salesPerMonth.map((item: any) => ({
+            date: `${item.year}-${String(item.month).padStart(2, '0')}-01`,
+            sales: item.sales
+          }));
+        } else if (salesRange === 'year' && Array.isArray(data.salesPerYear)) {
+          points = data.salesPerYear.map((item: any) => ({
+            date: `${item.year}-01-01`,
+            sales: item.sales
+          }));
+        }
+        setSalesPoints(points);
+        setDashboard(data);
+        setError(null);
+      } catch (e: any) {
+        if(e.status === 401) {
+          toast.info("You have to login to access the dashboard.");
+          window.location.href = "/login";
+        } else {
+          toast.error("Failed to load dashboard data. Please try again later.");
+        }
+      }
+      setLoading(false);
+    })();
+  }, [salesRange]);
+
+  const orderColumns: AdaptiveTableColumn<any>[] = [
     {
-      key: "orderItem",
+      key: "productName",
       label: "Product Name",
-      render: (item: OrderItem, row: Order) => (
-        <Dialog>
-          <DialogTrigger asChild>
-            <button className="flex items-center gap-2 hover:underline focus:outline-none">
-              <img src={item.productImage} alt={item.productName} className="w-7 h-7 rounded object-cover" />
-              <span>{item.productName}</span>
-            </button>
-          </DialogTrigger>
-          <OrderDetailsModal order={row} />
-        </Dialog>
+      render: (_: any, row: any) => (
+        <span className="flex items-center gap-2">
+          <img src={row.resolvedImage} alt={row.productName} className="w-7 h-7 rounded object-cover" />
+          <span>{row.productName}</span>
+        </span>
       ),
     },
     { key: "orderDate", label: "Order Date" },
     { key: "price", label: "Price", render: (v) => `$${v}` },
     {
-      key: "paymentStatus",
-      label: "Status",
-      render: (v) =>
-        v === "Unpaid" ? (
-          <span className="bg-red-100 text-red-500 px-3 py-1 rounded text-xs flex items-center gap-1"><span className="w-2 h-2 bg-red-500 rounded-full inline-block"></span>Unpaid</span>
-        ) : v === "Packed" ? (
-          <span className="bg-yellow-100 text-yellow-600 px-3 py-1 rounded text-xs flex items-center gap-1"><span className="w-2 h-2 bg-yellow-400 rounded-full inline-block"></span>Packed</span>
-        ) : (
-          <span className="bg-green-100 text-green-600 px-3 py-1 rounded text-xs flex items-center gap-1"><span className="w-2 h-2 bg-green-500 rounded-full inline-block"></span>Completed</span>
-        ),
+      key: "quantity",
+      label: "Quantity",
+      render: (_: any, row: any) => row.quantity,
     },
     {
-      key: "orderItem",
-      label: "Quantity",
-      render: (item: OrderItem) => item.quantity,
+      key: "paymentStatus",
+      label: "Status",
+      render: (v) => {
+        // Map status to color and label
+        let color = "gray", bg = "gray-100", text = "gray-500", label = v;
+        switch (v) {
+          case "Pending":
+            color = "yellow-500"; bg = "yellow-100"; text = "yellow-600"; label = "Pending"; break;
+          case "Processing":
+            color = "blue-500"; bg = "blue-100"; text = "blue-600"; label = "Processing"; break;
+          case "Shipped":
+            color = "purple-500"; bg = "purple-100"; text = "purple-600"; label = "Shipped"; break;
+          case "Delivered":
+            color = "green-500"; bg = "green-100"; text = "green-600"; label = "Delivered"; break;
+          case "Cancelled":
+            color = "red-500"; bg = "red-100"; text = "red-600"; label = "Cancelled"; break;
+          case "Returned":
+            color = "orange-500"; bg = "orange-100"; text = "orange-600"; label = "Returned"; break;
+        }
+        return (
+          <span className={`bg-${bg} text-${text} px-3 py-1 rounded text-xs flex items-center gap-1`}>
+            <span className={`w-2 h-2 bg-${color} rounded-full inline-block`}></span>{label}
+          </span>
+        );
+      },
     },
   ];
 
-  const chartData = [
-    { month: "Jan", sales: 120 },
-    { month: "Feb", sales: 90 },
-    { month: "Mar", sales: 100 },
-    { month: "Apr", sales: 130 },
-    { month: "May", sales: 110 },
-    { month: "Jun", sales: 140 },
-    { month: "Jul", sales: 120 },
-    { month: "Aug", sales: 150 },
-    { month: "Sep", sales: 160 },
-    { month: "Oct", sales: 170 },
-    { month: "Nov", sales: 180 },
-    { month: "Dec", sales: 190 },
-  ];
-  const earningsData = [
-    { name: "Income", value: 20199, color: "#4F46E5" },
-    { name: "Taxes", value: 1021, color: "#F59E42" },
-    { name: "Fees", value: 992, color: "#F43F5E" },
-  ];
-  const stats = [
-    { label: "Orders", value: 254, change: "+12.5%", color: "text-green-600" },
-    { label: "Revenue", value: "$6,260", change: "+7%", color: "text-green-600" },
-    { label: "Revenue", value: "$2,567", change: "+0.32%", color: "text-orange-500" },
-  ];
-  const topCountries = [
-    { name: "United States", percent: 80 },
-    { name: "Germany", percent: 69 },
-    { name: "United Kingdom", percent: 69 },
-    { name: "Russia", percent: 35 },
-  ];
+  const topCountries: TopCountry[] = dashboard.topCountries;
+  const salesByMonth: SalesByMonth[] = dashboard.salesByMonth || [];
+
+  // Filter sales data based on selected range
+  const now = new Date();
+  let filteredSales: SalesByMonth[] = salesByMonth;
+  if (salesRange === 'day') {
+    filteredSales = salesByMonth.filter(item => {
+      const d = new Date(item.date);
+      return d.toDateString() === now.toDateString();
+    });
+  } else if (salesRange === 'month') {
+    filteredSales = salesByMonth.filter(item => {
+      const d = new Date(item.date);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    });
+  } else if (salesRange === 'year') {
+    filteredSales = salesByMonth.filter(item => {
+      const d = new Date(item.date);
+      return d.getFullYear() === now.getFullYear();
+    });
+  }
 
   return (
     <>
-      {
-        loading && (
-          <div className="fixed inset-0 bg-white bg-opacity-100 flex items-center justify-center z-50">
-            <Spinner />
-          </div>
-        )
-      }
+      {loading && (
+        <div className="fixed inset-0 bg-white bg-opacity-100 flex items-center justify-center z-50">
+          <Spinner />
+        </div>
+      )}
       <Navbar />
       <div className="min-h-screen bg-gray-50 flex">
         <AppSidebar />
-        <div className="flex-1 flex flex-col">
-          <div className="px-8 pt-8 pb-2">
-            <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
-            <p className="text-gray-500">Everything here</p>
+        <div className="flex-1 p-8">
+          <h1 className="text-3xl font-bold mb-6 text-indigo-800">Dashboard</h1>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <Card>
+              <CardHeader>
+                <CardTitle>Total Products</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <span className="text-2xl font-bold">{dashboard.totalProducts}</span>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Total Orders</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <span className="text-2xl font-bold">{dashboard.totalOrders}</span>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Total Earnings</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <span className="text-2xl font-bold">${dashboard.totalEarnings}</span>
+              </CardContent>
+            </Card>
           </div>
-          <div className="flex-1 grid grid-cols-1 xl:grid-cols-3 gap-8 px-8 pb-8">
-            <div className="xl:col-span-2 flex flex-col gap-8">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Sales Reports</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <BarChart data={chartData}>
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="sales" fill="#4F46E5" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-              {/* Recent Orders */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Today's Orders</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <AdaptiveTable columns={orderColumns} data={orderData} />
-                  <div className="mt-2 text-indigo-600 text-sm cursor-pointer">View Full Orders &gt;</div>
-                </CardContent>
-              </Card>
+          <div className="bg-white rounded-xl shadow p-6">
+            <h2 className="text-xl font-bold mb-4 text-indigo-700">Recent Orders</h2>
+            <AdaptiveTable columns={orderColumns} data={dashboard.orderItemRows} />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
+            <div className="md:col-span-2 bg-white rounded-xl shadow p-6 mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-indigo-700">Sales Over Time</h2>
+                <select
+                  className="border rounded px-2 py-1 text-sm"
+                  value={salesRange}
+                  onChange={e => setSalesRange(e.target.value as 'day' | 'month' | 'year')}
+                >
+                  <option value="day">Last 1 Day</option>
+                  <option value="month">This Month</option>
+                  <option value="year">This Year</option>
+                </select>
+              </div>
+              <ResponsiveContainer width="100%" height={300}>
+                <ScatterChart>
+                  <CartesianGrid />
+                  <XAxis
+                    dataKey="date"
+                    name="Date"
+                    tickFormatter={(date) => {
+                      const d = new Date(date);
+                      return salesRange === 'year' ? `${d.getMonth() + 1}/${d.getFullYear()}` : `${d.getDate()}/${d.getMonth() + 1}`;
+                    }}
+                  />
+                  <YAxis dataKey="sales" name="Sales" />
+                  <Tooltip
+                    labelFormatter={v => new Date(v).toLocaleDateString()}
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        return (
+                          <div className="bg-white p-3 rounded shadow border min-w-[180px]">
+                            <div className="font-semibold mb-1">{new Date(data.date).toLocaleDateString()}</div>
+                            {data.productImage && (
+                              <img src={data.productImage} alt={data.productName || ''} className="w-12 h-12 object-cover rounded mb-1" />
+                            )}
+                            {data.productName && <div className="text-sm mb-1">{data.productName}</div>}
+                            <div className="text-indigo-700 font-bold">Sales: {data.sales}</div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Scatter name="Sales" data={salesPoints} fill="#4F46E5" />
+                </ScatterChart>
+              </ResponsiveContainer>
             </div>
-            {/* Right: Earnings, Stats, Top Countries */}
             <div className="flex flex-col gap-8">
-              {/* Earnings Donut */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Earnings</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-col items-center">
-                    <PieChart width={180} height={180}>
-                      <Pie
-                        data={earningsData}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={50}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        label
-                      >
-                        {earningsData.map((entry, idx) => (
-                          <Cell key={`cell-${idx}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                    </PieChart>
-                    <div className="text-2xl font-bold mt-2">$12,560 <span className="text-gray-400 text-base">Balance</span></div>
-                    <div className="flex flex-col gap-1 mt-2">
-                      {earningsData.map(e => (
-                        <div key={e.name} className="flex items-center gap-2 text-sm">
-                          <span className="inline-block w-3 h-3 rounded-full" style={{ background: e.color }}></span>
-                          <span>{e.name}</span>
-                          <span className="font-semibold">{e.value.toLocaleString()}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              {/* Stats */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Statics</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-col gap-2">
-                    {stats.map(s => (
-                      <div key={s.label} className="flex items-center justify-between">
-                        <div>{s.label}</div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold">{s.value}</span>
-                          <span className={s.color}>{s.change}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-              {/* Top Countries */}
               <Card>
                 <CardHeader>
                   <CardTitle>Top Countries</CardTitle>

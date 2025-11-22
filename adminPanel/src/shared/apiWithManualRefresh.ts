@@ -15,12 +15,19 @@ export async function apiCallWithManualRefresh<T>(requestFn: () => Promise<T>): 
     if (error.response?.status === 401) {
       const refreshToken = tokenStorage.getRefresh();
       if (refreshToken) {
-        const refreshResult = await manualRefreshToken(refreshToken);
-        if (refreshResult.isSuccess) {
-          // Retry the original request after refreshing token
-          const retryRes = await requestFn();
-          // @ts-ignore
-          return retryRes && typeof (retryRes as any).then !== 'function' && (retryRes as any).data !== undefined ? (retryRes as any).data : retryRes;
+        try {
+          const refreshResult = await manualRefreshToken(refreshToken);
+          if (refreshResult.isSuccess) {
+            // Retry the original request after refreshing token
+            const retryRes = await requestFn();
+            // @ts-ignore
+            return retryRes && typeof (retryRes as any).then !== 'function' && (retryRes as any).data !== undefined ? (retryRes as any).data : retryRes;
+          }
+        }
+        catch (refreshError) {
+          console.log("Token refresh failed:", refreshError);
+          tokenStorage.remove();
+          window.location.href = "/";
         }
       }
     }

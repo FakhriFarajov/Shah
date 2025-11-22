@@ -2,7 +2,7 @@ import { authHttp } from "./httpClient";
 import type {
   RegisterRequest,
   RegisterResponse,
-  ForgetPasswordRequest,
+  ChangePasswordRequest
 } from "@/features/account/DTOs/account.interfaces";
 
 export async function register(payload: RegisterRequest): Promise<RegisterResponse> {
@@ -19,9 +19,9 @@ export async function confirmEmail(): Promise<{ isSuccess: boolean; message?: st
   }
 }
 
-export async function forgotPassword(payload: ForgetPasswordRequest): Promise<{ isSuccess: boolean; message?: string }> {
+export async function changePassword(payload: ChangePasswordRequest): Promise<{ isSuccess: boolean; message?: string }> {
   try {
-    const { data } = await authHttp.post<{ isSuccess: boolean; message?: string }>("/ForgotPassword", payload);
+    const { data } = await authHttp.post<{ isSuccess: boolean; message?: string }>("/ChangePassword", payload);
     return data;
   } catch (error) {
     return { isSuccess: false, message: (error as Error).message };

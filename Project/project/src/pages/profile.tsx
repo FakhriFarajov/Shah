@@ -22,7 +22,7 @@ import { jwtDecode } from "jwt-decode";
 import { toast } from "sonner";
 import { editBuyerProfile } from "@/features/services/ProfileServices/profile.service";
 import { uploadImage, getImage } from "@/shared/utils/imagePost";
-import { confirmEmail, forgotPassword } from "@/features/account/services/register.service";
+import { confirmEmail, ChangePassword } from "@/features/account/services/register.service";
 import { faqs } from "@/static_data/faq"; //Import FAQ data
 import { getCountries } from "@/features/services/Country/country.service";
 import Spinner from "@/components/custom/spinner";
@@ -236,7 +236,7 @@ export default function AccountPage() {
         toast.error("Confirm password cannot be empty");
         return;
       }
-      var result = await apiCallWithManualRefresh(() => forgotPassword(requestData));
+      var result = await apiCallWithManualRefresh(() => ChangePassword(requestData));
       if (result.isSuccess) {
         toast.success("Password changed successfully");
         setShowPasswordModal(false);

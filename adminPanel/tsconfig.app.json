@@ -29,5 +29,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src", "src/pages/Buyer/.tsx", "src/features/profile/profile/DTOs/.interfaces.ts", "src/features/profile/DTOs/.interfaces.ts"]
+  "include": ["src", "src/pages/Buyer/.tsx", "src/features/profile/profile/DTOs/.interfaces.ts", "src/features/profile/DTOs/.interfaces.ts", "src/features/profile/Stats/.service.ts"]
 }

@@ -18,7 +18,7 @@ import { jwtDecode } from "jwt-decode";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
-import { forgotPassword } from "@/features/account/services/profile.service";
+import { changePassword } from "@/features/account/services/profile.service";
 import { uploadImage, getImage } from "@/shared/utils/imagePost";
 import { AppSidebar } from "@/components/custom/sidebar";
 import { confirmEmail } from "@/features/account/services/profile.service";
@@ -271,7 +271,7 @@ export default function ProfileSeller() {
                 toast.error("Confirm password cannot be empty");
                 return;
             }
-            const result = await apiCallWithManualRefresh(() => forgotPassword(requestData));
+            const result = await apiCallWithManualRefresh(() => changePassword(requestData));
             if (result?.isSuccess) {
                 toast.success("Password changed successfully");
                 setShowPasswordModal(false);
@@ -301,13 +301,11 @@ export default function ProfileSeller() {
 
     return (
         <>
-            {
-                loading && (
-                    <div className="fixed inset-0 bg-white bg-opacity-100 flex items-center justify-center z-50">
-                        <Spinner />
-                    </div>
-                )
-            }
+            {loading && (
+                <div className="fixed inset-0 bg-white bg-opacity-100 flex items-center justify-center z-50">
+                    <Spinner />
+                </div>
+            )}
             <Navbar />
             <div className="min-h-screen bg-gray-50 flex">
                 <AppSidebar />
@@ -602,7 +600,7 @@ export default function ProfileSeller() {
                                                 <div>
                                                     <label className="block text-sm font-medium mb-1">Current Password</label>
                                                     <div className="relative">
-                                                        <Input type={showCurrent ? "text" : "password"} value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required />
+                                                        <Input type={showCurrent ? "text" : "password"} value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required placeholder="**********"/>
                                                         <button type="button" className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500" onClick={() => setShowCurrent((v) => !v)} tabIndex={-1}>
                                                             {showCurrent ? <EyeOff /> : <Eye />}
                                                         </button>
@@ -612,7 +610,7 @@ export default function ProfileSeller() {
                                                 <div>
                                                     <label className="block text-sm font-medium mb-1">New Password</label>
                                                     <div className="relative">
-                                                        <Input type={showNew ? "text" : "password"} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
+                                                        <Input type={showNew ? "text" : "password"} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required placeholder="**********"/>
                                                         <button type="button" className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500" onClick={() => setShowNew((v) => !v)} tabIndex={-1}>
                                                             {showNew ? <EyeOff /> : <Eye />}
                                                         </button>
@@ -622,7 +620,7 @@ export default function ProfileSeller() {
                                                 <div>
                                                     <label className="block text-sm font-medium mb-1">Confirm New Password</label>
                                                     <div className="relative">
-                                                        <Input type={showConfirm ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+                                                        <Input type={showConfirm ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required placeholder="**********"/>
                                                         <button type="button" className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500" onClick={() => setShowConfirm((v) => !v)} tabIndex={-1}>
                                                             {showConfirm ? <EyeOff /> : <Eye />}
                                                         </button>

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { getAllCategoriesWithAttributesAndValuesAsync } from "@/features/profile/Category/category.service";
 import ImageCropper from "@/components/ui/image-crop";
-import { uploadImage, getProfileImage } from "@/shared/utils/imagePost";
+import { uploadImage, getImage } from "@/shared/utils/imagePost";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { getDetails } from "@/features/profile/Product/Product.service";
 import { toast } from "sonner";
@@ -63,7 +63,7 @@ export default function ProductsEditOrAddPage() {
                                     const objectName = image.objectName || image.imageUrl;
                                     if (objectName) {
                                         try {
-                                            const url = await getProfileImage(objectName);
+                                            const url = await getImage(objectName);
                                             return { ...image, imageUrl: url };
                                         } catch (e) {
                                             return image;

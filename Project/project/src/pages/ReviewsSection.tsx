@@ -96,6 +96,15 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = (props) => {
                               setSelectedPreviews(files.map((f) => URL.createObjectURL(f)));
                             }}
                           />
+                          {(Array.isArray(r.imageUrls) && r.imageUrls.length > 0) && (
+                            <div className="mt-2 flex gap-2 flex-wrap max-h-40 overflow-y-auto pr-1">
+                              {r.imageUrls.map((src, i) => (
+                                <ImageZoom key={i}>
+                                  <img src={src} alt={`old-${i}`} className="w-16 h-16 object-cover rounded border" />
+                                </ImageZoom>
+                              ))}
+                            </div>
+                          )}
                           {selectedPreviews.length > 0 && (
                             <div className="mt-2 flex gap-2 flex-wrap max-h-40 overflow-y-auto pr-1">
                               {selectedPreviews.map((src, i) => (

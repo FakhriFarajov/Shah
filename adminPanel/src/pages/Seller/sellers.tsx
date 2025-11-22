@@ -11,6 +11,7 @@ import { deleteSellerProfile, getPaginatedSellerProfiles, getSellerProfile } fro
 import { getCountries } from "@/features/profile/Country/country.service";
 import { useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import Spinner from "@/components/custom/Spinner";
 
 export default function SellersPage() {
     const navigate = useNavigate();
@@ -119,6 +120,11 @@ export default function SellersPage() {
 
     return (
         <>
+            {loading && (
+                <div className="fixed inset-0 bg-white bg-opacity-100 flex items-center justify-center z-50">
+                    <Spinner />
+                </div>
+            )}
             <Navbar />
             <div className="min-h-screen flex">
                 <AppSidebar />

@@ -12,10 +12,3 @@ export interface RegisterResponse {
     message?: string;
     error?: string;
 }
-
-export default interface ForgetPasswordRequest {
-    userId: string; 
-    oldPassword: string;
-    newPassword: string;
-    confirmNewPassword: string;
-}

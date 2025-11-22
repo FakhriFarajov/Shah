@@ -104,17 +104,65 @@ public static class ApplicationServiceExtensions
         });
 
                 
-        services.AddAuthorization(options =>
+services.AddAuthorization(options =>
+{
+    options.AddPolicy("BuyerPolicy", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireAssertion(ctx =>
         {
-            options.AddPolicy("BuyerPolicy", policy =>
-                policy.RequireRole(Role.Buyer.ToString()));
+            // Direct IsInRole check (covers ClaimTypes.Role mapped by framework)
+            if (ctx.User.IsInRole("Buyer")) return true;
 
-            options.AddPolicy("SellerPolicy", policy =>
-                policy.RequireRole(Role.Seller.ToString()));
+            var claims = ctx.User.Claims;
+            // Accept multiple common role claim types
+            var roleClaims = claims
+                .Where(c => c.Type == "role" || c.Type == "roles" || c.Type == System.Security.Claims.ClaimTypes.Role)
+                .SelectMany(c => c.Value.Split(',', ' ', ';'))
+                .Where(v => !string.IsNullOrWhiteSpace(v))
+                .Select(v => v.Trim());
 
-            options.AddPolicy("AdminPolicy", policy =>
-                policy.RequireRole(Role.Admin.ToString()));
+            return roleClaims.Any(v => string.Equals(v, "Buyer", StringComparison.OrdinalIgnoreCase));
         });
+    });
+
+    options.AddPolicy("SellerPolicy", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireAssertion(ctx =>
+        {
+            if (ctx.User.IsInRole("Seller")) return true;
+
+            var claims = ctx.User.Claims;
+            var roleClaims = claims
+                .Where(c => c.Type == "role" || c.Type == "roles" || c.Type == System.Security.Claims.ClaimTypes.Role)
+                .SelectMany(c => c.Value.Split(',', ' ', ';'))
+                .Where(v => !string.IsNullOrWhiteSpace(v))
+                .Select(v => v.Trim());
+
+            return roleClaims.Any(v => string.Equals(v, "Seller", StringComparison.OrdinalIgnoreCase));
+        });
+    });
+
+    options.AddPolicy("AdminPolicy", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireAssertion(ctx =>
+        {
+            if (ctx.User.IsInRole("Admin")) return true;
+
+            var claims = ctx.User.Claims;
+            var roleClaims = claims
+                .Where(c => c.Type == "role" || c.Type == "roles" || c.Type == System.Security.Claims.ClaimTypes.Role)
+                .SelectMany(c => c.Value.Split(',', ' ', ';'))
+                .Where(v => !string.IsNullOrWhiteSpace(v))
+                .Select(v => v.Trim());
+
+            return roleClaims.Any(v => string.Equals(v, "Admin", StringComparison.OrdinalIgnoreCase));
+        });
+    });
+});
+
 
 
             services.AddCors(options =>

@@ -31,7 +31,7 @@ export interface Country {
   name: string;
 }
 
-export interface ForgetPasswordRequest {
+export interface ChangePasswordRequest {
   userId: string;
   oldPassword: string;
   newPassword: string;

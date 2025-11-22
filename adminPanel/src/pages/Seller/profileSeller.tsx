@@ -16,7 +16,7 @@ import { tokenStorage } from "@/shared";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router";
 import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
-import { uploadImage, getProfileImage } from "@/shared/utils/imagePost";
+import { uploadImage, getImage } from "@/shared/utils/imagePost";
 import { AppSidebar } from "@/components/custom/sidebar";
 import { useSearchParams } from "react-router-dom";
 import { Switch } from "@/components/ui/switch";
@@ -24,7 +24,7 @@ import { Switch } from "@/components/ui/switch";
 
 export default function ProfileSeller() {
     const [searchParams] = useSearchParams();
-    const sellerIdFromUrl = searchParams.get("sellerId");
+    const sellerIdFromUrl: any = searchParams.get("sellerId");
     const [editedTaxId, setEditedTaxId] = useState<number | "">("");
     const [taxes, setTaxes] = useState<{ id: number; name: string; RegexPattern: string }[]>([]);
     const [editedTaxNumber, setEditedTaxNumber] = useState<string>("");
@@ -73,6 +73,7 @@ export default function ProfileSeller() {
 
     async function fetchSellerProfile() {
         try {
+            setLoading(true);
             const profile = await apiCallWithManualRefresh(() => getSellerProfile(sellerIdFromUrl));
             setIsVerified(profile?.isVerified || false);
             if (!profile) {
@@ -88,6 +89,9 @@ export default function ProfileSeller() {
             }
         } catch (err) {
             toast.error("Failed to fetch seller profile.");
+        }
+        finally {
+            setLoading(false);
         }
     }
 
@@ -147,7 +151,7 @@ export default function ProfileSeller() {
             let storeLogoUrl = null;
             if (seller?.storeImageFile) {
                 objectName = await uploadImage(seller.storeImageFile as File);
-                storeLogoUrl = await getProfileImage(objectName);
+                storeLogoUrl = await getImage(objectName);
                 payload.storeLogo = objectName;
             }
 
@@ -232,7 +236,7 @@ export default function ProfileSeller() {
     return (
         <>
             {loading && (
-                <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "rgba(255,255,255,0.5)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div className="fixed inset-0 bg-white bg-opacity-100 flex items-center justify-center z-50">
                     <Spinner />
                 </div>
             )}

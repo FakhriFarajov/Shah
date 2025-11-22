@@ -57,12 +57,14 @@ public class AccountController : ControllerBase
     }
     
     [Authorize(Policy = "BuyerPolicy")] //We need to send a Bearer token in the header to access this endpoint
-    [HttpPost("ForgotPassword")]
-    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDTO request)
+    [HttpPost("ChangePassword")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDTO request)
     {
-        var result = await _accountService.ForgotPasswordAsync(request);
+        var result = await _accountService.ChangePassword(request);
         return Ok(result);
     }
+    
+    
     
     [HttpPost("forgot-password")]
     [AllowAnonymous]

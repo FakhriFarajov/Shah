@@ -1,6 +1,6 @@
 namespace ShahAuthApi.Core.DTOs.SellerDtos.Request;
 
-public record ForgotPasswordRequestDTO
+public record ChangePassword
 {
     public string userId { get; set; }
     public string OldPassword { get; set; }

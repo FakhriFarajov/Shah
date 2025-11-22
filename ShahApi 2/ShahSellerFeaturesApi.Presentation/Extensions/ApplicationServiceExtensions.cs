@@ -32,7 +32,9 @@ public static class ApplicationServiceExtensions
         services.AddScoped<TaxService>();
         services.AddScoped<ImageService>();
         services.AddScoped<ISellerOrderService, SellerOrderService>();
+        services.AddScoped<ISellerStatsService, SellerStatsService>();
         services.AddScoped<IWarehouseService, WarehouseService>();
+        
         
         
         services.AddAutoMapper(ops => ops.AddProfile(typeof(MappingSeller)), Assembly.GetExecutingAssembly());

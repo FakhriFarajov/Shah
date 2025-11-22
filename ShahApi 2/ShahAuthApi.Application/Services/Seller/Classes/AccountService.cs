@@ -130,7 +130,7 @@ public class AccountService : IAccountService
         return Result.Success("Email confirmed");
     }
 
-    public async Task<Result> ForgotPasswordAsync(ForgotPasswordRequestDTO request)
+    public async Task<Result> ChangePassword(ChangePassword request)
     {
         var user = await _context.Users.FindAsync(request.userId);
         if (user == null)

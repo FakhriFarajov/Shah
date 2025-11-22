@@ -13,7 +13,7 @@ export interface RegisterResponse {
     error?: string;
 }
 
-export default interface ForgetPasswordRequest {
+export default interface ChangePasswordRequest {
     userId: string; 
     oldPassword: string;
     newPassword: string;

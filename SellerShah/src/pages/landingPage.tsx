@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
 import NavBar from "../components/custom/Navbar/navbar";
 import { Card, CardTitle, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -63,8 +64,18 @@ export default function LandingPage() {
     return (
         <>
             <NavBar />
-            <div className="relative bg-gradient-to-br from-[#e3f2fd] to-[#bbdefb] min-h-[600px] flex flex-col md:flex-row items-center justify-center px-8 py-20 gap-12 overflow-hidden">
-                <div className="flex-1 flex flex-col justify-center items-start max-w-2xl z-10">
+            <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="relative bg-gradient-to-br from-[#e3f2fd] to-[#bbdefb] min-h-[600px] flex flex-col md:flex-row items-center justify-center px-8 py-20 gap-12 overflow-hidden"
+            >
+                <motion.div
+                    initial={{ opacity: 0, x: -40 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+                    className="flex-1 flex flex-col justify-center items-start max-w-2xl z-10"
+                >
                     <h1 className="text-5xl md:text-6xl font-black text-[#0d47a1] mb-8 leading-tight drop-shadow-lg">
                         <span className="block">Expand Beyond Borders</span>
                         <span className="text-[#1976d2] block mt-2">Grow Your Brand Globally</span>
@@ -78,8 +89,13 @@ export default function LandingPage() {
                     >
                         Get Started Now
                     </Button>
-                </div>
-                <div className=" flex flex-col items-center z-10">
+                </motion.div>
+                <motion.div
+                    initial={{ opacity: 0, x: 40 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
+                    className=" flex flex-col items-center z-10"
+                >
                     <div className="rounded-3xl overflow-hidden shadow-2xl w-full max-w-lg mb-6 border-4 border-[#1976d2] bg-white/80 mt-10">
                         <img
                             src="src/assets/images/man.png"
@@ -100,11 +116,11 @@ export default function LandingPage() {
                             />
                         ))}
                     </div>
-                </div>
+                </motion.div>
                 {/* Decorative shapes */}
                 <div className="absolute top-0 left-0 w-64 h-64 bg-[#1976d2]/20 rounded-full blur-3xl -z-10" />
                 <div className="absolute bottom-0 right-0 w-80 h-80 bg-[#42a5f5]/20 rounded-full blur-3xl -z-10" />
-            </div>
+            </motion.div>
 
             {/* Unique Features Section */}
             <section className="bg-[#f5faff] py-16 px-4">
@@ -131,20 +147,38 @@ export default function LandingPage() {
             </section>
 
             {/* Animated Stats Section */}
-            <section className="bg-gradient-to-r from-[#21213a] to-[#3949ab] py-20 px-4 text-white text-center">
+            <motion.section
+                className="bg-gradient-to-r from-[#21213a] to-[#3949ab] py-20 px-4 text-white text-center"
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+            >
                 <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-14">
-                    <div className="text-left">
+                    <motion.div
+                        className="text-left"
+                        initial={{ opacity: 0, x: -40 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+                    >
                         <h2 className="text-4xl md:text-5xl font-black mb-6 drop-shadow">Shah by the Numbers</h2>
                         <p className="text-lg text-[#bbdefb] font-medium">Join a thriving community of sellers and buyers worldwide.</p>
-                    </div>
-                    <div className="flex flex-col items-center">
+                    </motion.div>
+                    <motion.div
+                        className="flex flex-col items-center"
+                        initial={{ opacity: 0, x: 40 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
+                    >
                         <span className="text-7xl md:text-8xl font-extrabold drop-shadow-lg">
                             {animatedUsers}
                         </span>
                         <span className="text-lg mt-3 text-[#bbdefb]">active users per month</span>
-                    </div>
+                    </motion.div>
                 </div>
-            </section>
+            </motion.section>
 
             {/* Commission Highlight Section */}
             <section className="bg-[#e3f2fd] py-14 px-4">

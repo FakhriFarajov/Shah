@@ -11,8 +11,7 @@ import ImageCropper from "@/components/ui/image-crop"; // Import the ImageCroppe
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { MdAccountCircle } from "react-icons/md";
 import { toast } from "sonner";
-import { uploadImage, getProfileImage } from "@/shared/utils/imagePost";
-import { forgotPassword } from "@/features/account/services/register.service";
+import { uploadImage, getImage } from "@/shared/utils/imagePost";
 import { getCountries } from "@/features/profile/Country/country.service";
 import Spinner from "@/components/custom/Spinner";
 import { apiCallWithManualRefresh } from '@/shared/apiWithManualRefresh';
@@ -22,7 +21,7 @@ import { useSearchParams } from "react-router-dom";
 
 export default function AccountPage() {
   const [searchParams] = useSearchParams();
-  const buyerIdFromUrl = searchParams.get("buyerId");
+  const buyerIdFromUrl: any  = searchParams.get("buyerId");
   const [countryCode, setCountryCode] = useState<number | "">("");
   const [addressCountryCode, setAddressCountryCode] = useState<number | "">("");
   const [editProfileMode, setEditProfileMode] = useState(false);
@@ -51,15 +50,7 @@ export default function AccountPage() {
   const [adding, setAdding] = useState(false);
   const [errorMessages] = useState<string[]>([]);
   const [activePage] = useState<"profileAddresses" | "history" | "notifications" | "reviews" | "faq">("profileAddresses");
-  // Change password modal state
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [addressAddingMode, setAddressAddingMode] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [countries, setCountries] = useState<{ id: number; name: string; code: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const navigator = useNavigate();
@@ -166,47 +157,7 @@ export default function AccountPage() {
     setLoading(false);
   };
 
-  const handleChangePassword = async () => {
-    setLoading(true);
-    if (newPassword !== confirmPassword) {
-      toast.error("New password and confirmation do not match");
-      setLoading(false);
-      return;
-    }
 
-    try {
-      var requestData = { userId: buyer.userId, oldPassword: currentPassword, newPassword: newPassword, confirmNewPassword: confirmPassword };
-      if (currentPassword.trim() === "") {
-        toast.error("Current password cannot be empty");
-        return;
-      }
-      if (newPassword.trim() === "") {
-        toast.error("New password cannot be empty");
-        return;
-      }
-      if (confirmPassword.trim() === "") {
-        toast.error("Confirm password cannot be empty");
-        return;
-      }
-      var result = await apiCallWithManualRefresh(() => forgotPassword(requestData));
-      if (result.isSuccess) {
-        toast.success("Password changed successfully");
-        setShowPasswordModal(false);
-      } else {
-        toast.error(result.message || "Failed to change password");
-      }
-    } catch (error: any) {
-      toast.error("Failed to change password", error);
-    }
-    finally {
-      setLoading(false);
-    }
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
-    setShowPasswordModal(false);
-    setEditProfileMode(false);
-  }
 
   // Save handler for profile and addresses
   const handleSaveProfile = async () => {
@@ -224,7 +175,7 @@ export default function AccountPage() {
       let imageProfileUrl = null;
       if (buyer.ImageFile) {
         objectName = await uploadImage(buyer.ImageFile);
-        imageProfileUrl = await getProfileImage(objectName);
+        imageProfileUrl = await getImage(objectName);
         payload.imageProfile = objectName;
       }
       const result = await apiCallWithManualRefresh(() => editBuyerProfile(buyer.id, payload));
@@ -273,11 +224,11 @@ export default function AccountPage() {
 
   return (
     <>
-      {loading && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(255,255,255,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Spinner />
-        </div>
-      )}
+            {loading && (
+                <div className="fixed inset-0 bg-white bg-opacity-100 flex items-center justify-center z-50">
+                    <Spinner />
+                </div>
+            )}
       <Navbar />
       <div className="flex min-h-screen bg-gray-50">
         <AppSidebar />
@@ -462,9 +413,6 @@ export default function AccountPage() {
                 <div className="flex justify-end gap-2 mt-4">
                   {editProfileMode ? (
                     <>
-                      <Button variant="outline" onClick={() => setShowPasswordModal(true)}>
-                        Change Password
-                      </Button>
                       <Button variant="outline" onClick={() => setEditProfileMode(false)}>
                         Cancel
                       </Button>
@@ -701,80 +649,6 @@ export default function AccountPage() {
                 </div>
               </CardContent>
             </Card>
-          )}
-          {/* Change Password Modal */}
-          {showPasswordModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-              <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-                <h2 className="text-lg font-bold mb-4">Change Password</h2>
-                <div className="mb-3">
-                  <Label>Current Password</Label>
-                  <div className="relative">
-                    <Input
-                      type={currentPassword ? "text" : "password"}
-                      value={currentPassword}
-                      onChange={e => setCurrentPassword(e.target.value)}
-                      placeholder="*********"
-                    />
-                    <button
-                      type="button"
-                      className="absolute right-2 top-2 text-gray-500"
-                      onClick={() => setShowCurrentPassword((v) => !v)}
-                      aria-label={showCurrentPassword ? ("Hide password") : ("Show password")}
-                    >
-                      {showCurrentPassword ? (
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z" /><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" /></svg>
-                      ) : (
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z" /><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" /><line x1="4" y1="4" x2="20" y2="20" stroke="currentColor" strokeWidth="2" /></svg>
-                      )}
-                    </button>
-                  </div>
-                </div>
-                <div className="mb-3">
-                  <Label>New Password</Label>
-                  <div className="relative">
-                    <Input type={showNewPassword ? "text" : "password"} value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="*********" />
-                    <button
-                      type="button"
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
-                      onClick={() => setShowNewPassword((v) => !v)}
-                      tabIndex={-1}
-                      aria-label={showNewPassword ? ("Hide password") : ("Show password")}
-                    >
-                      {showNewPassword ? (
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z" /><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" /></svg>
-                      ) : (
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z" /><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" /><line x1="4" y1="4" x2="20" y2="20" stroke="currentColor" strokeWidth="2" /></svg>
-                      )}
-                    </button>
-                  </div>
-                </div>
-                <div className="mb-3">
-                  <Label>Confirm New Password</Label>
-                  <div className="relative">
-                    <Input type={showConfirmPassword ? "text" : "password"} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="*********" />
-                    <button
-                      type="button"
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
-                      onClick={() => setShowConfirmPassword((v) => !v)}
-                      tabIndex={-1}
-                      aria-label={showConfirmPassword ? ("Hide password") : ("Show password")}
-                    >
-                      {showConfirmPassword ? (
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z" /><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" /></svg>
-                      ) : (
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z" /><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" /><line x1="4" y1="4" x2="20" y2="20" stroke="currentColor" strokeWidth="2" /></svg>
-                      )}
-                    </button>
-                  </div>
-
-                </div>
-                <div className="flex justify-end gap-2 mt-4">
-                  <Button variant="outline" onClick={() => setShowPasswordModal(false)}>Cancel</Button>
-                  <Button onClick={handleChangePassword}>Save</Button>
-                </div>
-              </div>
-            </div>
           )}
         </main>
       </div>

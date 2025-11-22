@@ -46,7 +46,7 @@ export default function CategoriesPage() {
 
     useEffect(() => {
         async function fetchCategories() {
-            const categories = await getCategoriesTree();
+            const categories:any = await getCategoriesTree();
             setCategories(categories);
         }
 
