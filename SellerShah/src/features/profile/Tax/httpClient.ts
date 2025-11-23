@@ -16,19 +16,24 @@ authHttp.interceptors.request.use((config) => {
   const token = tokenStorage.get();
   if (token) {
     config.headers = config.headers ?? {};
-    (config.headers as Record<string, string>)[
-      "Authorization"
-    ] = `Bearer ${token}`;
+    (config.headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
   }
   return config;
 });
 
+// Handle API responses
 const authResponseMiddleware = createResponseMiddleware({
   onSuccess: (response) => {
     console.log("Auth API Success:", response);
   },
   onError: (response) => {
-    // No automatic token removal or refresh here
+      if (
+        response.innerStatusCode === 401 &&
+        typeof response.message === 'string' &&
+        (/expired|invalid/i.test(response.message))
+      ) {
+        tokenStorage.remove();
+      }
   },
   onStatusCodeMismatch: (externalStatus, internalStatus) => {
     console.warn(
@@ -41,38 +46,23 @@ export const authHttpTyped = {
   async get<T>(url: string, config?: any): Promise<TypedResult<T>> {
     try {
       const response = await authHttp.get(url, config);
-
-      return authResponseMiddleware.processResponse<T>(
-        response.data as ApiResponse<T>
-      );
+      return authResponseMiddleware.processResponse<T>(response.data as ApiResponse<T>);
     } catch (error: any) {
       if (error.response) {
-        return authResponseMiddleware.processResponse<T>(
-          error.response.data as ApiResponse<T>
-        );
+        return authResponseMiddleware.processResponse<T>(error.response.data as ApiResponse<T>);
       }
       return TypedResult.error<T>(error.message || "Network error", 0);
     }
   },
 
-  async post<T>(
-    url: string,
-    data?: any,
-    config?: any
-  ): Promise<TypedResult<T>> {
+  async post<T>(url: string, data?: any, config?: any): Promise<TypedResult<T>> {
     try {
       const response = await authHttp.post(url, data, config);
-
-      return authResponseMiddleware.processResponse<T>(
-        response.data as ApiResponse<T>
-      );
+      return authResponseMiddleware.processResponse<T>(response.data as ApiResponse<T>);
     } catch (error: any) {
       if (error.response) {
-        return authResponseMiddleware.processResponse<T>(
-          error.response.data as ApiResponse<T>
-        );
+        return authResponseMiddleware.processResponse<T>(error.response.data as ApiResponse<T>);
       }
-
       return TypedResult.error<T>(error.message || "Network error", 0);
     }
   },
@@ -80,14 +70,10 @@ export const authHttpTyped = {
   async put<T>(url: string, data?: any, config?: any): Promise<TypedResult<T>> {
     try {
       const response = await authHttp.put(url, data, config);
-      return authResponseMiddleware.processResponse<T>(
-        response.data as ApiResponse<T>
-      );
+      return authResponseMiddleware.processResponse<T>(response.data as ApiResponse<T>);
     } catch (error: any) {
       if (error.response) {
-        return authResponseMiddleware.processResponse<T>(
-          error.response.data as ApiResponse<T>
-        );
+        return authResponseMiddleware.processResponse<T>(error.response.data as ApiResponse<T>);
       }
       return TypedResult.error<T>(error.message || "Network error", 0);
     }
@@ -96,14 +82,10 @@ export const authHttpTyped = {
   async delete<T>(url: string, config?: any): Promise<TypedResult<T>> {
     try {
       const response = await authHttp.delete(url, config);
-      return authResponseMiddleware.processResponse<T>(
-        response.data as ApiResponse<T>
-      );
+      return authResponseMiddleware.processResponse<T>(response.data as ApiResponse<T>);
     } catch (error: any) {
       if (error.response) {
-        return authResponseMiddleware.processResponse<T>(
-          error.response.data as ApiResponse<T>
-        );
+        return authResponseMiddleware.processResponse<T>(error.response.data as ApiResponse<T>);
       }
       return TypedResult.error<T>(error.message || "Network error", 0);
     }

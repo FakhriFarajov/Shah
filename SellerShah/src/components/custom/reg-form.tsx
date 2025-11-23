@@ -476,7 +476,7 @@ export default function RegForm({
                           value={storeContactPhone}
                           onChange={(e) => setStoreContactPhone(e.target.value)}
                           required
-                          placeholder={("e.g. +994501234567")}
+                          placeholder={("e.g. 0555847744")}
                           className="pr-8"
                         />
                         <PhoneCall className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500" />
@@ -615,7 +615,7 @@ export default function RegForm({
                           <img
                             src={`https://flagsapi.com/${countries.find(c => c.id.toString() === storeCountryCode)?.code}/flat/32.png`}
                             alt={countries.find(c => c.id.toString() === storeCountryCode)?.code}
-                            style={{ width: 32, height: 22 }}
+                            style={{ width: 32, height: 27 }}
                           />
                           <span style={{ fontSize: 16 }}>{countries.find(c => c.id.toString() === storeCountryCode)?.name}</span>
                         </div>

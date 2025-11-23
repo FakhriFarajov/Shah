@@ -171,8 +171,13 @@ export default function OrdersPage() {
 				setPendingOrderId(null);
 				setSelectedOrderItemIds([]);
 				toast.success("Order items assigned to warehouse");
-			} catch (err) {
-				toast.error("Failed to assign order items to warehouse");
+			} catch (err: any) {
+				console.log(err);
+				if (err?.response?.data?.message && typeof err.response.data.message === 'string' && err.response.data.message.toLowerCase().includes('capacity')) {
+					toast.error("Warehouse has no capacity left. Please select another warehouse.");
+				} else {
+					toast.error("Failed to assign order items to warehouse");
+				}
 			}
 		} else {
 			toast.error("Please select at least one item to send.");

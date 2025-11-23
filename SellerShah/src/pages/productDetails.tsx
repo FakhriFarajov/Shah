@@ -59,7 +59,7 @@ export default function ProductDetailsPage() {
         setLoading(false);
         setDetails(result.data);
       } catch (error) {
-        if(error?.response?.status === 401) {
+        if(error?.status === 401) {
           toast.info("You have to login in order to see product details.");
           navigator("/login");
         }

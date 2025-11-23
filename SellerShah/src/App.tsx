@@ -12,6 +12,7 @@ import { Toaster } from 'sonner';
 import ProductDetailsPage from './pages/productDetails'
 import AuthProvider from './features/auth/contexts/AuthProvider'
 import ProductsEditOrAddPage from './pages/productEditPage'
+import EmailConfirmationPage from './pages/email-confirmation'
 
 
 function App() {
@@ -32,6 +33,7 @@ function App() {
             <Route path='/product-details' element={<ProductDetailsPage />} />
             <Route path='/orders' element={<OrdersPage />} />
             <Route path='/report' element={<ReportPage />} />
+            <Route path='/email-confirmation' element={<EmailConfirmationPage />} />
           </Routes>
 
         </BrowserRouter>

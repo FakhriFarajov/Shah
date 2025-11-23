@@ -1,0 +1,296 @@
+import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Star, Heart } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import type { productCardDTO } from "@/features/services/DTOs/interfaces";
+import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
+import { addToCart, addToFavourites, removeFromCart, removeFromFavourites, getProductDetailsById } from "@/features/services/product/products.service";
+import { toast } from "sonner";
+import { useEffect, useState } from "react";
+
+
+export default function ProductCard({ product }: { product: productCardDTO }) {
+  const navigator = useNavigate();
+
+  const [isFavorite, setIsFavorite] = useState<boolean>(product.isFavorite || false);
+  const [isInCart, setIsInCart] = useState<boolean>(product.isInCart || false);
+  const [variantStock, setVariantStock] = useState<number | null>(null);
+  // Fetch product details to determine stock for the representative variant
+  useEffect(() => {
+    let cancelled = false;
+    async function loadDetails() {
+      try {
+        const res = await apiCallWithManualRefresh(() => getProductDetailsById(product.id));
+        const details: any = (res as any)?.data ?? res;
+        // Try to find the representative variant and take a stock-like field
+        const variants: any[] = Array.isArray(details?.variants) ? details.variants : [];
+        const variant = variants.find(v => v.id === product.representativeVariantId || v.productVariantId === product.representativeVariantId) || variants[0];
+        const stockLike = variant?.availableQuantity ?? variant?.stock ?? variant?.quantity ?? details?.availableQuantity ?? details?.stock ?? null;
+        if (!cancelled) setVariantStock(typeof stockLike === 'number' ? stockLike : null);
+      } catch (e) {
+        // Silent fail; keep fallback behavior
+        if (!cancelled) setVariantStock(null);
+      }
+    }
+    loadDetails();
+    return () => { cancelled = true; };
+  }, [product.id, product.representativeVariantId]);
+
+  // Consider multiple possible inventory fields from backend with details override
+  const derivedOutOfStockFromCard =
+    (product as any)?.stock === 0 ||
+    (product as any)?.availableQuantity === 0 ||
+    (product as any)?.inStock === false;
+  const outOfStock: boolean = (variantStock !== null) ? variantStock <= 0 : derivedOutOfStockFromCard;
+
+
+  const handleFavAdd = async () => {
+    const data = {
+      productId: product.representativeVariantId,
+    };
+    try {
+  await apiCallWithManualRefresh(() => addToFavourites(data.productId));
+  toast.success("Favourites updated");
+  setIsFavorite(true);
+  // Update favouritesCount in localStorage and dispatch event
+  const prev = Number(localStorage.getItem('favouritesCount') || '0');
+  localStorage.setItem('favouritesCount', String(prev + 1));
+  try { window.dispatchEvent(new CustomEvent('favourites:updated', { detail: { count: 1 } })); } catch (e) { }
+    }
+    catch (error: any) {
+      // Network/axios specific handling
+      if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
+        toast.error('Network error: could not reach server. Check your connection or backend.');
+      } else if (error.response) {
+        if (error.response.status === 401) {
+          toast.info(`You have to login in order to manage favourites.`);
+          navigator('/login');
+        } else {
+          toast.error('Failed to update favourites');
+        }
+      }
+      return;
+    }
+  };
+
+  const handleFavRemove = async () => {
+    const data = {
+      productId: product.representativeVariantId,
+    };
+    try {
+  await apiCallWithManualRefresh(() => removeFromFavourites(data.productId));
+  setIsFavorite(false);
+  toast.success("Favourites updated");
+  // Update favouritesCount in localStorage and dispatch event
+  const prev = Number(localStorage.getItem('favouritesCount') || '0');
+  localStorage.setItem('favouritesCount', String(Math.max(0, prev - 1)));
+  try { window.dispatchEvent(new CustomEvent('favourites:updated', { detail: { count: -1 } })); } catch (e) { }
+    }
+    catch (error: any) {
+      // Network/axios specific handling
+      if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
+        toast.error('Network error: could not reach server. Check your connection or backend.');
+      } else if (error.response) {
+        toast.error(`Server error: ${error.response.status} ${error.response.statusText}`);
+      } else {
+        toast.error('Failed to update favourites');
+      }
+      return;
+    }
+  };
+
+  const handleCartAdd = async () => {
+    const data = {
+      productId: product.representativeVariantId,
+    };
+    try {
+  await apiCallWithManualRefresh(() => addToCart(data.productId));
+  toast.success("Cart updated");
+  setIsInCart(true);
+  // Update cartCount in localStorage and dispatch event
+  const prev = Number(localStorage.getItem('cartCount') || '0');
+  localStorage.setItem('cartCount', String(prev + 1));
+  try { window.dispatchEvent(new CustomEvent('cart:count-delta', { detail: { delta: 1 } })); } catch (e) { }
+    }
+    catch (error: any) {
+      // Network/axios specific handling
+      if (error.response.code === 'ERR_NETWORK' || error.message === 'Network Error') {
+        toast.error('Network error: could not reach server. Check your connection or backend.');
+      } else if (error.response) {
+        if (error.response.status === 401) {
+          toast.info(`You have to login in order to manage cart.`);
+          navigator('/login');
+        } else {
+          toast.error(`Server error: ${error.response.status} ${error.response.statusText}`);
+        }
+      } else {
+        toast.error('Failed to update favourites');
+      }
+      return;
+    }
+  };
+
+  const handleCartRemove = async () => {
+    const data = {
+      productId: product.representativeVariantId,
+    };
+    try {
+  await apiCallWithManualRefresh(() => removeFromCart(data.productId));
+  setIsInCart(false);
+  toast.success("Cart updated");
+  // Update cartCount in localStorage and dispatch event
+  const prev = Number(localStorage.getItem('cartCount') || '0');
+  localStorage.setItem('cartCount', String(Math.max(0, prev - 1)));
+  try { window.dispatchEvent(new CustomEvent('cart:count-delta', { detail: { delta: -1 } })); } catch (e) { }
+    }
+    catch (error: any) {
+      // Network/axios specific handling
+      if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
+        toast.error('Network error: could not reach server. Check your connection or backend.');
+      } else if (error.response) {
+        toast.error(`Server error: ${error.response.status} ${error.response.statusText}`);
+      } else if (error.response.status === 401) {
+        toast.info(`You have to login in order to manage cart.`);
+        navigator('/login');
+      } else {
+        toast.error('Failed to update favourites');
+      }
+      return;
+    }
+  };
+
+
+
+  return (
+    <Card
+      className="w-full sm:max-w-sm md:max-w-xl p-0 border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition relative cursor-pointer"
+    >
+      {/* Favourite Button */}
+      <button
+        onClick={isFavorite ? handleFavRemove : handleFavAdd}
+        className="absolute top-3 right-3 z-10 p-2 rounded-full  hidden xl:block bg-white shadow hover:bg-gray-100"
+        title={isFavorite ? "Remove from Favourites" : "Add to Favourites"}
+      >
+        <Heart
+          size={18}
+          className={isFavorite ? "fill-red-500 text-red-500" : "text-gray-500"}
+        />
+      </button>
+
+      {/* Product Image */}
+      <CardHeader
+        className="p-0"
+      >
+        <div className="w-full aspect-square overflow-hidden rounded-t-xl bg-gray-200" onClick={() => {
+          navigator(`/product?id=${product.id}&productVariantId=${product.representativeVariantId}`);
+          window.location.reload();
+        }}>
+          {typeof product.discountPrice === 'number' && product.discountPrice > 0 && product.discountPrice < product.price && (
+            <div className="absolute top-3 left-3 z-10 px-3 py-1 rounded-full bg-red-600 text-white text-sm font-medium">
+              -{Math.round(((product.price - product.discountPrice) / product.price) * 100)}% OFF
+            </div>
+          )}
+          <img
+            src={product.mainImage}
+            alt={product.productTitle}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      </CardHeader>
+
+      {/* Content */}
+      <CardContent
+        className="space-y-2"
+        onClick={() =>
+          navigator(`/product?id=${product.id}&productVariantId=${product.representativeVariantId}`)
+        }
+      >
+        <h3 className="text-base font-semibold text-gray-900">
+          {product.productTitle}
+        </h3>
+        <p className="text-sm text-gray-600 line-clamp-2 min-h-[43px]">
+          {product.description}
+        </p>
+
+        {/* Category */}
+        <div className="flex flex-wrap gap-2 pt-2">
+          <Badge variant="secondary" className="bg-gray-200 text-gray-700">
+            {product.categoryName}
+          </Badge>
+        </div>
+
+        {/* Price + Stock */}
+        <div className="flex justify-between items-center pt-2">
+          {typeof product.discountPrice === 'number' && product.discountPrice > 0 && product.discountPrice < product.price ? (
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold text-red-600">{product.discountPrice}$</span>
+              <span className="text-sm line-through text-gray-500">{product.price}$</span>
+              <span className="text-xs font-semibold text-green-600 bg-green-100 px-2 py-1 rounded">
+                -{Math.round(100 - (product.discountPrice / product.price) * 100)}%
+              </span>
+            </div>
+          ) : (
+            <span className="text-lg font-bold text-gray-900">{product.price}$</span>
+          )}
+        </div>
+
+        {/* Rating */}
+        <div className="flex items-center gap-1">
+          {[...Array(5)].map((_, i) => (
+            <Star
+              key={i}
+              size={14}
+              className={i < Math.round(product.averageRating) ? "text-yellow-400" : "text-gray-300"}
+              fill={i < Math.round(product.averageRating) ? "currentColor" : "none"}
+            />
+          ))}
+          <span className="text-xs text-gray-500 ml-2">
+            ({product.reviewsCount})
+          </span>
+        </div>
+      </CardContent>
+
+      {/* Footer */}
+      <CardFooter className="p-4 flex gap-2 items-center border-t border-gray-200">
+        {outOfStock ? (
+          <div className="flex-1 px-3 py-2 rounded-xl flex justify-center text-sm font-medium bg-gray-200 text-gray-600">
+            Out of stock
+          </div>
+        ) : (
+          <Button
+            onClick={(e) => {
+              e.stopPropagation();
+              isInCart ? handleCartRemove() : handleCartAdd();
+            }}
+            className={`flex-1 px-3 py-2 rounded-xl flex justify-center text-sm font-medium text-white ${isInCart ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}
+            title={isInCart ? "Go to Cart" : "Add to Cart"}
+          >
+            {isInCart ? (
+              <div className="flex items-center">
+                <ShoppingCart size={16} className="mr-1" />
+                Already in Cart
+              </div>
+            ) : (
+              <>
+                <ShoppingCart size={16} className="mr-1" />
+                Add to Cart
+              </>
+            )}
+          </Button>
+        )}
+        <Button
+          onClick={isFavorite ? handleFavRemove : handleFavAdd}
+          className="px-3 py-2 rounded-xl flex items-center text-sm font-medium bg-gray-100 hover:bg-gray-300 w-12 xl:w-12 flex xl:hidden"
+          title={isFavorite ? "Remove from Favourites" : "Add to Favourites"}
+        >
+          <Heart
+            size={16}
+            className={isFavorite ? "fill-red-500 text-red-500" : "text-gray-500"}
+          />
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+}

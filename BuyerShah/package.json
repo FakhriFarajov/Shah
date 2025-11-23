@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-loader-spinner": "^6.1.6",
+    "react-redux": "^9.2.0"
+  },
+  "devDependencies": {
+    "vite": "^7.1.3"
+  }
+}
