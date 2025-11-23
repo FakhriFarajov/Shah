@@ -9,6 +9,8 @@ import { AppSidebar } from "../components/custom/sidebar";
 import { getAllCategoriesWithAttributesAndValuesAsync, getCategoriesTree, syncCategories, deleteCategoryAsync } from "@/features/profile/Category/category.service";
 import type { SyncCategoryItemDto, SyncAttributeItemDto } from "@/features/profile/DTOs/admin.interfaces";
 import { toast } from "sonner";
+import { apiCallWithManualRefresh } from "@/shared/apiWithManualRefresh";
+import Spinner from "@/components/custom/Spinner";
 
 function buildTree(categories: SyncCategoryItemDto[]): any[] {
     const map = new Map<string, any>();
@@ -43,20 +45,9 @@ function generateGuid() {
 }
 
 export default function CategoriesPage() {
-
-    useEffect(() => {
-        async function fetchCategories() {
-            const categories:any = await getCategoriesTree();
-            setCategories(categories);
-        }
-
-        fetchCategories();
-    }, []);
-
-
-
     const [categories, setCategories] = useState<SyncCategoryItemDto[]>([]);
     const [isOpen, setIsOpen] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [name, setName] = useState("");
     const [parentId, setParentId] = useState<string | null>(null);
 
@@ -76,12 +67,28 @@ export default function CategoriesPage() {
     const [deletedValueIds, setDeletedValueIds] = useState<string[]>([]);
 
     async function getAttributesWithValues() {
-        const categoriesWithAttributes = await getAllCategoriesWithAttributesAndValuesAsync();
+        const categoriesWithAttributes = await apiCallWithManualRefresh(() => getAllCategoriesWithAttributesAndValuesAsync());
         setCategories(categoriesWithAttributes);
     }
 
     useEffect(() => {
-        getAttributesWithValues();
+        async function fetchCategories() {
+            setLoading(true);
+            const categories:any = await apiCallWithManualRefresh(() => getCategoriesTree());
+            setCategories(categories);
+            setLoading(false);
+        }
+
+        fetchCategories();
+    }, []);
+
+    useEffect(() => {
+        async function fetchAttrs() {
+            setLoading(true);
+            await getAttributesWithValues();
+            setLoading(false);
+        }
+        fetchAttrs();
     }, []);
 
     // When opening the modal, use the selected category's attributes for display
@@ -182,7 +189,7 @@ export default function CategoriesPage() {
                     })
                 }
             ];
-            await syncCategories(payload);
+            await apiCallWithManualRefresh(() => syncCategories(payload));
             setIsOpen(false);
             toast.success("Category saved successfully");
             getAttributesWithValues();
@@ -205,6 +212,12 @@ export default function CategoriesPage() {
             toast.error("Failed to delete category");
         }
     }
+
+    if (loading) return (
+        <div className="fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center z-50">
+            <Spinner />
+        </div>
+    );
 
     return (
         <>

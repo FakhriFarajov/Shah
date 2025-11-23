@@ -10,25 +10,5 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <!-- Whelp widget -->
-    <script src="https://widget.whelp.co/app.js"></script>
-    <script type="text/javascript">
-      if (typeof window !== 'undefined' && typeof Whelp !== 'undefined') {
-        try {
-          Whelp("init", { app_id: "370159829073369e17ae0072e3e6284d" });
-        } catch (e) {
-          console.warn('Whelp init failed', e);
-        }
-      } else {
-        // If Whelp hasn't loaded yet, initialise on load
-        window.addEventListener('load', () => {
-          try {
-            // @ts-ignore
-            if (typeof Whelp !== 'undefined') Whelp("init", { app_id: "370159829073369e17ae0072e3e6284d" });
-          } catch (e) {
-            console.warn('Whelp init failed after load', e);
-          }
-        });
-      }
-    </script>
   </body>
 </html>

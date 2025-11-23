@@ -75,10 +75,6 @@ export default function AccountPage() {
         const result = await apiCallWithManualRefresh(() => getBuyerProfile(buyerIdFromUrl));
         const buyerData = result;
         setBuyer(buyerData);
-        // Check if email is confirmed
-        if (buyerData.isEmailConfirmed === false) {
-          toast.info("The buyer's email is not confirmed.");
-        }
       } catch (error) {
         extractApiErrors(error).forEach(msg => toast.error(msg));
       }

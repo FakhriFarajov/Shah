@@ -6,6 +6,7 @@ using ShahAdminFeaturesApi.Core.DTOs.Request;
 namespace ShahAdminFeaturesApi.Presentation.Controllers
 {
     [ApiController]
+    [Authorize(Policy = "AdminPolicy")]
     [Route("api/[controller]")]
     public class ProductController : ControllerBase
     {

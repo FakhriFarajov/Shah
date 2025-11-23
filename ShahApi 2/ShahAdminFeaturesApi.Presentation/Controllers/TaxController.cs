@@ -6,6 +6,7 @@ using ShahAdminFeaturesApi.Infrastructure.Contexts;
 namespace  ShahAdminFeaturesApi.Presentation.Controllers
 {
     [ApiController]
+    [Authorize(Policy = "AdminPolicy")]
     [Route("api/[controller]")]
     public class TaxController : ControllerBase
     {

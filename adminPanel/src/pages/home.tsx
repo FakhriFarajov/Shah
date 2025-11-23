@@ -17,6 +17,7 @@ import { AdaptiveTable } from "@/components/custom/adaptive-table";
 import type { AdaptiveTableColumn } from "@/components/custom/adaptive-table";
 import { getImage } from "@/shared/utils/imagePost";
 import Spinner from "@/components/custom/Spinner";
+import { toast } from "sonner";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, ChartTooltip, Legend);
 
@@ -31,10 +32,14 @@ export default function HomePage() {
             setLoading(true);
             try {
                 const result = await apiCallWithManualRefresh(() => getStats());
-                console.log("Fetched stats:", result);
                 setStats(result);
             } catch (err) {
-                setStats(null);
+                if(err.response.status === 401) {
+                    toast.error("Session expired. Please log in again.");
+                    window.location.href = "/login";
+                } else {
+                    toast.error("Failed to load statistics. Please try again later.");
+                }
             } finally {
                 setLoading(false);
             }
@@ -97,30 +102,28 @@ export default function HomePage() {
         },
     ];
 
-    if (!stats) return <div className="p-8">Failed to load stats.</div>;
-
     // Chart.js data and options
     const barData = {
         labels: [
             'Total Users',
             'Buyers',
             'Sellers',
-            ...(typeof stats.totalAdmins === 'number' ? ['Admins'] : []),
+            ...(stats && typeof stats.totalAdmins === 'number' ? ['Admins'] : []),
         ],
         datasets: [
             {
                 label: 'User Count',
                 data: [
-                    stats.totalUsers,
-                    stats.totalBuyers,
-                    stats.totalSellers,
-                    ...(typeof stats.totalAdmins === 'number' ? [stats.totalAdmins] : []),
+                    stats?.totalUsers ?? 0,
+                    stats?.totalBuyers ?? 0,
+                    stats?.totalSellers ?? 0,
+                    ...(stats && typeof stats.totalAdmins === 'number' ? [stats.totalAdmins] : []),
                 ],
                 backgroundColor: [
                     '#6366f1',
                     '#60a5fa',
                     '#a78bfa',
-                    ...(typeof stats.totalAdmins === 'number' ? ['#f59e42'] : []),
+                    ...(stats && typeof stats.totalAdmins === 'number' ? ['#f59e42'] : []),
                 ],
                 borderRadius: 8,
             },
@@ -141,7 +144,7 @@ export default function HomePage() {
 
     return (
         <>
-                    {loading && (
+            {loading && (
                 <div className="fixed inset-0 bg-white bg-opacity-100 flex items-center justify-center z-50">
                     <Spinner />
                 </div>

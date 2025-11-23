@@ -20,7 +20,6 @@ export async function apiCallWithManualRefresh<T>(requestFn: () => Promise<T>): 
           if (refreshResult.isSuccess) {
             // Retry the original request after refreshing token
             const retryRes = await requestFn();
-            // @ts-ignore
             return retryRes && typeof (retryRes as any).then !== 'function' && (retryRes as any).data !== undefined ? (retryRes as any).data : retryRes;
           }
         }

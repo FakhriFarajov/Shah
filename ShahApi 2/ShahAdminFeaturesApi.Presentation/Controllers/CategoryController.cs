@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ShahAdminFeaturesApi.Application.Services.Classes;
 using ShahAdminFeaturesApi.Core.DTOs.Request;
@@ -5,6 +6,7 @@ using ShahAdminFeaturesApi.Core.DTOs.Request;
 namespace ShahAdminFeaturesApi.Presentation.Controllers;
 
 [ApiController]
+[Authorize(Policy = "AdminPolicy")]
 [Route("api/[controller]")]
 public class CategoryController : ControllerBase
 {

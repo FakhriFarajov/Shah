@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -14,11 +15,13 @@ public class TokenManager
 {
     private readonly IConfiguration _configuration;
     private readonly ShahDbContext _context;
+    private readonly UserManager<User> _userManager;
 
-    public TokenManager(IConfiguration configuration, ShahDbContext context)
+    public TokenManager(IConfiguration configuration, ShahDbContext context, UserManager<User> userManager)
     {
         _configuration = configuration;
         _context = context;
+        _userManager = userManager;
     }
 
     public async Task<string> CreateTokenAsync(User user)

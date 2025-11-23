@@ -22,13 +22,15 @@ public class AccountService : IAccountService
     private readonly IMapper _mapper;
     private readonly IWebHostEnvironment _env;
     private readonly EmailSender _emailSender;
+    private readonly TokenManager _tokenManager;
 
-    public AccountService(ShahDbContext context, IMapper mapper, IWebHostEnvironment env, EmailSender emailSender)
+    public AccountService(ShahDbContext context, IMapper mapper, IWebHostEnvironment env, EmailSender emailSender, TokenManager tokenManager)
     {
         _context = context;
         _mapper = mapper;
         _env = env;
         _emailSender = emailSender;
+        _tokenManager = tokenManager;
     }
     
     public async Task<Result> RegisterBuyerAsync(BuyerRegisterRequestDTO request)
@@ -110,17 +112,5 @@ public class AccountService : IAccountService
     
         return Result.Success("Password updated successfully");
     }
-
-    public async Task<Result> SendPasswordResetEmailToUserAsync(string email)
-    {
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
-        if (user == null)
-            return Result.Error("User not found.", 404);
-        // Generate a secure token (for demo, use Guid)
-        var token = Guid.NewGuid().ToString();
-        // Save token to DB or cache (not implemented here)
-        var resetLink = $"https://yourdomain.com/reset-password?token={token}";
-        await _emailSender.SendPasswordResetEmailAsync(user.Email, user.Name, resetLink);
-        return Result.Success("Password reset email sent.");
-    }
+    
 }

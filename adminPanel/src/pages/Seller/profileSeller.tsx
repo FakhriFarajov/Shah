@@ -84,9 +84,6 @@ export default function ProfileSeller() {
             setSeller(profile);
             setEditedTaxId(profile.taxId || "");
             setEditedTaxNumber(profile.taxNumber || "");
-            if (profile.emailConfirmed === false) {
-                toast.info("Your email is not confirmed. Please check your inbox.");
-            }
         } catch (err) {
             toast.error("Failed to fetch seller profile.");
         }

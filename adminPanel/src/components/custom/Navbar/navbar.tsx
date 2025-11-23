@@ -10,6 +10,7 @@ import { logout } from '@/features/auth/services/auth.service';
 import { tokenStorage } from '@/shared/tokenStorage';
 import { jwtDecode } from 'jwt-decode';
 import { getCountries } from '@/features/profile/Country/country.service';
+import { apiCallWithManualRefresh } from '@/shared/apiWithManualRefresh';
 
 
 export default function Navbar() {
@@ -45,7 +46,7 @@ export default function Navbar() {
     // Update flag if language changes programmatically (e.g., from another part of the app)
     useEffect(() => {
         const fetchCountries = async () => {
-            const fetchedCountries = await getCountries();
+            const fetchedCountries = await apiCallWithManualRefresh(() => getCountries());
             let arr = Array.isArray(fetchedCountries.data)
                 ? fetchedCountries.data
                 : [];

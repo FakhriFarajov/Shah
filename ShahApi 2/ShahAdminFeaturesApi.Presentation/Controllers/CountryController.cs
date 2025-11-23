@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ShahAdminFeaturesApi.Application.Services.Classes;
 using ShahAdminFeaturesApi.Infrastructure.Contexts;

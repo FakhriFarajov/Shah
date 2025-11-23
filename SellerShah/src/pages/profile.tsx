@@ -131,25 +131,28 @@ export default function ProfileSeller() {
     }
 
     const handleSaveProfile = async () => {
+        // Helper to check for null/undefined/empty
+        const getValue = (edited: any, original: any) =>
+            edited !== undefined && edited !== null ? edited : original;
         // Prevent submit if any required field is empty
         const requiredFields = [
-            seller?.editedName || seller?.name,
-            seller?.editedSurname || seller?.surname,
-            seller?.editedEmail || seller?.email,
-            seller?.editedPhone || seller?.phone,
-            seller?.editedPassportNumber || seller?.passportNumber,
+            getValue(seller?.editedName, seller?.name),
+            getValue(seller?.editedSurname, seller?.surname),
+            getValue(seller?.editedEmail, seller?.email),
+            getValue(seller?.editedPhone, seller?.phone),
+            getValue(seller?.editedPassportNumber, seller?.passportNumber),
             countryCode || seller?.countryCitizenshipId,
-            seller?.editedStoreName || seller?.storeName,
-            seller?.editedStoreDescription || seller?.storeDescription,
-            seller?.editedStoreContactPhone || seller?.storeContactPhone,
-            seller?.editedStoreContactEmail || seller?.storeContactEmail,
+            getValue(seller?.editedStoreName, seller?.storeName),
+            getValue(seller?.editedStoreDescription, seller?.storeDescription),
+            getValue(seller?.editedStoreContactPhone, seller?.storeContactPhone),
+            getValue(seller?.editedStoreContactEmail, seller?.storeContactEmail),
             editedTaxId,
             editedTaxNumber,
             storeCountryCodeId || seller?.storeCountryCodeId,
-            seller?.editedStreet || seller?.street,
-            seller?.editedCity || seller?.city,
-            seller?.editedState || seller?.state,
-            seller?.editedPostalCode || seller?.postalCode,
+            getValue(seller?.editedStreet, seller?.street),
+            getValue(seller?.editedCity, seller?.city),
+            getValue(seller?.editedState, seller?.state),
+            getValue(seller?.editedPostalCode, seller?.postalCode),
             editedCategoryId || seller?.categoryId
         ];
         if (requiredFields.some(field => field === null || field === undefined || field === "")) {
@@ -160,23 +163,23 @@ export default function ProfileSeller() {
         try {
             if (!seller) return;
             const payload: any = {
-                name: seller?.editedName || seller?.name,
-                surname: seller?.editedSurname || seller?.surname,
-                email: seller?.editedEmail || seller?.email,
-                phone: seller?.editedPhone || seller?.phone,
-                passportNumber: seller?.editedPassportNumber || seller?.passportNumber,
+                name: getValue(seller?.editedName, seller?.name),
+                surname: getValue(seller?.editedSurname, seller?.surname),
+                email: getValue(seller?.editedEmail, seller?.email),
+                phone: getValue(seller?.editedPhone, seller?.phone),
+                passportNumber: getValue(seller?.editedPassportNumber, seller?.passportNumber),
                 countryCitizenshipId: countryCode || seller?.countryCitizenshipId,
-                storeName: seller?.editedStoreName || seller?.storeName,
-                storeDescription: seller?.editedStoreDescription || seller?.storeDescription,
-                storeContactPhone: seller?.editedStoreContactPhone || seller?.storeContactPhone,
-                storeContactEmail: seller?.editedStoreContactEmail || seller?.storeContactEmail,
-                taxId: editedTaxId || seller?.taxId,
-                taxNumber: editedTaxNumber || seller?.taxNumber,
+                storeName: getValue(seller?.editedStoreName, seller?.storeName),
+                storeDescription: getValue(seller?.editedStoreDescription, seller?.storeDescription),
+                storeContactPhone: getValue(seller?.editedStoreContactPhone, seller?.storeContactPhone),
+                storeContactEmail: getValue(seller?.editedStoreContactEmail, seller?.storeContactEmail),
+                taxId: editedTaxId,
+                taxNumber: editedTaxNumber,
                 storeCountryCodeId: storeCountryCodeId || seller?.storeCountryCodeId,
-                street: seller?.editedStreet || seller?.street,
-                city: seller?.editedCity || seller?.city,
-                state: seller?.editedState || seller?.state,
-                postalCode: seller?.editedPostalCode || seller?.postalCode,
+                street: getValue(seller?.editedStreet, seller?.street),
+                city: getValue(seller?.editedCity, seller?.city),
+                state: getValue(seller?.editedState, seller?.state),
+                postalCode: getValue(seller?.editedPostalCode, seller?.postalCode),
                 categoryId: editedCategoryId || seller?.categoryId,
             };
 

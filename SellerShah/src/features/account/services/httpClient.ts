@@ -27,9 +27,7 @@ const authResponseMiddleware = createResponseMiddleware({
     console.log("Auth API Success:", response);
   },
   onError: (response) => {
-    if (response.innerStatusCode === 401) {
-      tokenStorage.remove();
-    }
+
   },
   onStatusCodeMismatch: (externalStatus, internalStatus) => {
     console.warn(
